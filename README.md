@@ -1,4 +1,4 @@
-# ⚔️ Infinite Depths
+# ⚔️ Average Dungeon Game
 
 **Un dungeon crawler roguelite de fantasía oscura que se juega en el navegador.**
 Desciende por una mazmorra infinita, derrota a 12 jefes, combina diez elementos mágicos y construye tu propio personaje. Cada partida genera mazmorras nuevas.
