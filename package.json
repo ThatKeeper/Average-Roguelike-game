@@ -1,0 +1,11 @@
+{
+  "name": "infinite-depths",
+  "version": "1.0.0",
+  "description": "Dungeon crawler roguelite 2D en el navegador",
+  "scripts": {
+    "start": "node server.js",
+    "build": "node build.js",
+    "test": "node tests/regression.test.js && node tests/magic.test.js && node tests/progression.test.js && node tests/synergies.test.js && node tests/bosses.test.js && node tests/visual-ai.test.js && node tests/subpath.test.js"
+  },
+  "license": "MIT"
+}

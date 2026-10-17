@@ -1,0 +1,22 @@
+// ===== PARTIDA =====
+function run(wi){G={st:'play',seed:Date.now()%1e9,d:1,ov:0,kills:0};const a={str:3,dex:3,int:3,vit:3,agi:3,luk:3},w=mk(wi);a[w.sc]+=4;
+P={x:480,y:300,vx:0,vy:0,r:12,lv:1,xp:0,nx:30,pend:0,a,w,gold:0,relics:[],inv:0,dcd:0,acd:0,cd:[0,0,0,0],eq:{},bag:[],tal:{},pts:0,cb:0,gt:0,dm:1+S.pw*.06,cm:1.6,ccb:0,ls:0,bhp:0,bmp:0,bmr:0,bsp:0,barm:0,bn:0,fz:0,fl:0};
+ST();P.hp=P.mhp;P.mp=P.mmp;AL=[];TR=[];ZN=[];K={};M.d=M.r=0;E=[];PR=[];Z=[];FX=[];NM=[];shake=0;hide();genLevel();enter(0,4);music()}
+function ST(){const a=P.a;P.mhp=60+a.vit*10+P.bhp;P.mmp=30+a.int*6+P.bmp;P.spd=185*(1+.015*a.agi+P.bsp);P.as=1+.015*a.agi;P.arm=a.vit*1.5+P.barm;P.mr=3+a.int*.5+P.bmr;P.cc=Math.min(.75,P.w.crit+a.dex*.004+a.luk*.004+P.ccb);P.edm=1;P.els=0;P.ecm=0;for(const s in P.eq){const q=P.eq[s].st;P.mhp+=q.hp||0;P.mmp+=q.mp||0;P.arm+=q.arm||0;P.spd*=1+(q.spd||0);P.as+=q.as||0;P.cc=Math.min(.85,P.cc+(q.cc||0));P.edm+=q.dm||0;P.els+=q.ls||0;P.ecm+=q.cm||0}P.res={};for(const s in P.eq){const q=P.eq[s].st;for(const k in q)if(k.startsWith('r_'))P.res[k.slice(2)]=Math.min(.6,(P.res[k.slice(2)]||0)+q[k])}const T=P.tal;P.arm+=6*(T.skin||0);P.cc=Math.min(.85,P.cc+.04*(T.hunt||0));P.els+=.02*(T.thirst||0);P.mmp+=20*(T.will||0);P.mr+=1.5*(T.will||0);if(P.hp>P.mhp)P.hp=P.mhp;if(P.mp>P.mmp)P.mp=P.mmp}
+const wd=(k=1)=>10*P.w.dmg*P.w.rm*(1+.06*(P.lv-1))*(1+.045*P.a[P.w.sc])*k*P.dm*P.edm*(P.bt>0?1.35:1);
+const hpM=()=>(1+.22*(G.d-1))*(1+.35*Math.floor((G.d-1)/4)),dmM=()=>1+.09*(G.d-1)+.12*Math.floor((G.d-1)/4);
+function genLevel(){const d=G.d,rng=rngS(G.seed+d*7919),n=Math.min(5+(d>>1),12),R=[{gx:0,gy:0,nb:{},tp:'start',cl:1,dist:0}],mp={'0,0':0};
+while(R.length<n){const b=R[rng()*R.length|0],di=rng()*4|0,gx=b.gx+DIR[di][0],gy=b.gy+DIR[di][1],k=gx+','+gy;if(mp[k]!==undefined)continue;mp[k]=R.length;const r={gx,gy,nb:{},dist:b.dist+1};r.nb[(di+2)%4]=R.indexOf(b);b.nb[di]=R.length;R.push(r)}
+let bi=1;R.forEach((r,i)=>{if(r.dist>R[bi].dist)bi=i});
+R.forEach((r,i)=>{if(i==0){r.obs=[];r.hz=[];r.wv=1;return}const q=rng();r.tp=i==bi?'boss':q<.5?'combat':q<.62&&d>1?'elite':q<.74?'treasure':q<.82?'shrine':q<.88?'shop':q<.95?'event':'combat';r.cl=!['combat','elite','boss'].includes(r.tp);r.wv=d>=3&&i!=bi?2:1;
+const o=[],rr=rngS(G.seed+d*7919+i*131),k=r.tp=='boss'?2:2+(rr()*5|0);for(let j=0;j<k;j++){const t=rr(),w=t<.5?40:t<.8?30:110,h=t<.5?40:t<.8?110:30,ox=90+rr()*(780-w),oy=90+rr()*(420-h);if(ox+w>400&&ox<560||oy+h>240&&oy<360)continue;o.push({x:ox,y:oy,w,h})}r.obs=o;r.hz=[];if([3,5,6,7].includes((d-1)%8))for(let j=0;j<2;j++)r.hz.push({x:150+rr()*660,y:120+rr()*360,r:40+rr()*30})});
+if(!R.some(r=>r.tp=='treasure')){const r=R.find((q,i)=>i&&i!=bi);r.tp='treasure';r.cl=1}const sr=R.find((q,i)=>i&&i!=bi&&q.tp=='combat'&&q.dist>1);if(sr&&d>=2){sr.sec=1;sr.tp='treasure';sr.cl=1}
+G.R=R;G.seen={0:1};G.bi=BI[(d-1)%8]}
+function enter(i,from){G.cur=i;const r=G.R[i];RM_=r;G.seen[i]=1;E=[];PR=[];Z=[];TR=[];ZN=[];O=r.O||(r.O=[]);const pos=[[480,80],[880,300],[480,520],[80,300]];if(from<4){P.x=pos[from][0];P.y=pos[from][1]}else{P.x=480;P.y=300}
+for(const k in r.nb)if(!G.R[r.nb[k]].sec)G.seen[r.nb[k]]=1;if(!r.cl&&!r.st){r.st=1;wave(r)}else if(!r.cl&&r.st){wave(r)}}
+function spawn(t,x0,y0,mod){const T=ET[t];let px,py;for(let i=0;i<25;i++){px=x0??rnd(100,860);py=y0??rnd(100,500);if(dist({x:px,y:py},P)>230&&!RM_.obs.some(b=>px>b.x-20&&px<b.x+b.w+20&&py>b.y-20&&py<b.y+b.h+20))break}
+const hm=hpM()*(t=='boss'?1+G.d*.1:1);const e={t,x:px,y:py,r:T.r,hp:T.hp*hm,mhp:T.hp*hm,dmg:T.dm*dmM(),vx:0,vy:0,st:{},cd:rnd(.8,2),sp:.8,wind:0,lu:0,dir:Math.random()<.5?1:-1,sh:0,fl:0,dot:0,mod,fz:0,ph:0,tm:0};{const v=BV[(G.d-1)%8];e.hp=e.mhp*=v[1];e.sx=(e.sx||1)*v[2];e.vn=v[0]}if(mod=='veloz')e.sx=1.4;if(mod=='blindado')e.hp=e.mhp*=1.4;E.push(e);return e}
+function wave(r){const d=G.d;if(r.tp=='boss'&&!r.bs){r.bs=1;spawnBoss();return}
+const n=Math.min(14,3+Math.floor(Math.sqrt(d)*2)+(Math.random()*3|0)),pool=['grunt','runner','archer'];if(d>1)pool.push('mage','tank');if(d>2)pool.push('bomber','guardian');if(d>3)pool.push('summoner','stalker');const bf=['grunt','summoner','bomber','stalker','mage','bomber','tank','summoner'][(d-1)%8];pool.push(bf,bf);
+if(r.tp=='elite'&&r.wv==(d>=3?2:1))spawn('elite',undefined,undefined,d>2?pick(['veloz','blindado','vampírico','explosivo']):0);
+for(let i=0;i<n;i++)spawn(pick(pool),undefined,undefined,Math.random()<Math.min(.45,.035*d)?pick(['veloz','blindado','vampírico','explosivo']):0)}
