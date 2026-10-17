@@ -1,4 +1,4 @@
-# ⚔️ Average Dungeon Game
+# ⚔️ Infinite Depths
 
 **Un dungeon crawler roguelite de fantasía oscura que se juega en el navegador.**
 Desciende por una mazmorra infinita, derrota a 12 jefes, combina diez elementos mágicos y construye tu propio personaje. Cada partida genera mazmorras nuevas.
@@ -13,6 +13,8 @@ Desciende por una mazmorra infinita, derrota a 12 jefes, combina diez elementos 
 2. En el menú elige tu clase: **Guerrero**, **Cazador** o **Mago**.
 3. Entra en la mazmorra, limpia cada sala de enemigos y busca la **sala del jefe**.
 4. Derrota al jefe, pulsa **F** en el portal y desciende un nivel más.
+
+¿Tienes el juego en tu ordenador? Ejecuta `npm start` y abre `http://localhost:8080` (consulta `DESARROLLO.md`).
 
 ---
 
