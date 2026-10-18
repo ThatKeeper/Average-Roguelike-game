@@ -1,0 +1,11 @@
+{
+  "appId": "com.infinitedepths.game",
+  "appName": "Infinite Depths",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

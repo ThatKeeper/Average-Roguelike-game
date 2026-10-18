@@ -29,8 +29,8 @@ Desciende por una mazmorra infinita, derrota a 12 jefes, combina diez elementos 
 | Esquivar (breve invulnerabilidad) | **Espacio** |
 | Habilidades equipadas | **Q** y **E** |
 | Acción especial (o hechizo de tomo) | **R** |
-| Lanzar tu hechizo personalizado | **C** |
-| Grimorio (crear hechizos) | **B** |
+| Lanzar carta de hechizo (solo Mago) | **1 2 3 4** |
+| Cartas de hechizo (solo Mago) | **B** |
 | Talentos | **T** |
 | Inventario y equipo | **I** |
 | Mapa grande | **M** |
@@ -91,28 +91,34 @@ Algunos biomas tienen **zonas peligrosas** en el suelo (lava y veneno hacen dañ
 
 ---
 
-## 🔮 Magia elemental
+## 🔮 Magia elemental y cartas (solo Mago)
 
-Pulsa **B** para abrir el **Grimorio** y crear tu hechizo:
+El **Mago** lleva una colección de **55 cartas de hechizo** (10 elementos + 45 combinaciones). Pulsa **B** para abrirla:
 
-1. Elige un **elemento principal** y, si quieres, uno **secundario**.
-2. Elige la **forma**: proyectil, nova, cono o zona persistente.
-3. Verás el coste, el enfriamiento, el daño y los **riesgos** antes de lanzarlo con **C**.
+1. **Arrastra** una carta desbloqueada a uno de los **4 espacios** (con ratón o con el dedo), o toca la carta y luego el espacio. También puedes reorganizarlas entre espacios o arrastrarlas fuera para retirarlas.
+2. Lánzalas con las teclas **1 – 4** (o los botones táctiles). Cada espacio tiene su propio enfriamiento.
+3. Cada carta muestra su coste de maná, enfriamiento, daño, radio y forma (proyectil, nova, cono o zona).
 
-**Los 10 elementos:** Fuego, Agua, Planta, Electricidad, Viento, Roca, Hielo, Oscuridad, Sangre y Corrupción.
-Cada pareja de elementos tiene una **combinación propia**: 45 en total. Algunos ejemplos:
+**Desbloqueos permanentes:** las cartas que desbloquees **se conservan para siempre**, aunque mueras o abandones. Cada carta bloqueada te dice de antemano **qué necesitas** y cuánto llevas (✓ / ✗):
+
+- Fuego, Hielo y Electricidad: iniciales.
+- Agua, Planta y Viento: alcanzar la profundidad 2, 3 y 4.
+- Roca, Oscuridad, Sangre y Corrupción: derrotar a Valdris, Sylra, Veyra y Zeth **en una partida normal**.
+- Combinaciones: tener las cartas de sus dos elementos y alcanzar cierta profundidad (más jefes para las más avanzadas).
+
+> Derrotar jefes en la **Arena de jefes** (práctica) **no** desbloquea cartas.
+
+Algunos ejemplos de combinación:
 
 - **Fuego + Electricidad → Sobrecarga de plasma:** gran explosión que aturde.
 - **Agua + Electricidad → Conductividad:** el enemigo mojado recibe +60 % de la descarga, que salta entre objetivos.
 - **Agua + Hielo → Prisión glacial:** congela a los empapados.
-- **Planta + Corrupción → Putrefacción:** raíces y corrupción acumulada.
 - **Sangre + Oscuridad → Pacto carmesí:** sacrificas vida a cambio de mucho poder y robo de vida.
 - **Corrupción + Fuego → Incineración impura:** consume la corrupción para explotar.
-- Algunas combinaciones se **anulan**: Fuego + Agua (Vapor) hace menos daño.
+- Algunas se **anulan**: Fuego + Agua (Vapor) hace menos daño.
 
-**Costes y riesgos:** la Sangre cuesta vida, la Corrupción encarece y alarga el hechizo, y los aturdimientos fuertes tienen límite (una vez cada 6 s). Dentro del grimorio, al elegir un elemento ves sus sinergias.
-
-También puedes encontrar **tomos**: escudo arcano, trampa de escarcha, espíritu aliado, rayo continuo (mantén **R**) y aliento ígneo.
+**Costes y riesgos:** la Sangre cuesta vida, la Corrupción encarece y alarga el hechizo, y los aturdimientos fuertes tienen límite (una vez cada 6 s).
+Los demás estilos conservan sus habilidades (Q, E, clic derecho y R); las cartas son exclusivas del Mago. También puedes encontrar **tomos** (escudo, trampa, espíritu, rayo continuo y aliento ígneo) que se lanzan con **R**.
 
 ### Estados alterados
 
@@ -155,7 +161,7 @@ Cada jefe tiene su propia mecánica. Fíjate en la **barra superior**: te dice s
 | Cronos, el Reloj Roto | **Rebobina el tiempo** y se cura salvo que lo interrumpas con daño. Castiga donde estuviste |
 | El Vacío | Copia tu estilo de combate y combina todo lo anterior |
 
-**Arena de jefes** (Menú): practica contra cualquier jefe que ya hayas alcanzado, con un personaje de nivel acorde.
+**Arena de jefes** (Menú): práctica contra cualquier jefe que ya hayas alcanzado, con un personaje de nivel acorde. Al derrotarlo y entrar en el portal **vuelves al menú sin recompensas**: no da almas, ni profundidad, ni cartas. Morir o abandonar tampoco cambia tu progreso.
 
 ---
 
@@ -167,6 +173,14 @@ Cada jefe tiene su propia mecánica. Fíjate en la **barra superior**: te dice s
 - **Victoria:** al derrotar al jefe de la profundidad 10 puedes **retirarte con gloria** (conservas *todo* tu oro como almas, +50) o **seguir descendiendo**. El reto se repite cada 10 niveles.
 
 ---
+
+## 📱 Jugar en el móvil (Android)
+
+- **Navegador:** abre la web en Chrome y elige *Añadir a pantalla de inicio* para instalarla (funciona sin conexión).
+- **Controles táctiles:** joystick a la izquierda; **ATACAR** a la derecha (apunta solo al enemigo más cercano; si arrastras el dedo, apuntas tú), botones **Q / E / R / HAB / ESQ / F** y accesos a pausa, inventario, mapa y talentos. El Mago tiene además los botones **1–4** y **B**.
+- **Horizontal:** el juego se juega con el teléfono en horizontal; en vertical se pausa y te avisa.
+- **Ajustes táctiles:** en el menú puedes activar o desactivar los controles, cambiar su tamaño y elegir gráficos ligeros (por defecto en móvil) o altos.
+- **APK:** consulta `DESARROLLO.md` para generar el APK de prueba.
 
 ## ⚙️ Ajustes
 

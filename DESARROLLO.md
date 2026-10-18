@@ -45,3 +45,33 @@ Todas las rutas son relativas (funciona bajo un subdirectorio), no hay llamadas 
 - **Añadir contenido:** armas `WP`, objetos `IT`, reliquias `RL`, enemigos `ET`, talentos `TL`, combinaciones `CB`, jefes `BD`/`BO`.
 - **Bucle:** paso fijo de 1/60 s independiente de los FPS.
 - **Jefes:** infraestructura común (fases por % de vida, inmunidad `imm`, vulnerabilidad `vul`, zonas telegrafiadas) + comportamiento propio por jefe.
+
+
+## Android (PWA y APK)
+**Estado:** la adaptación táctil, la PWA y la configuración de Capacitor están hechas y comprobadas con pruebas automáticas, pero **el APK no se ha compilado ni probado en un dispositivo** (requiere el SDK de Android).
+
+### Opción A — PWA (sin compilar nada)
+Publica en GitHub Pages (HTTPS) y, desde Chrome en Android, *Añadir a pantalla de inicio*. `sw.js` guarda los archivos para jugar sin conexión. Si añades o renombras archivos, ejecuta `npm run pwa` y sube `VERSION` en `sw.js`.
+
+### Opción B — APK en GitHub (recomendada, sin instalar el SDK)
+1. Sube el proyecto a GitHub.
+2. **Actions → “APK Android (debug)” → Run workflow.**
+3. Descarga el artefacto `infinite-depths-debug-apk` (`app-debug.apk`) e instálalo en el teléfono (permite instalar apps de origen desconocido).
+
+### Opción C — APK en local
+Requiere Node 20, JDK 17 y Android SDK (Android Studio).
+```
+npm install --no-save @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+npm run android:www        # prepara www/
+npx cap add android        # una sola vez
+# en android/app/src/main/AndroidManifest.xml añade android:screenOrientation="sensorLandscape" a <activity>
+npm run android:sync
+npm run android:apk        # android/app/build/outputs/apk/debug/app-debug.apk
+```
+Para una versión firmada de publicación (Google Play) hace falta una clave de firma propia; no se incluye ninguna en el repositorio.
+
+## Arquitectura de los sistemas nuevos
+- **Cartas** (`src/10d-cartas.js`): `CARDS` se genera a partir de `EL` y `CB`; requisitos como `['depth'|'boss'|'card', valor]` evaluados por `reqOK`. `checkUnlocks()` se llama al derrotar jefes, descender y morir. `normS()` valida y migra el guardado (v1 → v2).
+- **Táctil** (`src/12-tactil.js`): reutiliza `K`, `M`, `dodge()`, `interact()`… Cada control captura su puntero; `tcReset()` libera todo al cambiar de foco, abrir menús o cancelar un toque.
+- **Balance:** vida enemiga `hpM()`; límite de proyectiles `capPR()`; agresividad y flanqueo en `slots()` y `upE()`.
+- **Práctica:** `G.arena` desactiva todo guardado permanente (`endPractice()`, `die()`, `bossDie()`).

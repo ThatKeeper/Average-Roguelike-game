@@ -1,0 +1,19 @@
+// Comprobaciones est\u00e1ticas de PWA / Android (no compila el APK: eso requiere el SDK de Android).
+const fs=require('fs'),path=require('path'),cp=require('child_process'),os=require('os');const root=path.join(__dirname,'..');let out=[],fail=0;const ok=(n,c)=>{out.push((c?'OK   ':'FAIL ')+n);if(!c)fail++};const rd=f=>fs.readFileSync(path.join(root,f),'utf8');
+const man=JSON.parse(rd('manifest.webmanifest'));ok('manifest v\u00e1lido: nombre, start_url relativo, horizontal y pantalla completa',man.name&&man.start_url=='./'&&man.scope=='./'&&man.orientation=='landscape'&&man.display=='fullscreen');
+const pngDim=f=>{const b=fs.readFileSync(path.join(root,f));return b.slice(0,8).toString('hex')=='89504e470d0a1a0a'?[b.readUInt32BE(16),b.readUInt32BE(20)]:null};
+ok('los iconos del manifest existen, son PNG y tienen el tama\u00f1o declarado',man.icons.every(i=>{const d=pngDim(i.src);return d&&i.sizes==d[0]+'x'+d[1]&&!i.src.startsWith('/')}));
+const html=rd('index.html');ok('index.html enlaza manifest e icono con rutas relativas y viewport t\u00e1ctil',/rel="manifest" href="manifest\.webmanifest"/.test(html)&&/apple-touch-icon" href="icons\//.test(html)&&/user-scalable=no/.test(html)&&/viewport-fit=cover/.test(html));
+const sw=rd('sw.js'),assets=JSON.parse(sw.match(/ASSETS=(\[.*?\]);/s)[1]);ok('sw.js: todos los archivos listados existen',assets.every(a=>a=='./'||fs.existsSync(path.join(root,a))));
+const need=[...fs.readdirSync(path.join(root,'src')).map(f=>'src/'+f),...fs.readdirSync(path.join(root,'icons')).map(f=>'icons/'+f),'index.html','styles.css','manifest.webmanifest'];ok('sw.js: no falta ning\u00fan archivo del juego (funciona sin conexi\u00f3n)',need.every(f=>assets.includes(f)));
+ok('sw.js usa rutas relativas (sirve bajo /repositorio/)',assets.every(a=>!a.startsWith('/')&&!/^https?:/.test(a)));
+const cap=JSON.parse(rd('capacitor.config.json'));ok('Capacitor: appId, webDir=www y esquema https',/^[a-z]+(\.[a-z]+)+$/.test(cap.appId)&&cap.webDir=='www'&&cap.server.androidScheme=='https');
+const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'idw-'));cp.execFileSync('node',[path.join(root,'scripts/build-www.js')],{cwd:root,stdio:'pipe'});const www=path.join(root,'www');
+ok('build-www copia todo el contenido est\u00e1tico a www/',need.every(f=>fs.existsSync(path.join(www,f)))&&fs.existsSync(path.join(www,'sw.js'))&&rd('index.html')==fs.readFileSync(path.join(www,'index.html'),'utf8'));
+const scripts=[...html.matchAll(/src="(src\/[^"]+)"/g)].map(m=>m[1]);ok('index.html carga los '+scripts.length+' scripts y todos existen en www/ con la misma may\u00fasculas',scripts.length>=14&&scripts.every(f=>fs.readdirSync(path.join(www,'src')).includes(path.basename(f))));
+const a=rd('.github/workflows/android.yml'),p=rd('.github/workflows/pages.yml');ok('workflow Android: Java 17, Capacitor, orientaci\u00f3n horizontal y assembleDebug',/java-version: 17/.test(a)&&/@capacitor\/android/.test(a)&&/sensorLandscape/.test(a)&&/assembleDebug/.test(a)&&/upload-artifact/.test(a));
+ok('workflow Pages publica manifest, sw, iconos y src',/manifest\.webmanifest sw\.js/.test(p)&&/cp -r src icons/.test(p));
+const pj=JSON.parse(rd('package.json'));ok('package.json: scripts android y pwa, sin dependencias de runtime',['pwa','android:www','android:sync','android:apk'].every(k=>pj.scripts[k])&&!pj.dependencies&&!pj.devDependencies);
+ok('.gitignore excluye www/, android/ y node_modules/',/www\//.test(rd('.gitignore'))&&/android\//.test(rd('.gitignore'))&&/node_modules\//.test(rd('.gitignore')));
+const srcAll=fs.readdirSync(path.join(root,'src')).map(f=>rd('src/'+f)).join('\n');ok('el juego no depende de servidores ni recursos externos',!/https?:\/\/(?!www\.w3)/.test(srcAll.replace(/\/\/.*$/gm,''))&&!/fetch\(|XMLHttpRequest|WebSocket/.test(srcAll));
+fs.rmSync(www,{recursive:true,force:true});console.log(out.join('\n'));process.exit(fail?1:0);

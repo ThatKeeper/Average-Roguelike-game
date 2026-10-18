@@ -1,0 +1,6 @@
+// Service worker: caché sin conexión. Rutas relativas para funcionar en https://usuario.github.io/repo/ y en el APK.
+// Al cambiar archivos del juego, sube VERSION para invalidar la caché (o ejecuta `npm run pwa`).
+const VERSION='infinite-depths-v1.1.0',ASSETS=["./","index.html","styles.css","manifest.webmanifest","icons/icon-192.png","icons/icon-512.png","src/00-dano-frmula-centralizada.js","src/01-entrada.js","src/02-ui-overlay.js","src/03-talentos-victoria-resistencias.js","src/04-magia-elemental-elementos.js","src/05-partida.js","src/06-combate.js","src/07-actualizacion.js","src/08-ventanas-de-tarjetas.js","src/09-sprites-emoji-provisionales.js","src/10-objetos-equipo-e.js","src/10b-jefes.js","src/10c-sprites.js","src/10d-cartas.js","src/11-render.js","src/12-tactil.js"];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const c=res.clone();caches.open(VERSION).then(ca=>ca.put(e.request,c));return res}).catch(()=>caches.match('index.html'))))});

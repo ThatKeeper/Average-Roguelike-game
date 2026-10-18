@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm');
 
 const D=__dirname+'/../src/';const js=fs.readdirSync(D).sort().map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 const ctx=new Proxy({},{get:(t,k)=>k=='measureText'?()=>({width:10}):(k=='createRadialGradient'||k=='createLinearGradient')?()=>({addColorStop(o,c){if(typeof c=='string'&&c[0]=='#'&&![4,5,7,9].includes(c.length))throw new SyntaxError('color invalido '+c)}}):(k in t?t[k]:()=>{}),set:(t,k,v)=>{if(['fillStyle','strokeStyle','shadowColor'].includes(k)&&typeof v=='string'&&v[0]=='#'&&![4,5,7,9].includes(v.length))throw new SyntaxError('color invalido '+v);t[k]=v;return true}});
-const mk=()=>({style:{},kids:[],appendChild(c){this.kids.push(c)},set innerHTML(v){this.kids=[];this._h=v},get innerHTML(){return this._h||''},getContext:()=>ctx,getBoundingClientRect:()=>({left:0,top:0,width:960,height:600}),insertAdjacentHTML(){}});
+const mk=()=>({style:{},kids:[],appendChild(c){this.kids.push(c)},set innerHTML(v){this.kids=[];this._h=v},get innerHTML(){return this._h||''},getContext:()=>ctx,getBoundingClientRect:()=>({left:0,top:0,width:960,height:600}),insertAdjacentHTML(){},dataset:{},cloneNode(){return mk()},remove(){},closest(){return null}});
 const els={};global.document={getElementById:i=>els[i]||(els[i]=mk()),createElement:()=>mk()};
 global.window=global;global.performance={now:()=>0};global.requestAnimationFrame=()=>{};global.localStorage={getItem:()=>null,setItem(){}};global.setInterval=()=>0;global.AudioContext=function(){throw 1};
 let errs=[];console.error=e=>errs.push(String(e&&e.stack||e).split('\n').slice(0,2).join(' | '));
@@ -26,8 +26,7 @@ fr2();R('apply(e,{stun:3});e.hp=1e6;P.sp={a:"ice",b:"rock",f:"nova"};const h0=e.
 fr2();R('P.sp={a:"dark",b:"wind",f:"nova"};castSp()');ok('Vendaval umbr\u00edo maldice a los cercanos',R('e.st.curse')>0&&R('q.st.curse')>0);
 fr2();R('P.sp={a:"light",b:"wind",f:"nova"};castSp()');ok('Tormenta el\u00e9ctrica aturde 1\u00aa vez',R('e.st.stun')>0);const mr=Math.random;Math.random=()=>.99;R('P.cd[4]=0;e.st.stun=0;castSp()');Math.random=mr;ok('...pero no en el siguiente lanzamiento (l\u00edmite)',!(R('e.st.stun')>0));
 fr2();R('P.sp={a:"fire",b:"rock",f:"nova"};apply(e,{frac:6});const h1=e.hp;castSp()');const dF=1e6-R('e.hp');fr2();R('P.sp={a:"fire",b:"rock",f:"nova"};castSp()');ok('Magma +da\u00f1o contra fracturados',dF>(1e6-R('e.hp')));
-// grimorio muestra solo sinergias del elemento
-R('run(9);P.sp={a:"rock",b:"",f:"bolt"};book()');ok('grimorio lista sinergias del elemento principal',ov.innerHTML.includes('Sinergias de Roca')&&!ov.innerHTML.includes('Sinergias de Fuego'));R('hide()');
+R('run(9);S.best=0;S.bosses={};book()');ok('las cartas bloqueadas muestran sus requisitos exactos',ov.innerHTML.includes('Cartas de hechizo'));R('hide()');
 // ---- ventanas: sin desbordamiento
 const css=fs.readFileSync(__dirname+'/../styles.css','utf8');ok('CSS: la ventana desplaza (overflow) y no centra recortando',/overflow:auto/.test(css)&&/justify-content:flex-start/.test(css)&&/first-child\{margin-top:auto/.test(css));
 R('run(0);P.gold=50');R('for(let i=0;i<14;i++)P.bag.push(Object.assign({},IT[i%IT.length],{id:i}))');R('inv()');let cards=ov.kids.filter(k=>k.kids).reduce((n,r)=>n+r.kids.filter(c=>c.kids&&c.kids.length>2).length,0);

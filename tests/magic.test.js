@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm');
 
 const D=__dirname+'/../src/';const js=fs.readdirSync(D).sort().map(f=>fs.readFileSync(D+f,'utf8')).join('\n');
 const ctx=new Proxy({},{get:(t,k)=>k=='measureText'?()=>({width:10}):(k=='createRadialGradient'||k=='createLinearGradient')?()=>({addColorStop(o,c){if(typeof c=='string'&&c[0]=='#'&&![4,5,7,9].includes(c.length))throw new SyntaxError('color invalido '+c)}}):(k in t?t[k]:()=>{}),set:(t,k,v)=>{if(['fillStyle','strokeStyle','shadowColor'].includes(k)&&typeof v=='string'&&v[0]=='#'&&![4,5,7,9].includes(v.length))throw new SyntaxError('color invalido '+v);t[k]=v;return true}});
-const mk=()=>({style:{},kids:[],appendChild(c){this.kids.push(c)},set innerHTML(v){this.kids=[];this._h=v},get innerHTML(){return this._h||''},getContext:()=>ctx,getBoundingClientRect:()=>({left:0,top:0,width:960,height:600}),insertAdjacentHTML(){}});
+const mk=()=>({style:{},kids:[],appendChild(c){this.kids.push(c)},set innerHTML(v){this.kids=[];this._h=v},get innerHTML(){return this._h||''},getContext:()=>ctx,getBoundingClientRect:()=>({left:0,top:0,width:960,height:600}),insertAdjacentHTML(){},dataset:{},cloneNode(){return mk()},remove(){},closest(){return null}});
 const els={};global.document={getElementById:i=>els[i]||(els[i]=mk()),createElement:()=>mk()};
 global.window=global;global.performance={now:()=>0};global.requestAnimationFrame=()=>{};global.localStorage={getItem:()=>null,setItem(){}};global.setInterval=()=>0;global.AudioContext=function(){throw 1};
 let errs=[];console.error=e=>errs.push(String(e&&e.stack||e).split('\n').slice(0,2).join(' | '));
@@ -14,7 +14,7 @@ ok('frames con hechizo propio sin errores',errs.length==0);
 // 1 Sobrecarga de plasma
 fresh();R('P.sp={a:"fire",b:"light",f:"nova"}');let mp0=R('P.mp');R('castSp()');ok('Sobrecarga: gasta man\u00e1 '+(mp0-R('P.mp')).toFixed(0),R('P.mp')<mp0);ok('Sobrecarga: da\u00f1a y quema',R('e.hp')<100000&&R('e.st.burn')>0);ok('Sobrecarga: aturde 1\u00aa vez',R('e.st.stun')>0);
 let mp1=R('P.mp');R('castSp()');ok('enfriamiento impide recast sin gastar',R('P.mp')==mp1);
-R('P.cd[4]=0;e.st.stun=0;castSp()');ok('l\u00edmite de aturdimiento (6 s)',!(R('e.st.stun')>0));
+const mr0=Math.random;Math.random=()=>.99;R('P.cd[4]=0;e.st.stun=0;castSp()');Math.random=mr0;ok('l\u00edmite de aturdimiento (6 s)',!(R('e.st.stun')>0));
 // 2 Conductividad
 fresh();R('P.sp={a:"light",b:"water",f:"nova"}');R('castSp()');ok('Conductividad: empapa',R('e.st.wet')>0);
 fresh();R('hit(e,100,"m",{ch:1})');const dry=100000-R('e.hp');R('e.hp=100000;apply(e,{wet:5});hit(e,100,"m",{ch:1})');ok('empapado +60% '+((100000-R('e.hp'))/dry).toFixed(2),(100000-R('e.hp'))/dry>1.5);
@@ -46,7 +46,7 @@ R('P.cd[3]=0;P.mp=999;K[KY.r]=1;rk(.016);K[KY.r]=0');ok('R detona hemorragia',R(
 fresh();R('RL.find(r=>r[0]=="Venas abiertas")[2](P);for(let i=0;i<12;i++)apply(e,{bleed:1})');ok('Venas abiertas: tope 12',R('e.st.bleedN')==12);
 fresh();R('RL.find(r=>r[0]=="Hoja envenenada")[2](P);hit(e,10,"p")');ok('Hoja envenenada aplica veneno',R('e.st.poison')>0);
 // 14 grimorio UI
-R('run(9);book()');ok('grimorio abre',R('G.bk')==1&&ov.innerHTML.includes('Grimorio'));R('book()');ok('grimorio cierra con B',R('G.bk')==0&&R('G.ov')==0);
+R('run(9);book()');ok('grimorio abre',R('G.bk')==1&&ov.innerHTML.includes('Cartas de hechizo'));R('book()');ok('grimorio cierra con B',R('G.bk')==0&&R('G.ov')==0);
 // 15 reinicio limpio
 R('P.sp={a:"fire",b:"light",f:"zone"};M.x=P.x;castSp()');R('hurtP(9999)');ok('derrota con zona activa',R('G.st')=='over');R('menu()');R('run(0)');ok('nueva partida sin zonas ni estados previos',R('ZN.length')==0&&R('G.st')=='play'&&R('P.cd[4]')===undefined);
 console.log(out.join('\n'));console.log('errores consola:',errs.length,[...new Set(errs)].slice(0,4));
