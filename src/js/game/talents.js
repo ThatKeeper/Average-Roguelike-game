@@ -1,0 +1,128 @@
+/* ======================================================================
+ * src/js/game/talents.js
+ * Variantes por bioma, árbol de talentos, ventana de talentos, victoria y final.
+ *
+ * Define:
+ * EBI, BV, TL, tal, vic, win
+ * ====================================================================== */
+
+// ===== TALENTOS, VICTORIA, RESISTENCIAS Y VARIANTES POR BIOMA =====
+const EBI = [null, "corr", null, "poison", "light", "fire", "ice", "corr"],
+  BV = [
+    ["Esquel\u00e9tico", 0.9, 1.05],
+    ["Maldito", 1, 1],
+    ["Minero", 1.3, 0.9],
+    ["Silvestre", 1, 1.1],
+    ["Arcano", 0.9, 1],
+    ["\u00cdgneo", 1.1, 1],
+    ["G\u00e9lido", 1.2, 0.9],
+    ["Corrupto", 1, 1.1],
+  ];
+const TL = [
+  {
+    k: "bleed",
+    i: "\U0001fa78",
+    n: "Maestro del desangrado",
+    d: "+1 acumulaci\u00f3n m\u00e1xima de hemorragia por rango.",
+    m: 3,
+  },
+  {
+    k: "refl",
+    i: "\U0001f45f",
+    n: "Reflejos",
+    d: "\u221210% enfriamiento de esquiva por rango.",
+    m: 3,
+  },
+  {
+    k: "alch",
+    i: "\U0001f4d8",
+    n: "Alquimia elemental",
+    d: "\u22128% coste de man\u00e1 de hechizos propios por rango.",
+    m: 3,
+  },
+  { k: "thirst", i: "\U0001f9db", n: "Sed de sangre", d: "+1% robo de vida por rango.", m: 3 },
+  { k: "skin", i: "\U0001faa8", n: "Piel de piedra", d: "+6 armadura por rango.", m: 3 },
+  {
+    k: "hunt",
+    i: "\U0001f3af",
+    n: "Ojo de cazador",
+    d: "+4% probabilidad de cr\u00edtico por rango.",
+    m: 3,
+  },
+  {
+    k: "will",
+    i: "\U0001f9d8",
+    n: "Voluntad",
+    d: "+20 man\u00e1 m\u00e1ximo y +1.5 regeneraci\u00f3n por rango.",
+    m: 3,
+  },
+];
+function tal(f) {
+  if (G.st != "play" || (G.ov && !G.tl)) return;
+  if (G.tl && !f) {
+    hide();
+    return;
+  }
+  G.tl = 1;
+  G.pz = 1;
+  show(
+    `<h2>Talentos</h2><p>Puntos disponibles: ${P.pts} (1 por nivel)</p>`,
+    TL.map((t) => ({
+      i: t.i,
+      n: t.n,
+      tp: "Pasiva",
+      r: P.tal[t.k] || 0,
+      d: t.d,
+      stx: `Rango ${P.tal[t.k] || 0}/${t.m}`,
+      dis: P.pts < 1 || (P.tal[t.k] || 0) >= t.m,
+      nc: 1,
+      f: () => {
+        if (P.pts < 1 || (P.tal[t.k] || 0) >= t.m) return;
+        P.pts--;
+        P.tal[t.k] = (P.tal[t.k] || 0) + 1;
+        ST();
+        tal(1);
+      },
+    })).concat([{ t: "Cerrar (T)", nc: 1, f: hide }]),
+  );
+}
+function vic() {
+  show(
+    "<h1>\u00a1PROFUNDIDAD " +
+      G.d +
+      " CONQUISTADA!</h1><p>Has vencido a " +
+      G.bi[0] +
+      ". Puedes retirarte con gloria o seguir descendiendo.</p>",
+    [
+      {
+        i: "\U0001f3c6",
+        n: "Retirarte con gloria",
+        tp: "Victoria",
+        r: 3,
+        d: "Terminas la expedici\u00f3n: conservas TODO tu oro como almas (+50 de bonificaci\u00f3n).",
+        nc: 1,
+        f: win,
+      },
+      {
+        i: "\u2b07\ufe0f",
+        n: "Seguir descendiendo",
+        tp: "Continuar",
+        r: 1,
+        d: "Vuelve al portal (F) cuando est\u00e9s listo. Si mueres, solo conservas la mitad del oro.",
+        f: () => {},
+      },
+    ],
+  );
+}
+function win() {
+  G.st = "won";
+  cnt("vic");
+  chk();
+  S.best = Math.max(S.best, G.d);
+  S.souls += P.gold + 50;
+  save();
+  show(
+    `<h1>VICTORIA</h1><p>Profundidad ${G.d} \u00b7 Nivel ${P.lv} \u00b7 ${G.kills} enemigos. Almas totales: ${S.souls}</p>`,
+    [{ t: "Volver a la zona segura", nc: 1, f: menu }],
+  );
+}

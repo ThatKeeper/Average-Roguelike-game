@@ -1,0 +1,329 @@
+/* ======================================================================
+ * src/js/render/draw.js
+ * Dibujado principal del juego en el canvas.
+ *
+ * Define:
+ * ammoBar, draw
+ * ====================================================================== */
+
+// ===== RENDER =====
+function ammoBar() {
+  const w = P.w;
+  if (!w.mag) return;
+  const m = w.mag,
+    rl = P.rl > 0,
+    f = rl ? 1 - P.rl / (w.rt || 1.6) : (P.am ?? m) / m,
+    bw = Math.min(40, 10 + m * 3),
+    bx = P.x - bw / 2,
+    by = P.y + 20;
+  x.save();
+  x.fillStyle = "#000a";
+  x.fillRect(bx - 1, by - 1, bw + 2, 6);
+  x.fillStyle = rl ? "#fb3" : f <= 0.25 ? "#f55" : "#8cf";
+  x.fillRect(bx, by, bw * cl(f, 0, 1), 4);
+  x.restore();
+}
+function draw() {
+  x.save();
+  x.clearRect(0, 0, W, H);
+  if (G.st != "play") {
+    x.fillStyle = "#0b0a10";
+    x.fillRect(0, 0, W, H);
+    x.restore();
+    return;
+  }
+  const sk = S.nosh ? 0 : shake;
+  x.translate(rnd(-sk, sk), rnd(-sk, sk));
+  for (const a of AMB) {
+    x.globalAlpha = 0.25;
+    x.fillStyle = G.bi[3];
+    x.fillRect(a.x, a.y, a.s, a.s);
+  }
+  x.globalAlpha = 1;
+  const b = G.bi,
+    r = RM_;
+  x.fillStyle = b[1];
+  x.fillRect(0, 0, W, H);
+  x.fillStyle = b[2];
+  x.fillRect(50, 50, 860, 500);
+  x.strokeStyle = b[1];
+  x.lineWidth = 1;
+  x.globalAlpha = 0.35;
+  for (let i = 50; i <= 910; i += 40) {
+    x.beginPath();
+    x.moveTo(i, 50);
+    x.lineTo(i, 550);
+    x.stroke();
+  }
+  for (let i = 50; i <= 550; i += 40) {
+    x.beginPath();
+    x.moveTo(50, i);
+    x.lineTo(910, i);
+    x.stroke();
+  }
+  x.globalAlpha = 1;
+  x.fillStyle = b[1];
+  for (let i = 0; i < 24; i++) {
+    const px = 50 + i * 36 + ((r.gx * 7) & 7),
+      hh = 10 + ((i * 37 + r.gy * 13 + G.d) % 5) * 5;
+    x.beginPath();
+    x.moveTo(px, 50);
+    x.lineTo(px + 18, 50);
+    x.lineTo(px + 9, 50 + hh);
+    x.fill();
+    x.beginPath();
+    x.moveTo(px, 550);
+    x.lineTo(px + 18, 550);
+    x.lineTo(px + 9, 550 - hh);
+    x.fill();
+  }
+  for (const o of r.obs) {
+    x.fillRect(o.x, o.y, o.w, o.h);
+    x.strokeStyle = b[3];
+    x.lineWidth = 2;
+    x.strokeRect(o.x, o.y, o.w, o.h);
+  }
+  for (const k in r.nb) {
+    if (!doorVis(r, k)) continue;
+    const d = [
+      [430, 38, 100, 14],
+      [896, 250, 14, 100],
+      [430, 548, 100, 14],
+      [48, 250, 14, 100],
+    ][k];
+    x.save();
+    x.shadowColor = r.cl ? b[3] : "#f33";
+    x.shadowBlur = r.cl ? 16 : 10;
+    x.fillStyle = "#000";
+    x.fillRect(d[0] - 3, d[1] - 3, d[2] + 6, d[3] + 6);
+    x.fillStyle = r.cl ? b[3] : "#922";
+    x.fillRect(...d);
+    x.restore();
+    if (!r.cl) {
+      x.fillStyle = "#000";
+      for (let i = 1; i < 5; i++) {
+        if (k % 2) x.fillRect(d[0], d[1] + i * 20 - 2, d[2], 3);
+        else x.fillRect(d[0] + i * 20 - 2, d[1], 3, d[3]);
+      }
+    }
+  }
+  x.textAlign = "center";
+  const cx = 480,
+    cy = 300;
+  if (["treasure", "shrine", "shop", "event"].includes(r.tp)) {
+    x.fillStyle =
+      r.used && r.tp != "shop"
+        ? "#444"
+        : r.tp == "treasure"
+          ? "#c9a24a"
+          : r.tp == "shrine"
+            ? "#b07af0"
+            : r.tp == "event"
+              ? "#e66"
+              : "#5c8";
+    x.fillRect(cx - 16, cy - 12, 32, 24);
+    x.fillStyle = "#fff";
+    x.font = "12px Georgia";
+    x.fillText(
+      { treasure: "Cofre [F]", shrine: "Santuario [F]", shop: "Mercader [F]", event: "Suceso [F]" }[
+        r.tp
+      ],
+      cx,
+      cy - 20,
+    );
+  }
+  if (r.tp == "boss" && r.cl) {
+    x.fillStyle = "#5ff";
+    x.beginPath();
+    x.arc(cx, cy, 24 + Math.sin(Date.now() / 150) * 3, 0, 7);
+    x.fill();
+    x.fillStyle = "#fff";
+    x.font = "12px Georgia";
+    x.fillText(G.train ? "Salir al hub [F]" : "Descender [F]", cx, cy - 34);
+  }
+  for (const o of O) {
+    if (o.k == "i") spr(o.it.i, o.x, o.y, 20);
+    else {
+      x.fillStyle = o.k == "g" ? "#ffd34a" : "#f55";
+      x.beginPath();
+      x.arc(o.x, o.y, o.k == "g" ? 4 : 6, 0, 7);
+      x.fill();
+    }
+  }
+  for (const h of r.hz || []) {
+    x.globalAlpha = 0.4;
+    x.fillStyle = ["", "", "", "#3a6", "", "#f60", "#8ef", "#c3a"][(G.d - 1) % 8];
+    x.beginPath();
+    x.arc(h.x, h.y, h.r, 0, 7);
+    x.fill();
+    x.globalAlpha = 1;
+  }
+  if (G.dk) {
+    const g = x.createRadialGradient(P.x, P.y, G.dk * 0.5, P.x, P.y, G.dk);
+    g.addColorStop(0, "#0000");
+    g.addColorStop(1, "#000c");
+    x.fillStyle = g;
+    x.fillRect(0, 0, W, H);
+  }
+  for (const z of ZN) {
+    x.globalAlpha = 0.22;
+    x.fillStyle = EL[z.sp.a].c;
+    x.beginPath();
+    x.arc(z.x, z.y, z.r, 0, 7);
+    x.fill();
+    x.globalAlpha = 1;
+  }
+  for (const t of TR) {
+    x.strokeStyle = "#9fe8ff";
+    x.beginPath();
+    x.arc(t.x, t.y, 30, 0, 7);
+    x.stroke();
+  }
+  for (const a of AL) {
+    x.fillStyle = "#8fe";
+    x.beginPath();
+    x.arc(a.x, a.y, 8, 0, 7);
+    x.fill();
+  }
+  for (const z of Z) {
+    x.strokeStyle = z.c;
+    x.fillStyle = z.c;
+    x.globalAlpha = 0.25 + 0.3 * (1 - z.t / (z.m || 1));
+    x.beginPath();
+    x.arc(z.x, z.y, z.r, 0, 7);
+    x.fill();
+    x.globalAlpha = 1;
+    x.stroke();
+  }
+  for (const e of E) {
+    const T = ET[e.t];
+    x.globalAlpha = e.sp > 0 ? 0.3 : 1;
+    if (e.t == "boss" || e.t == "decoy" || e.t == "orb") safe(drawBoss, e);
+    else safe(drawEnemy, e);
+    if (e.sh > 0) {
+      x.strokeStyle = "#4fa";
+      x.beginPath();
+      x.arc(e.x, e.y, e.r + 5, 0, 7);
+      x.stroke();
+    }
+    if (e.st.slow > 0) {
+      x.strokeStyle = "#9ef";
+      x.beginPath();
+      x.arc(e.x, e.y, e.r + 2, 0, 7);
+      x.stroke();
+    }
+    if (e.st.burn > 0) {
+      x.fillStyle = "#f80";
+      x.fillRect(e.x - 3, e.y - e.r - 10, 6, 6);
+    }
+    if (e.st.poison > 0) {
+      x.fillStyle = "#6c4";
+      x.fillRect(e.x + 4, e.y - e.r - 10, 6, 6);
+    }
+    if (e.st.stun > 0) {
+      x.fillStyle = "#ff4";
+      x.fillRect(e.x - 10, e.y - e.r - 10, 6, 6);
+    }
+    if (e.st.bleed > 0) {
+      x.fillStyle = "#d22";
+      x.fillRect(e.x - 16, e.y - e.r - 10, 6, 6);
+    }
+    if (e.st.wet > 0) {
+      x.fillStyle = "#4af";
+      x.fillRect(e.x + 10, e.y - e.r - 10, 6, 6);
+    }
+    if (e.st.root > 0) {
+      x.fillStyle = "#4a4";
+      x.fillRect(e.x - 16, e.y - e.r - 18, 6, 6);
+    }
+    if (e.st.frac > 0) {
+      x.fillStyle = "#999";
+      x.fillRect(e.x - 8, e.y - e.r - 18, 6, 6);
+    }
+    if (e.st.curse > 0) {
+      x.fillStyle = "#a4f";
+      x.fillRect(e.x, e.y - e.r - 18, 6, 6);
+    }
+    if (e.st.cor > 0) {
+      x.fillStyle = "#c2a";
+      x.fillRect(e.x + 8, e.y - e.r - 18, 6, 6);
+    }
+    {
+      const a = Math.atan2(P.y - e.y, P.x - e.x);
+      x.fillStyle = "#fff";
+      x.beginPath();
+      x.arc(e.x + Math.cos(a) * e.r * 0.5, e.y + Math.sin(a) * e.r * 0.5, e.r * 0.2, 0, 7);
+      x.fill();
+    }
+
+    if (e.wind > 0) {
+      x.strokeStyle = "#f44";
+      x.beginPath();
+      x.arc(e.x, e.y, e.r + 26, 0, 7);
+      x.stroke();
+    }
+    if (e.t != "decoy" && e.t != "orb" && (e.hp < e.mhp || e.t == "boss")) {
+      x.fillStyle = "#000";
+      x.fillRect(e.x - e.r, e.y - e.r - 12, e.r * 2, 4);
+      x.fillStyle = "#e44";
+      x.fillRect(e.x - e.r, e.y - e.r - 12, e.r * 2 * cl(e.hp / e.mhp, 0, 1), 4);
+    }
+    x.globalAlpha = 1;
+  }
+  for (const p of PR) {
+    x.fillStyle = p.c;
+    x.beginPath();
+    x.arc(p.x, p.y, p.r, 0, 7);
+    x.fill();
+  }
+  for (const f of FX) {
+    const a = f.t / (f.m || 1);
+    x.globalAlpha = a;
+    if (f.k == "arc") {
+      x.fillStyle = "#fff";
+      x.beginPath();
+      x.moveTo(f.x, f.y);
+      x.arc(f.x, f.y, f.r, f.a - f.w / 2, f.a + f.w / 2);
+      x.fill();
+    } else if (f.k == "ring") {
+      x.strokeStyle = f.c;
+      x.lineWidth = 4;
+      x.beginPath();
+      x.arc(f.x, f.y, f.r * (1.1 - a * 0.3), 0, 7);
+      x.stroke();
+    } else if (f.k == "dead") {
+      const q = 1 - a;
+      x.fillStyle = f.c;
+      x.save();
+      x.translate(f.x, f.y);
+      x.rotate(q * 3);
+      x.scale(1 + q * 0.3, 1 - q * 0.8);
+      x.beginPath();
+      x.arc(0, 0, f.r, 0, 7);
+      x.fill();
+      x.restore();
+    } else if (f.k == "line") {
+      x.strokeStyle = "#fff27a";
+      x.lineWidth = 3;
+      x.beginPath();
+      x.moveTo(f.x, f.y);
+      x.lineTo(f.x2, f.y2);
+      x.stroke();
+    } else {
+      x.fillStyle = f.c;
+      x.fillRect(f.x, f.y, 3, 3);
+    }
+    x.globalAlpha = 1;
+  }
+  x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
+  safe(drawP);
+  ammoBar();
+  x.globalAlpha = 1;
+  for (const n of NM) {
+    x.fillStyle = n.c;
+    x.font = "bold 14px Georgia";
+    x.fillText(n.t, n.x, n.y);
+  }
+  x.restore();
+  hud();
+}
