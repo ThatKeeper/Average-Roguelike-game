@@ -1,218 +1,169 @@
-# ⚔️ Infinite Depths
+# Average roguelike game
 
-**Un dungeon crawler roguelite de fantasía oscura que se juega en el navegador.**
-Desciende por una mazmorra infinita, derrota a 12 jefes, combina diez elementos mágicos y construye tu propio personaje. Cada partida genera mazmorras nuevas.
+Roguelike de mazmorras con vista cenital, hecho en un único archivo HTML (canvas + JavaScript, sin dependencias). Basado en *Infinite Depths*.
 
-> Se juega con teclado y ratón. No hay que instalar nada ni crear cuenta.
+- **Archivo del juego:** `average-roguelike-game.html`
+- **Cómo jugar:** abre el archivo en un navegador moderno (escritorio o móvil). No necesita instalación ni servidor.
+- **Guardado:** `localStorage`, con la misma clave que la versión anterior (`idv1`). Tu progreso anterior se conserva y se migra solo.
 
----
-
-## 🚀 Cómo empezar
-
-1. Abre el juego en tu navegador (escritorio recomendado: Chrome, Firefox, Edge o Safari).
-2. En el menú elige tu clase: **Guerrero**, **Cazador** o **Mago**.
-3. Entra en la mazmorra, limpia cada sala de enemigos y busca la **sala del jefe**.
-4. Derrota al jefe, pulsa **F** en el portal y desciende un nivel más.
-
-¿Tienes el juego en tu ordenador? Ejecuta `npm start` y abre `http://localhost:8080` (consulta `DESARROLLO.md`).
+> El HTML enlaza `manifest.webmanifest`, `sw.js` y `icons/` (PWA). Esos archivos no forman parte de este paquete; el juego funciona igual sin ellos.
 
 ---
 
-## 🎮 Controles
+## Flujo del juego
 
-| Acción | Tecla / ratón |
+1. **Pantalla de título** → clic o cualquier tecla.
+2. **Hub (habitación central)** → mueves a un personaje en blanco y te acercas a los objetos (F o clic).
+3. **Mazmorra** → pisos con salas, jefe al final de cada piso, descenso cada vez más difícil.
+4. Al morir vuelves al hub; conservas almas, logros, bestiario y mejoras permanentes.
+
+### El hub
+
+| Objeto | Función |
 |---|---|
-| Moverte | **W A S D** |
-| Apuntar | **Ratón** |
-| Ataque principal | **Clic izquierdo** |
-| Habilidad secundaria o guardia | **Clic derecho** |
-| Esquivar (breve invulnerabilidad) | **Espacio** |
-| Habilidades equipadas | **Q** y **E** |
-| Acción especial (o hechizo de tomo) | **R** |
-| Lanzar carta de hechizo (solo Mago) | **1 2 3 4** |
-| Cartas de hechizo (solo Mago) | **B** |
-| Talentos | **T** |
-| Inventario y equipo | **I** |
-| Mapa grande | **M** |
-| Interactuar (cofres, mercader, portal…) | **F** |
-| Pausa y menú | **Esc** |
+| Puerta de la mazmorra | Inicia la partida con la clase elegida (pide confirmación) |
+| Pedestal de clases | Elegir Guerrero, Cazador o Mago (descripción, estadísticas, estilo y habilidades) |
+| Tablón de logros | Lista de logros, progreso y fecha de desbloqueo |
+| Bestiario | Fichas de enemigos y jefes descubiertos, con filtro y búsqueda |
+| Mesa de estadísticas | Datos acumulados de todas tus partidas |
+| Forja de almas | Mejoras permanentes que se compran con almas |
+| Arena de jefes | Practicar cualquiera de los 44 jefes (sin recompensas) |
+| Campo de entrenamiento | Maniquíes, arquero de práctica y combatiente, para probar ataques, habilidades, parry y esquivas |
+| Cartel de progresión y créditos | Explica el modo difícil y la progresión |
+| Ajustes | Controles, música, volúmenes, temblor de pantalla, controles táctiles, gráficos |
 
-Todas las teclas (menos Esc y el ratón) se pueden cambiar en **Menú → Controles**.
+El entrenamiento y la arena **no dan** experiencia, botín, oro, logros ni progreso.
 
 ---
 
-## 🧙 Las tres clases
+## Controles (reasignables en Ajustes → Controles)
 
-Tu estilo lo decide el **arma que llevas**: si encuentras otra de un estilo distinto, tus habilidades cambian con ella. Puedes jugar híbrido.
-
-| | Guerrero | Cazador | Mago |
-|---|---|---|---|
-| Arma inicial | Espada | Arco | Báculo arcano |
-| Clic derecho | **Guardia**: mantén para reducir mucho el daño. Si la activas justo antes del golpe, haces una **parada perfecta** que aturde al atacante | **Flecha venenosa** que atraviesa enemigos | **Rayo en cadena** (18 de maná) |
-| Q | Remolino de área | Andanada de 5 flechas | Bola de fuego (22 de maná) |
-| E | Salto con impacto que aturde | Flecha explosiva | Nova de hielo (25 de maná) |
-| R | **Grito de guerra** (+35 % daño y escudo) | **Recarga ágil** (reinicia tus enfriamientos) | **Canalizar** (recuperas maná) |
-| Recurso | Ninguno | Ballesta y arma rúnica requieren recarga | **Maná** |
-
-**Armas que puedes encontrar:** espadas, dagas, gran espada, martillo, lanza, hacha, hachas dobles, arco, ballesta, arma rúnica, chakram, y báculos arcano, ígneo, helado, de tormenta, venenoso y de marea.
-La **Daga de la Hemorragia** apila hemorragia (hasta 8) y con **R** detonas todas las acumulaciones.
-
----
-
-## 🗺️ La mazmorra
-
-Cada nivel es un conjunto de salas conectadas. Las puertas se cierran mientras haya enemigos y se abren al limpiarlas.
-
-| Sala | Qué hay |
+| Acción | Tecla |
 |---|---|
-| Combate | Oleadas de enemigos (dos oleadas desde la profundidad 3) |
-| Élite | Un enemigo élite con habilidades especiales |
-| Cofre | Elige 1 tesoro entre arma, tomo mágico, equipo o reliquia |
-| Santuario | Una bendición… o un pacto con riesgo |
-| Mercader | Compra con oro: pociones, armas, equipo y reliquias |
-| Suceso | Pozo de deseos, altar de sangre o emboscada |
-| **Secreta** | Su puerta no aparece en el mapa. Busca huecos en la pared: guarda un botín mayor |
-| **Jefe** | Siempre al final. Al vencerlo aparece un portal (**F**) |
+| Mover | `W A S D` |
+| Apuntar / atacar | Ratón / clic izquierdo |
+| Habilidad o guardia (parry) | Clic derecho |
+| Esquivar | `Espacio` |
+| Habilidades | `Q`, `E` |
+| Acción de clase | `R` |
+| Interactuar | `F` |
+| Inventario / Mapa / Talentos | `I` / `M` / `T` |
+| Cartas de hechizo (Mago) | `B` y `1`–`4` |
+| Pausa | `Esc` |
 
-La mazmorra **no tiene fin** y cambia de bioma cada nivel:
-Catacumbas → Criptas malditas → Minas abandonadas → Bosque subterráneo → Ruinas arcanas → Cavernas de lava → Abismos helados → Dimensión corrupta.
-
-Algunos biomas tienen **zonas peligrosas** en el suelo (lava y veneno hacen daño; el hielo te ralentiza) y **su propio tipo de daño** (fuego, hielo, veneno, rayo o corrupción). El equipo con resistencia a ese tipo te protege. La barra superior te avisa del daño del bioma.
-
----
-
-## 📈 Progresar
-
-- **Subir de nivel:** eliges 1 de 3 atributos (+2) y ganas **1 punto de talento**.
-- **Atributos:** Fuerza (armas pesadas), Destreza (críticos, armas ligeras y a distancia), Inteligencia (hechizos y maná), Vitalidad (vida y armadura), Agilidad (velocidad), Suerte (crítico y botín).
-- **Talentos (T):** 7 pasivas con 3 rangos (hemorragia, esquiva, coste de hechizos, robo de vida, armadura, crítico, maná).
-- **Equipo (I):** casco, armadura, guantes, botas y accesorio, además del arma. Ves la comparación con lo que llevas puesto y los requisitos que te faltan. El inventario se pagina y se puede **filtrar y ordenar**.
-- **Reliquias:** mejoras permanentes durante la partida (por ejemplo: más crítico, robo de vida o que tus golpes quemen).
+En móvil se muestran controles táctiles (joystick y botones), configurables en Ajustes.
 
 ---
 
-## 🔮 Magia elemental y cartas (solo Mago)
+## Clases
 
-El **Mago** lleva una colección de **55 cartas de hechizo** (10 elementos + 45 combinaciones). Pulsa **B** para abrirla:
-
-1. **Arrastra** una carta desbloqueada a uno de los **4 espacios** (con ratón o con el dedo), o toca la carta y luego el espacio. También puedes reorganizarlas entre espacios o arrastrarlas fuera para retirarlas.
-2. Lánzalas con las teclas **1 – 4** (o los botones táctiles). Cada espacio tiene su propio enfriamiento.
-3. Cada carta muestra su coste de maná, enfriamiento, daño, radio y forma (proyectil, nova, cono o zona).
-
-**Desbloqueos permanentes:** las cartas que desbloquees **se conservan para siempre**, aunque mueras o abandones. Cada carta bloqueada te dice de antemano **qué necesitas** y cuánto llevas (✓ / ✗):
-
-- Fuego, Hielo y Electricidad: iniciales.
-- Agua, Planta y Viento: alcanzar la profundidad 2, 3 y 4.
-- Roca, Oscuridad, Sangre y Corrupción: derrotar a Valdris, Sylra, Veyra y Zeth **en una partida normal**.
-- Combinaciones: tener las cartas de sus dos elementos y alcanzar cierta profundidad (más jefes para las más avanzadas).
-
-> Derrotar jefes en la **Arena de jefes** (práctica) **no** desbloquea cartas.
-
-Algunos ejemplos de combinación:
-
-- **Fuego + Electricidad → Sobrecarga de plasma:** gran explosión que aturde.
-- **Agua + Electricidad → Conductividad:** el enemigo mojado recibe +60 % de la descarga, que salta entre objetivos.
-- **Agua + Hielo → Prisión glacial:** congela a los empapados.
-- **Sangre + Oscuridad → Pacto carmesí:** sacrificas vida a cambio de mucho poder y robo de vida.
-- **Corrupción + Fuego → Incineración impura:** consume la corrupción para explotar.
-- Algunas se **anulan**: Fuego + Agua (Vapor) hace menos daño.
-
-**Costes y riesgos:** la Sangre cuesta vida, la Corrupción encarece y alarga el hechizo, y los aturdimientos fuertes tienen límite (una vez cada 6 s).
-Los demás estilos conservan sus habilidades (Q, E, clic derecho y R); las cartas son exclusivas del Mago. También puedes encontrar **tomos** (escudo, trampa, espíritu, rayo continuo y aliento ígneo) que se lanzan con **R**.
-
-### Estados alterados
-
-| Estado | Efecto |
-|---|---|
-| Quemadura / Veneno / Hemorragia | Daño continuo (la hemorragia y la corrupción se acumulan) |
-| Empapado | La electricidad hace +60 %; apaga la quemadura; el hielo lo congela |
-| Ralentizado / Aturdido / Enraizado | No se mueve bien o no actúa |
-| Fracturado | Recibe +20 % de daño |
-| Maldito | Hace −25 % de daño; la Oscuridad hace +30 % contra afectados |
-| Corrupto | Hasta 10 acumulaciones de daño progresivo |
-
-Los **élites** y los **jefes** resisten los controles (aturdimiento, raíces) y los jefes tienen un pequeño periodo de inmunidad tras ser aturdidos.
-
----
-
-## 👹 Los 12 jefes
-
-Cada jefe tiene su propia mecánica. Fíjate en la **barra superior**: te dice si está **[INMUNE]** o **[VULNERABLE]**. Un rombo sobre su cabeza cambia de color igual.
-
-**Jefes normales (profundidades 1 a 7)**
-
-| Nº | Jefe | Cómo se lucha |
+| Clase | Arma inicial | Estilo |
 |---|---|---|
-| 1 | Valdris, el Duelista | Combos rápidos con **fintas**: si esquivas demasiado pronto, te castiga. Queda vulnerable al terminar |
-| 2 | Gorgrim, el Coloso | Ondas de choque; sus embestidas **destrozan el escenario**. Si se estrella contra un muro, ¡atácale! |
-| 3 | Sylra, la Centinela | Disparos curvos y espirales. Cuando **recarga**, es vulnerable |
-| 4 | Mirax, Maestro de Espejos | Crea **copias idénticas**. Hay que encontrar al verdadero |
-| 5 | Veyra, la Trampera | Trampas retardadas y barridos. Al rearmarse queda expuesta |
-| 6 | Nyx, la Mudable | Cambia de estilo de combate al **50 %** de vida |
-| 7 | Zeth, el Arconte | Es inmune mientras sus **orbes** lo protejan e **invierte tus controles** |
+| Guerrero | Espada | Cuerpo a cuerpo, guardia con parry perfecto, remolino y salto |
+| Cazador | Arco (cargador de 12) | A distancia: andanada, flecha explosiva y flecha venenosa |
+| Mago | Báculo arcano | Magia con maná y cartas de hechizo elementales |
 
-**Jefes finales (profundidades 10, 20, 30, 40 y 50), con tres fases**
+**Armas:** todas las armas cuerpo a cuerpo escalan con **Fuerza**. Las de distancia escalan con Destreza y las mágicas con Inteligencia. Las armas con cargador (Arco, Ballesta, Arma rúnica) muestran una barra de munición junto al personaje.
 
-| Jefe | Mecánica central |
+---
+
+## Combate
+
+### Parry (armas cuerpo a cuerpo)
+- Mantén el clic derecho para guardia: reduce el daño recibido.
+- Los primeros **0,22 s** son la ventana de **parry perfecto**: anula el golpe, aturde al atacante (los jefes son inmunes al aturdimiento), le **devuelve el doble de su daño** y activa sonido propio, destello y una pausa de impacto de 0,07 s.
+- Un parry perfecto sobre un **proyectil** lo refleja hacia el enemigo más cercano con más velocidad y el doble de daño. Un proyectil reflejado no se puede reflejar de nuevo.
+- Enfriamiento: 0,9 s tras un parry perfecto y 0,45 s tras soltar la guardia, para impedir el spam. El borde de la guardia es blanco (perfecto disponible), gris (enfriamiento) o azul (guardia normal).
+- No funciona contra zonas de área sin atacante, solo contra golpes y proyectiles.
+
+### Robo de vida
+Es una ventaja especializada: fuentes reducidas, tope de **6 %** del daño por golpe y máximo **3 % de la vida máxima** por golpe. El daño periódico (veneno, quemadura, hemorragia) no cura. La regeneración (talento/forja) es independiente.
+
+### Estados
+Los jefes **ignoran** aturdimiento, congelación y enraizamiento. Los enemigos normales y élites siguen sufriéndolos (con duración reducida en élites).
+
+---
+
+## Dificultad
+
+- La vida y el daño de los enemigos crecen con la profundidad.
+- **Escalado adaptativo:** la vida enemiga sube con tu daño y con tu vida máxima (hasta +120 %); el daño enemigo sube con tu vida máxima y algo con tu daño (hasta +60 %).
+- **Modo difícil:** se desbloquea **permanentemente** al alcanzar el **nivel 10** por primera vez. Se muestra el aviso *“Todo se ha vuelto un poco más difícil”* una sola vez y un indicador ☠ permanente.
+  - Enemigos con +20 % de vida y +12 % de daño.
+  - Pisos de **10–20 salas** (antes 5–12), con bucles, rutas alternativas, una segunda cámara secreta, más obstáculos y oleadas mayores.
+  - El minimapa se centra en tu sala.
+
+### Jefes
+- **44 jefes**: 12 originales + **32 nuevos** (22 normales y 10 finales). 15 son jefes finales en total.
+- Aparecen en **cualquier bioma** y **rotan en cada partida** (el orden se baraja con la semilla de la partida).
+- Los jefes eligen sus ataques **al azar**, sin repetir el anterior, y se exponen (vulnerables) cada pocos ataques.
+- Jefes nuevos: 5 ataques (normales) o 7 (finales, 3 fases). Se combinan 13 ataques: lluvia de meteoros, onda expansiva, cruz mortal, espiral, plaga rastreadora, embestida telegrafiada, convocar secuaces, abanico, anillos concéntricos, minas retardadas, barrido, salto sombrío y jaula. Los finales añaden en fase 3 el colapso del suelo y la inversión de controles.
+- Los 12 jefes originales también usan estos ataques como extra.
+- **Seguridad:** inmunidad del 99 %, sin aturdimiento, máximo 10 % de su vida por golpe y 25 % por segundo (no se pueden matar de un golpe), y un sistema anti-bloqueo que los deja vulnerables si pasan 20 s sin recibir daño.
+
+### Botín y rarezas
+- Menos objetos de enemigos comunes; las ranuras vacías aumentan algo la probabilidad (sin garantizarla).
+- **Niveles 0–5:** nada por encima de *raro* (botín, cofres, mercader).
+- **Nivel 6+:** épico y legendario con probabilidad reducida. Hay armaduras legendarias.
+- El **mercader** genera su inventario una sola vez por sala y lo conserva.
+
+---
+
+## Progresión permanente
+
+### Forja de almas (estilo Vampire Survivors)
+Las almas se ganan al morir (mitad del oro) o al retirarte con gloria. Cada mejora tiene nivel máximo y coste creciente.
+
+| Mejora | Efecto por nivel | Máx. |
+|---|---|---|
+| Poder | +0,5 % de daño (hasta +25 %) | 50 |
+| Vigor | +1 % de vida máxima | 20 |
+| Armadura | +1 de armadura | 10 |
+| Recuperación | +0,1 vida/s | 10 |
+| Enfriamiento | −1 % de enfriamiento de habilidades | 15 |
+| Celeridad | +1 % de velocidad | 10 |
+| Imán | +10 % de radio de recogida | 5 |
+| Codicia | +3 % de oro | 10 |
+| Crecimiento | +2 % de experiencia | 10 |
+| Renacer | Revives una vez por partida con el 50 % de vida | 1 |
+
+### Cartas de hechizo (Mago)
+Se desbloquean con profundidad y jefes derrotados. Los requisitos de jefe ahora son *“derrotar a N jefes distintos”* para que funcionen con la rotación.
+
+### Logros (34)
+Cada logro tiene id estable, fecha de desbloqueo y +10 almas. Los marcados con (oculto) no muestran su condición hasta conseguirlos.
+
+| Logro | Condición |
 |---|---|
-| Soberano de Huesos | Invoca esqueletos: inmune mientras vivan. En la fase final, el suelo cede y debes buscar un refugio |
-| Fulgor, Heraldo del Rayo | Electrifica franjas del suelo con **carriles seguros**; tras descargar queda vulnerable |
-| Noctis, Devoradora de Luz | Oscurece la sala y lanza orbes que te persiguen. Al devorar la luz queda vulnerable |
-| Cronos, el Reloj Roto | **Rebobina el tiempo** y se cura salvo que lo interrumpas con daño. Castiga donde estuviste |
-| El Vacío | Copia tu estilo de combate y combina todo lo anterior |
+| Primera sangre / Cazador de monstruos / Exterminador | Derrotar 1 / 100 / 500 enemigos |
+| Primer descenso / Cada vez más hondo / Abismo | Profundidad 3 / 5 / 10 |
+| Aprendiz / Veterano / Leyenda viva | Nivel 5 / 10 / 20 |
+| Todo más difícil | Desbloquear el modo difícil |
+| Rompe-jefes / Triple amenaza | Derrotar 1 / 3 jefes distintos |
+| Cazador de finales | Derrotar un jefe final |
+| Siete pecados / Fin del mundo | Los 7 jefes normales originales / los 5 finales originales |
+| Reflejos / Muro de acero | 1 / 25 parries perfectos |
+| Devuélvelo / Francotirador al revés | Reflejar 1 / 10 proyectiles |
+| Saqueador / Coleccionista | Abrir 1 / 10 cofres |
+| Ojo de lince | Entrar en una cámara secreta |
+| Cliente / Cliente fiel | 1 / 5 compras al mercader |
+| Brillo violeta / Brillo dorado | Conseguir un objeto épico / legendario |
+| Intocable | Despejar una sala sin recibir daño |
+| Danza de espadas | Derrotar a un élite sin recibir daño |
+| Sin un rasguño (oculto) | Derrotar a un jefe sin recibir daño |
+| Erudito / Enciclopedia | 50 % / 100 % del bestiario |
+| Reliquiario | 5 reliquias en una expedición |
+| Aprender cayendo | Morir por primera vez |
+| Gloria eterna (oculto) | Retirarte con gloria |
 
-**Arena de jefes** (Menú): práctica contra cualquier jefe que ya hayas alcanzado, con un personaje de nivel acorde. Al derrotarlo y entrar en el portal **vuelves al menú sin recompensas**: no da almas, ni profundidad, ni cartas. Morir o abandonar tampoco cambia tu progreso.
-
----
-
-## 💀 Morir y ganar
-
-- **Si mueres pierdes:** nivel, armas, reliquias y el botín de esa expedición.
-- **Conservas:** tu **mejor profundidad**, la **mitad de tu oro convertido en almas** y tus ajustes.
-- **Forja de almas (menú):** gasta almas para ganar **+6 % de daño permanente** en todas tus partidas.
-- **Victoria:** al derrotar al jefe de la profundidad 10 puedes **retirarte con gloria** (conservas *todo* tu oro como almas, +50) o **seguir descendiendo**. El reto se repite cada 10 niveles.
-
----
-
-## 📱 Jugar en el móvil (Android)
-
-- **Navegador:** abre la web en Chrome y elige *Añadir a pantalla de inicio* para instalarla (funciona sin conexión).
-- **Controles táctiles:** joystick a la izquierda; **ATACAR** a la derecha (apunta solo al enemigo más cercano; si arrastras el dedo, apuntas tú), botones **Q / E / R / HAB / ESQ / F** y accesos a pausa, inventario, mapa y talentos. El Mago tiene además los botones **1–4** y **B**.
-- **Horizontal:** el juego se juega con el teléfono en horizontal; en vertical se pausa y te avisa.
-- **Ajustes táctiles:** en el menú puedes activar o desactivar los controles, cambiar su tamaño y elegir gráficos ligeros (por defecto en móvil) o altos.
-- **APK:** consulta `DESARROLLO.md` para generar el APK de prueba.
-
-## ⚙️ Ajustes
-
-En el menú principal: **Controles**, **Música** (sí/no), **Volumen** (100 % / 60 % / 30 % / 0 %), **Temblor de pantalla** (sí/no) y **Arena de jefes**.
-El juego se adapta al tamaño de tu ventana.
-
-## 💾 Guardado
-
-Tu progreso permanente (mejor profundidad, almas, mejoras, controles y ajustes) se guarda **en este navegador**, en este dispositivo. **No se sincroniza** entre ordenadores ni navegadores, y se borra si limpias los datos del sitio. Las partidas en curso no se guardan: cada expedición empieza de cero.
+### Bestiario
+Una ficha se desbloquea al derrotar al enemigo una vez. Muestra comportamiento, consejo, estadísticas base y resistencias (enemigos), o ataques y profundidad (jefes), y las veces derrotado. Aviso al descubrir una entrada, filtro (todos/enemigos/jefes), búsqueda por nombre y porcentaje total.
 
 ---
 
-## 💡 Consejos
+## Límites conocidos
 
-- Aprende a **esquivar con tiempo**: los ataques peligrosos se anuncian con un aro rojo, una línea o una zona que se rellena.
-- Con varios enemigos, **muévete**: solo unos pocos atacan a la vez, y los arqueros pierden la línea si te tapas con un pilar.
-- Los enemigos te pierden de vista tras los obstáculos y van a investigar. Úsalo para reposicionarte.
-- Mezcla estados: **Agua → Electricidad**, **Hielo sobre empapado**, **Roca → Fuego**…
-- Guarda **maná** para los jefes: sus ventanas de vulnerabilidad son tu mejor oportunidad.
-- Mira los **requisitos** del equipo (en rojo si no los cumples) antes de gastar oro.
-- En una sala secreta o un cofre, elige según tu build: no todo el botín es mejor.
-
----
-
-## ❓ Problemas frecuentes
-
-| Problema | Solución |
-|---|---|
-| Pantalla en negro | Recarga la página y comprueba que JavaScript está activado |
-| No suena | Revisa **Volumen** y **Música** en el menú; algunos navegadores esperan a que hagas clic primero |
-| No puedo cambiar una tecla | Pulsa la acción, luego la nueva tecla. **Esc** cancela |
-| Perdí mi progreso | Se guarda por navegador: usa siempre el mismo y no borres los datos del sitio |
-| Va lento | Cierra otras pestañas pesadas y desactiva el temblor de pantalla |
-
-¡Buena suerte ahí abajo!
+- Las salas mantienen el tamaño de pantalla; el modo difícil aumenta el número de salas, no su tamaño.
+- Los 32 jefes nuevos son combinaciones de un catálogo de 13 ataques con nombre, color y forma propios; no tienen mecánicas únicas por jefe como los 12 originales.
+- No hay sonidos de ambiente, por lo que los volúmenes son general, música y efectos.
+- Las pruebas realizadas fueron simulaciones automáticas sin navegador; la sensación de combate y el aspecto visual requieren probarse jugando.
