@@ -108,6 +108,7 @@ const AT2 = {
       if (e.mn.length < 4)
         for (let i = 0; i < 2; i++) {
           const q = spawn(pick(["grunt", "runner"]), e.x + rnd(-90, 90), e.y + rnd(40, 110));
+          q.minion = 1; // invocado: sin oro ni XP
           q.al = 1;
           q.sp = 0.4;
           e.mn.push(q);
@@ -238,6 +239,15 @@ function kitUp(e, dt, c) {
       AT2.summon[1](e, c, k);
     }
   }
+  {
+    const sg = SIG[i];
+    if (sg.tr == 0 && e.hp < e.mhp * 0.5) c.sp *= 1.4;
+    e.tt = (e.tt ?? 3) - dt;
+    if (e.tt <= 0 && !(e.vul > 0)) {
+      e.tt = TI[sg.tr] * (1 - 0.12 * c.ph);
+      TF[sg.tr](e, c, k);
+    }
+  }
   if (e.vul > 0) return;
   const m = i % 3;
   if (m == 0) {
@@ -247,9 +257,13 @@ function kitUp(e, dt, c) {
   else if (c.d < 240) c.mv(-c.nx * c.sp, -c.ny * c.sp);
   else if (c.d > 330) c.mv(c.nx * c.sp, c.ny * c.sp);
   if (e.t1 <= 0) {
-    const L = F ? K.slice(0, 5 + c.ph) : K,
+    const L = [...(F ? K.slice(0, 5 + c.ph) : K), "$", "$"],
       n = (e.k = (e.k || 0) + 1);
-    AT2[L[rk(e, L.length)]][1](e, c, k);
+    let ak = L[rk(e, L.length)];
+    if (ak == "$" && e.ls) ak = L[0];
+    e.ls = ak == "$";
+    if (ak == "$") sig(e, c, k);
+    else AT2[ak][1](e, c, k);
     e.t1 = 2.2 - c.ph * 0.3 - (F ? 0.2 : 0) + rnd(0, 0.5);
     if (F && c.ph == 2 && Math.random() < 0.35) {
       const q = { x: rnd(120, 840), y: rnd(120, 480) };
@@ -272,28 +286,4 @@ function kitUp(e, dt, c) {
       flash(e.nm + " queda expuesto");
     }
   }
-}
-for (let i = 12; i < 44; i++) {
-  const F = i >= 34,
-    r = rngS(i * 7919 + 13),
-    ks = Object.keys(AT2)
-      .map((v) => [r(), v])
-      .sort((a, b) => a[0] - b[0])
-      .map((a) => a[1])
-      .slice(0, F ? 7 : 5);
-  KIT[i] = ks;
-  BD.push({
-    n: NN[i - 12],
-    c: PAL[i % 12],
-    r: F ? 32 + (i % 3) * 2 : 22 + ((i * 5) % 12),
-    hp: F ? 2 + (i % 3) * 0.15 : 0.8 + ((i * 7) % 6) * 0.1,
-    sh: i % 6,
-  });
-  BO.push({ up: kitUp });
-  BDS.push(
-    (F ? "Jefe final de 3 fases. " : "") +
-      "Ataques: " +
-      ks.map((k) => AT2[k][0]).join(", ") +
-      (F ? ". Fase 3: el suelo cede y los controles se invierten." : "."),
-  );
 }

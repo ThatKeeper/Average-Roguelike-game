@@ -56,6 +56,12 @@ function bossDie(e) {
     });
   G.dk = 0;
   P.invc = 0;
+  if (!G.arena && G.d >= 10 && !S.hard) {
+    S.hard = 1;
+    S.hv2 = 1;
+    save();
+    G.ban = ["Todo se ha vuelto un poco más difícil", 7];
+  }
   chk();
   flash("\u00a1" + e.nm + " derrotado!" + (nu.length ? " Carta nueva: " + nu.join(", ") : ""));
 }

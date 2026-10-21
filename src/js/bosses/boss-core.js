@@ -29,11 +29,12 @@ function amb(dt) {
 }
 function los(a, b) {
   for (const o of RM_.obs)
-    for (let i = 1; i < 12; i++) {
-      const px = a.x + ((b.x - a.x) * i) / 12,
-        py = a.y + ((b.y - a.y) * i) / 12;
-      if (px > o.x && px < o.x + o.w && py > o.y && py < o.y + o.h) return false;
-    }
+    if (!o.pit)
+      for (let i = 1; i < 12; i++) {
+        const px = a.x + ((b.x - a.x) * i) / 12,
+          py = a.y + ((b.y - a.y) * i) / 12;
+        if (px > o.x && px < o.x + o.w && py > o.y && py < o.y + o.h) return false;
+      }
   return true;
 }
 function tz(x0, y0, r, t, d, c) {

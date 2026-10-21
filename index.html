@@ -1,31 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <script>
-  (function () {
-    const VERSION = "2026.10.20.2";
-    const KEY = "average_game_version";
-
-    let previousVersion;
-
-    try {
-      previousVersion = localStorage.getItem(KEY);
-
-      if (previousVersion !== VERSION) {
-        localStorage.clear();
-        sessionStorage.clear();
-        localStorage.setItem(KEY, VERSION);
-      }
-    } catch (e) {
-      console.error("Error limpiando el almacenamiento:", e);
-    }
-
-    // Si había una versión anterior, recargar una sola vez.
-    if (previousVersion && previousVersion !== VERSION) {
-      location.reload();
-    }
-  })();
-</script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -34,10 +9,9 @@
     <meta name="theme-color" content="#0b0a10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
     <title>Average roguelike game</title>
     <link rel="stylesheet" href="src/styles/base.css" />
     <link rel="stylesheet" href="src/styles/touch.css" />
@@ -84,11 +58,13 @@
   <script src="src/js/meta/achievements.js"></script>
   <script src="src/js/meta/bestiary.js"></script>
   <script src="src/js/bosses/boss-kits.js"></script>
+  <script src="src/js/bosses/boss-signatures.js"></script>
   <script src="src/js/hub/hub.js"></script>
   <script src="src/js/hub/menus.js"></script>
   <script src="src/js/hub/training.js"></script>
   <script src="src/js/hub/hub-frame.js"></script>
   <script src="src/js/hub/title.js"></script>
+  <script src="src/js/game/terrain.js"></script>
   <script src="src/js/hub/arena.js"></script>
   <script src="src/js/render/draw-boss.js"></script>
   <script src="src/js/render/draw-entities.js"></script>

@@ -51,7 +51,9 @@ const BO = [
       if (e.wl && !e.lu) {
         e.wl = 0;
         const w = e.x < e.r + 58 || e.x > 902 - e.r || e.y < e.r + 58 || e.y > 542 - e.r;
-        RM_.obs = RM_.obs.filter((b) => Math.hypot(b.x + b.w / 2 - e.x, b.y + b.h / 2 - e.y) > 140);
+        RM_.obs = RM_.obs.filter(
+          (b) => b.pit || Math.hypot(b.x + b.w / 2 - e.x, b.y + b.h / 2 - e.y) > 140,
+        );
         shake = 14;
         if (w) {
           e.st.stun = 2.4;
@@ -300,6 +302,7 @@ const BO = [
         e.ph0 = c.ph;
         for (let i = 0; i < 3 + c.ph * 2; i++) {
           const q = spawn("grunt", e.x + rnd(-120, 120), e.y + rnd(40, 140));
+          q.minion = 1; // invocado: sin oro ni XP
           q.al = 1;
           q.sp = 0.4;
           e.mn.push(q);

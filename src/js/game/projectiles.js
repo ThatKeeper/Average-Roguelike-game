@@ -57,7 +57,7 @@ function upPR(dt) {
       } else p.l = 0;
     }
     for (const b of RM_.obs)
-      if (p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h) {
+      if (!b.pit && p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h) {
         if (p.ex) area(p.x, p.y, p.ex, p.d * 0.8, p.t, { fx: p.fx });
         p.l = 0;
       }

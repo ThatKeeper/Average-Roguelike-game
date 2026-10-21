@@ -82,7 +82,7 @@ function genLevel() {
       if ((ox + w > 400 && ox < 560) || (oy + h > 240 && oy < 360)) continue;
       o.push({ x: ox, y: oy, w, h });
     }
-    r.obs = o;
+    r.obs = layout(o, r.tp, rr);
     r.hz = [];
     if ([3, 5, 6, 7].includes((d - 1) % 8))
       for (let j = 0; j < 2; j++)

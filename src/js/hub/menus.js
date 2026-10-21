@@ -87,7 +87,7 @@ function statsMenu() {
         `Logros: ${Object.keys(S.ach).length}/${ACH.length}`,
         `Parries perfectos: ${st("pf")} · proyectiles reflejados: ${st("pj")}`,
         `Cofres: ${st("ch")} · compras: ${st("sh")} · caídas: ${st("dt")}`,
-        `Modo difícil: ${S.hard ? "activo" : "bloqueado (nivel 10)"}`,
+        `Modo difícil: ${S.hard ? "activo" : "bloqueado (derrota al jefe de la profundidad 10)"}`,
       ]
         .map((t) => `<p>${t}</p>`)
         .join(""),
@@ -96,7 +96,7 @@ function statsMenu() {
 }
 function infoMenu() {
   show(
-    `<h2>Progresión y créditos</h2><p>Modo difícil: <b>${S.hard ? "ACTIVO (permanente)" : "se desbloquea al llegar al nivel 10"}</b>. Al activarse: enemigos más duros, pisos de 10–20 salas con bucles y rutas alternativas.</p><p>Los enemigos y jefes escalan con tu vida y tu daño. Los jefes rotan en cada partida, son inmunes al aturdimiento y no pueden morir de un golpe.</p><p>Parry: mantén clic derecho con un arma cuerpo a cuerpo; el primer instante es parry perfecto (refleja daño y proyectiles).</p><p>Average roguelike game · basado en Infinite Depths.</p>`,
+    `<h2>Progresión y créditos</h2><p>Modo difícil: <b>${S.hard ? "ACTIVO (permanente)" : "se desbloquea al derrotar al jefe de la profundidad 10"}</b>. Al activarse: enemigos más duros, pisos de 10–20 salas con bucles y rutas alternativas.</p><p>Los enemigos y jefes escalan con tu vida y tu daño. Los jefes rotan en cada partida, son inmunes al aturdimiento y no pueden morir de un golpe.</p><p>Parry: mantén clic derecho con un arma cuerpo a cuerpo; el primer instante es parry perfecto (refleja daño y proyectiles).</p><p>Average roguelike game · basado en Infinite Depths.</p>`,
     [back()],
   );
 }

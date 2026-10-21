@@ -101,6 +101,9 @@ function normS() {
   S.souls = +S.souls || 0;
   S.pw = +S.pw || 0;
   S.hard = !!S.hard;
+  if (S.hard && !S.hv2 && S.best < 11) S.hard = false;
+  if (S.best >= 11) S.hard = true;
+  if (S.hard) S.hv2 = 1;
   S.st = o(S.st);
   S.up = o(S.up);
   if (S.fv !== 2) {

@@ -176,17 +176,19 @@ function kill(e) {
   else FX.push({ k: "dead", x: e.x, y: e.y, r: e.r, c: ET[e.t].c, t: 0.5, m: 0.5 });
   G.kills++;
   const T = ET[e.t];
-  for (
-    let i = 0;
-    i < (e.t == "boss" ? 12 : 1 + (Math.random() < 0.4) + (e.t == "elite" ? 3 : 0));
-    i++
-  )
-    O.push({
-      x: e.x + rnd(-15, 15),
-      y: e.y + rnd(-15, 15),
-      k: "g",
-      v: Math.ceil((3 + G.d * 1.5) * (1 + P.a.luk * 0.02) * (1 + 0.03 * U("gre"))),
-    });
+  // Los enemigos invocados (por el Invocador o por jefes) no dan oro ni experiencia
+  if (!e.minion)
+    for (
+      let i = 0;
+      i < (e.t == "boss" ? 12 : 1 + (Math.random() < 0.4) + (e.t == "elite" ? 3 : 0));
+      i++
+    )
+      O.push({
+        x: e.x + rnd(-15, 15),
+        y: e.y + rnd(-15, 15),
+        k: "g",
+        v: Math.ceil((3 + G.d * 1.5) * (1 + P.a.luk * 0.02) * (1 + 0.03 * U("gre"))),
+      });
   if (Math.random() < 0.1 + P.a.luk * 0.005) O.push({ x: e.x, y: e.y, k: "h", v: 0.15 });
   for (let i = 0; i < 8; i++)
     FX.push({
@@ -209,5 +211,5 @@ function kill(e) {
       k: "i",
       it: Object.assign({}, pickIT(), { id: Date.now() + Math.random() }),
     });
-  xp((6 + G.d * 1.5) * (e.t == "boss" ? 15 : e.t == "elite" ? 5 : 1));
+  if (!e.minion) xp((6 + G.d * 1.5) * (e.t == "boss" ? 15 : e.t == "elite" ? 5 : 1));
 }

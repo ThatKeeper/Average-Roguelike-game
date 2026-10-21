@@ -14,11 +14,6 @@ function xp(v) {
     P.nx = Math.floor(P.nx * 1.32 + 10);
     P.pend++;
     P.pts++;
-    if (P.lv >= 10 && !S.hard && !G.arena) {
-      S.hard = 1;
-      save();
-      G.ban = ["Todo se ha vuelto un poco más difícil", 6];
-    }
     chk();
     P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.25);
   }

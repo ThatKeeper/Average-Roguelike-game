@@ -246,6 +246,16 @@ function drawBoss(e) {
           x.stroke();
         }
     }
+  if (e.bi > 11) {
+    const nq = ((e.bi - 12) % 5) + 1;
+    x.fillStyle = BD[e.bi].c;
+    for (let q = 0; q < nq; q++) {
+      const a = t * (1 + (e.bi % 3) * 0.4) + (q * 6.283) / nq;
+      x.beginPath();
+      x.arc(Math.cos(a) * r * 1.6, Math.sin(a) * r * 1.6, 4, 0, 7);
+      x.fill();
+    }
+  }
   if (e.bi > 11 && FIN(e.bi)) {
     x.strokeStyle = "#fff";
     x.lineWidth = 2;

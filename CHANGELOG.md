@@ -1,90 +1,121 @@
-# Registro de cambios
+# Changelog
 
-Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado semántico.
+Formato basado en *Keep a Changelog*. Los cambios se comparan con la versión anterior, *Infinite Depths*.
 
-## [1.1.0] — Balance, cartas del Mago, HUD, revancha y Android
-### Corregido
-- **Puertas que no se dibujaban / sala del jefe inalcanzable:** la sala secreta se elegía entre *cualquier* sala de combate, también las del camino al jefe; al ocultarse su puerta (a propósito) cortaba la ruta. Medido: en **577 de 1.160 niveles** simulados no existía ninguna ruta visible hasta el jefe. Ahora una sala secreta es siempre un **callejón sin salida**: 0 de 1.160 niveles sin ruta y las salas secretas siguen funcionando (974 en la simulación). Las puertas se dibujan con marco y brillo, y las cerradas muestran barrotes.
+## [1.3.4]
+
+### Renombrado
+- *Infinite Depths* → **Average roguelike game** (título de la pestaña, pantalla de título y hub).
+- Se mantiene la clave de guardado (`idv1`): el progreso anterior se conserva.
+
 ### Añadido
-- **Cartas de hechizo (solo Mago):** 55 cartas (10 elementos + 45 combinaciones) con requisitos visibles desde el principio (profundidad, jefes derrotados, cartas previas), arrastrar y soltar (ratón y táctil) en 4 espacios y lanzamiento con 1–4. Desbloqueos **permanentes** guardados en `localStorage`, con migración de guardados antiguos y tolerancia a datos corruptos.
-- **HUD rediseñado:** casillas con iconos dibujados, tecla asignada, estados (listo, enfriamiento, sin maná, seleccionado), objetos equipados visibles con borde de rareza y etiqueta contextual al pasar el ratón.
-- **Android:** controles táctiles (joystick, ATACAR con auto-apuntado, habilidades, esquiva, interactuar, menús y cartas), zonas seguras, aviso en vertical, modo gráfico ligero, ajustes de tamaño, PWA instalable sin conexión, configuración de Capacitor y workflow para generar el APK de prueba.
-- **IA en niveles altos:** más cadencia y velocidad con la profundidad, más ataques simultáneos permitidos y **flanqueo en anillo** de los cuerpo a cuerpo desde la profundidad 3.
+
+**Pantalla de título y hub**
+- Pantalla de título animada (antorchas, brasas) con botón COMENZAR y fundido de salida. Efecto al pasar el ratón: las letras del título se elevan, las brasas se apartan del cursor y el botón crece, brilla y suelta chispas.
+- **Hub** (habitación central, sustituye al menú de botones) con 10 puntos de interacción (`F` o clic): puerta de la mazmorra, pedestal de clases, tablón de logros, bestiario, mesa de estadísticas, forja de almas, arena de jefes, campo de entrenamiento, cartel de progresión y créditos, y ajustes.
+- Selección de clase con descripción, estadísticas, estilo y habilidades, y confirmación antes de entrar.
+- El menú antiguo se conserva dentro de **Ajustes**.
+- **Campo de entrenamiento**: maniquíes, arquero de práctica y combatiente; sin XP, oro, botín, logros ni progreso; no se puede morir.
+
+**Jefes**
+- **32 jefes nuevos** (22 normales y 10 finales): 44 jefes en total, 15 finales.
+- **Diseño propio por jefe nuevo:** firma única con nombre (8 geometrías × parámetros propios), rasgo pasivo (8 tipos), combo propio tras la firma, firma reforzada en la fase 3 de los finales y satélites orbitales distintos. Las 32 combinaciones geometría + rasgo son únicas.
+- 13 ataques nuevos con aviso visual: lluvia de meteoros, onda expansiva, cruz mortal, espiral, plaga rastreadora, embestida telegrafiada, convocar secuaces, abanico, anillos concéntricos, minas retardadas, barrido, salto sombrío y jaula.
+- Jefes normales con 5 ataques; finales con 7 y **3 fases** (fase 3: colapso del suelo e inversión de controles). 6 formas visuales nuevas y corona para los finales.
+- **Ataques extra** también para los 12 jefes originales.
+- **Rotación:** el orden de jefes se baraja en cada partida y cualquier jefe puede aparecer en cualquier bioma.
+- **Patrón aleatorio:** los ataques se eligen al azar sin repetir el anterior; las ventanas de vulnerabilidad aparecen tras 3–5 ataques. Los jefes antiguos con secuencia fija también eligen al azar.
+- Arena de jefes ampliada a 44 entradas con profundidad de desbloqueo propia.
+
+**Logros y bestiario**
+- **34 logros** persistentes con id estable, fecha y +10 almas; 2 ocultos. Pantalla de logros con progreso.
+- **Bestiario**: fichas bloqueadas hasta derrotar al enemigo, con datos del combate real, filtro, búsqueda por nombre, porcentaje total y aviso de descubrimiento.
+- Estadísticas acumuladas y mesa de estadísticas en el hub. La Arena y el Entrenamiento no cuentan.
+
+**Modo difícil**
+- Se desbloquea **permanentemente al derrotar al jefe de la profundidad 10**, con aviso único *“Todo se ha vuelto un poco más difícil”* e indicador ☠ permanente (HUD, título y hub).
+- Enemigos +20 % de vida y +12 % de daño.
+- Pisos de 10–20 salas (antes 5–12) con bucles y rutas alternativas, segunda cámara secreta, más obstáculos y oleadas mayores (hasta 18). Minimapa centrado en la sala actual.
+
+**Terreno de las salas (estilo The Binding of Isaac)**
+- 13 plantillas con **hoyos** (bloquean el paso, no proyectiles ni línea de visión) y **muros**, sin cambiar el tamaño de las salas. Alrededor del **40 %** de las salas las usan; el 60 % son salas comunes, también entre las de jefe.
+- Cada plantilla se valida automáticamente (puertas, centro y suelo libre conectados). Jefes: solo plantillas abiertas. Modo difícil: puede combinar dos plantillas.
+
+**Forja de almas rediseñada** (ver *Cambiado*): 10 mejoras permanentes tipo Vampire Survivors.
+
+**Parry perfecto**
+- Ventana de 0,22 s, sonido, destello, pausa de impacto de 0,07 s, aturdimiento del atacante y devolución del doble de su daño.
+- Reflejo de proyectiles hacia el enemigo más cercano (más velocidad, doble de daño, sin reflejo en bucle).
+- Enfriamientos de 0,9 s (tras éxito) y 0,45 s (tras soltar la guardia) con indicador visual.
+
+**Armas, botín y escalado**
+- Barra de munición junto al personaje para armas con cargador; tiempo de recarga configurable por arma.
+- Armaduras legendarias *Coraza del Coloso* y *Yelmo del Abismo*.
+- Bonificación por ranuras vacías en el botín (peso ×1,5 en la elección y hasta +3 % de probabilidad de soltar objeto).
+- **Escalado adaptativo:** vida enemiga con tu daño y vida máxima (tope +120 %); daño enemigo con tu vida máxima y algo con tu daño (tope +60 %).
+
+**Ajustes y versiones**
+- Volumen separado de **música** y **efectos**, además del general.
+- **Sistema de versiones del guardado** (`HARD_RESET`, `SOFT_RESET`, `GAME_VERSION`, al inicio del script):
+  - `HARD_RESET` +1 → borra todo (desde cero).
+  - `SOFT_RESET` +1 → reinicia solo el progreso (`SOFT_WIPE`) y conserva logros, bestiario, estadísticas, jefes derrotados y ajustes.
+  - Los guardados antiguos sin versión se adoptan sin perder nada.
+  - Aviso en el título tras un reinicio y número de versión visible (`v1.3.4`).
+  - El service worker se registra como `sw.js?v=<GAME_VERSION>` para forzar su actualización.
+
 ### Cambiado
-- **Vida enemiga:** `(1+0,22·(d−1))·(1+0,35·⌊(d−1)/4⌋)·(1+0,025·máx(0,d−8))`.
-- **Límite de proyectiles enemigos:** 120 hasta la profundidad 3 y baja 5 por nivel (mínimo 48); el del jugador (220) es independiente. Al superarlo se descartan los más antiguos.
-- **Revancha (Arena de jefes) = práctica:** al derrotar al jefe y entrar en el portal vuelve al menú **sin recompensas, almas, profundidad ni desbloqueos**; morir o abandonar tampoco guardan nada. Las runs normales no cambian.
-- El grimorio libre se sustituye por las cartas y queda **exclusivo del Mago**; los demás estilos conservan sus habilidades.
-### Pruebas
-- 12 suites (234 comprobaciones): puertas en 1.160 niveles, balance, límite de proyectiles, IA y flanqueo, práctica, cartas y persistencia (contextos nuevos que simulan reiniciar el juego), controles táctiles (eventos de puntero simulados), PWA y rutas bajo subdirectorio.
-### Limitaciones conocidas
-- El APK **no se ha compilado ni probado en un dispositivo real**; tampoco el aspecto ni el tacto de los controles en un teléfono.
 
-## [1.0.1] — Corrección crítica
+**Armas**
+- Dagas, Lanza, Hachas dobles y Daga de la Hemorragia pasan de escalar con Destreza a **Fuerza**; ahora todas las armas cuerpo a cuerpo escalan con Fuerza. Descripciones de atributos actualizadas.
+- **Arco:** cadencia 0,34 s → 0,38 s; daño ×0,9 → ×0,85; cargador sin límite → **12**; recarga **1,9 s**. Daño sostenido aproximado −40 %. Sin reserva de munición.
+
+**Robo de vida**
+
+| Fuente | Antes | Ahora |
+|---|---|---|
+| Hoja sedienta | 3 % | 1,5 % |
+| Anillo sangriento | 4 % | 2 % |
+| Talento Sed de sangre | 2 % por rango | 1 % por rango |
+| Sangre (elemento) | 5 % del daño del hechizo | 2 % |
+| Pacto carmesí | 12 % | 5 % |
+| Sangre ardiente | 10 % | 4 % |
+| Savia carmesí | 15 % | 5 % |
+
+- Tope global: 6 % del daño por golpe y 3 % de la vida máxima por golpe. El daño periódico y el daño devuelto por parry no curan.
+
+**Rarezas y botín**
+- Niveles 0–5: nada por encima de *raro* (botín, cofres, mercader, reliquias). Nivel 6+: épico/legendario con probabilidad reducida.
+- Probabilidad de objeto de enemigos comunes: 6 % + Suerte×0,3 % → 4 % + Suerte×0,2 % (+ bonus por ranuras vacías).
+
+**Forja de almas**
+- Reinicio total. Antes: +6 % de daño por nivel sin tope. Ahora: **Poder +0,5 % por nivel, máx. 50 niveles (+25 %)**, más Vigor, Armadura, Recuperación, Enfriamiento, Celeridad, Imán, Codicia, Crecimiento y Renacer.
+- Migración: las almas gastadas en el sistema antiguo se **reembolsan** y el nivel antiguo pasa a 0.
+
+**Jefes**
+- Inmunidad: 90 % → **99 %**.
+- Aturdimiento: antes limitado a 0,6 s cada 5 s; ahora los jefes **ignoran** aturdimiento, congelación y enraizamiento.
+- Tope de daño: máximo 10 % de su vida por golpe y 25 % por segundo; imposible matar a un jefe de un golpe.
+- Requisitos de cartas con jefes: de *“derrotar a X”* a *“derrotar a N jefes distintos”* (compatible con la rotación).
+- La rotura de obstáculos de Gorgrim ya no elimina hoyos.
+
+**Mercader y navegación**
+- El inventario del mercader se genera una vez por sala y se conserva.
+- Los botones “Volver”, la muerte y la victoria regresan al hub.
+
+**Migración del modo difícil**
+- Guardados con mejor profundidad ≥ 11 reciben el modo difícil automáticamente; el desbloqueo por nivel sin haber superado el jefe de la profundidad 10 se retira.
+
 ### Corregido
-- **Crash al llegar a la sala del jefe del nivel 2 (y siguientes):** el aura de los jefes se dibujaba sumando un sufijo de transparencia a su color (`'#b87' + '77'`). Con colores de 3 dígitos el resultado era inválido (`#b8777`), el navegador lanzaba un error en cada fotograma y el lienzo quedaba a medias (salas dibujadas dos veces, pantalla corrupta). El jefe 1 usaba un color de 6 dígitos y por eso no fallaba. Ahora un ayudante `hx()` normaliza el color antes de añadir la transparencia.
-- Los dibujados de jugador, enemigos y jefes se ejecutan protegidos (`save/restore` garantizado) y, si ocurre un error de render, el lienzo se reinicia en vez de quedarse corrupto.
-### Pruebas
-- El contexto de lienzo simulado de las pruebas ahora **rechaza colores inválidos** como un navegador real. Nueva suite `tests/render.test.js` que dibuja los 12 jefes, sus copias, los 10 enemigos y al jugador.
-- Verificado el flujo completo nivel 1 → 2 → 3 por puertas reales en 25 semillas (75 salas de jefe) sin errores ni jefes duplicados.
-### Documentación
-- Nuevo `README.md` para jugadores; la guía técnica pasa a `DESARROLLO.md`.
+- **Primer jefe (Valdris):** ya no retrocede al ejecutar su finta; hace una pausa con destello en su sitio.
+- **Mercader:** el inventario ya no se regenera al reabrirlo.
+- **Bloqueos de jefe:** al morir un jefe se eliminan los enemigos restantes de la sala, y un temporizador anti-bloqueo (20 s sin daño) elimina inmunidades, orbes, señuelos y esbirros y lo deja vulnerable.
+- **Armaduras legendarias:** ahora pueden generarse (antes no existía ninguna).
 
-## [1.0.0] — Primera versión completa
-### Añadido
-- **12 jefes** con comportamiento propio: 7 normales (profundidades 1–7) y 5 finales de tres fases (10, 20, 30, 40, 50): Valdris, Gorgrim, Sylra, Mirax, Veyra, Nyx, Zeth, Soberano de Huesos, Fulgor, Noctis, Cronos y El Vacío. Presentación, barra con estado [INMUNE]/[VULNERABLE], efecto de derrota y **sonidos propios**.
-- **Arena de jefes** en el menú (se desbloquean al alcanzar su profundidad).
-- **Sprites animados** para jugador y los 10 enemigos normales (balanceo, anticipación, estiramiento al embestir, destello al recibir daño, animación de muerte). Fondos con partículas ambientales, estalactitas y viñeta.
-- **IA mejorada:** detección por línea de visión, estado *investigar* (última posición conocida y vuelta a patrullar), esquiva de proyectiles, reposicionamiento de arqueros y magos, y máximo de 3 ataques simultáneos.
-- **Rendimiento:** bucle de paso fijo (1/60 s) independiente de los FPS y límite de efectos simultáneos.
-- **Ajustes:** volumen y temblor de pantalla. Guardado local tolerante a datos corruptos.
-- **GitHub Pages:** flujo `.github/workflows/pages.yml`, `.nojekyll`, rutas relativas y prueba de despliegue bajo subdirectorio.
-
-## [0.9.0] — Sinergias y ventanas
-### Añadido
-- **33 sinergias nuevas:** las 45 parejas de los 10 elementos tienen combinación propia (contagio de estados, consumo de acumulaciones, ruptura de congelados, zonas…).
-### Cambiado
-- Las ventanas ya no recortan su contenido: **desplazamiento**, botones en cuadrícula y, en el inventario, **paginación, filtros por ranura y orden**. El grimorio lista solo las sinergias del elemento elegido.
-### Corregido
-- Botón *Anterior* de la paginación (relacionado con `appendChild`).
-
-## [0.8.0] — Talentos, victoria y resistencias
-### Añadido
-- **Talentos** (tecla T): 7 pasivas de 3 rangos, 1 punto por nivel.
-- **Resistencias elementales** en el equipo; cada bioma inflige un tipo de daño.
-- **Pantalla de victoria** en la profundidad 10 (retirarse con gloria o seguir).
-- Variantes de enemigo por bioma.
-- Proyecto modular con `package.json`, servidor estático sin dependencias y `build.js`.
 ### Eliminado
-- Código muerto (`loot`, `showOld`, `invOld`).
-### Corregido
-- La pantalla de victoria se cerraba sola (mismo fallo que la de derrota).
+- Nada. El menú antiguo sigue accesible desde Ajustes.
 
-## [0.7.0] — Magia elemental y estados
-### Añadido
-- **10 elementos**, **Grimorio** (tecla B) con elemento principal, secundario y forma (proyectil, nova, cono, zona); lanzamiento con C.
-- 12 combinaciones iniciales y **estados alterados**: raíz, fractura, maldición, corrupción, empapado, hemorragia, veneno, quemadura, ralentización y aturdimiento, con reglas de acumulación, resistencia de élites/jefes y limpieza al morir.
-- **Tomos mágicos** (escudo, trampa, espíritu, rayo continuo, aliento ígneo).
-- Build de dagas: Daga de la Hemorragia, detonación con R y reliquias asociadas.
-
-## [0.6.0] — Objetos y equipo
-### Añadido
-- **Tarjetas de objetos** con rareza, descripción, estadísticas, requisitos y comparación.
-- **Inventario y equipamiento** (casco, armadura, guantes, botas, accesorio) con estadísticas recalculadas sin acumular bonificaciones.
-- Ventanas de tarjetas para menú, subida de nivel, cofres, mercader, santuarios y sucesos.
-### Cambiado
-- Los emojis quedan **solo para los objetos**; el resto vuelve a gráficos dibujados.
-
-## [0.5.0] — Estabilidad del ciclo de partida
-### Corregido
-- **La pantalla de inicio no aparecía tras perder:** el botón abría el menú y el mismo manejador lo cerraba. Reinicio completo de estado (teclas, enemigos, proyectiles, efectos) al empezar otra partida.
-- Embestidas con posición inválida (NaN), cambio de lado al cruzar puertas y bucle detenido por un error puntual.
-
-## [0.4.0] — Contenido y sistemas
-### Añadido
-- Controles reasignables, acción **R** por clase, armas nuevas, recarga de ballesta.
-- Salas secretas y sucesos aleatorios; zonas peligrosas por bioma; patrulla de enemigos; música ambiental.
-
-## [0.1.0] — Base jugable
-### Añadido
-- Mazmorra infinita procedural con semilla; 3 estilos de combate (cuerpo a cuerpo, distancia, magia); 10 arquetipos de enemigos; jefes iniciales; 8 biomas; salas de combate, élite, tesoro, santuario y mercader; fórmula de daño centralizada; guardado local; Web Audio.
+### Limitaciones conocidas
+- Las salas mantienen el tamaño de pantalla.
+- Los 32 jefes nuevos comparten el motor de ataques (sin animaciones ni escenas únicas).
+- No hay sonidos de ambiente.
+- Las pruebas fueron simulaciones automáticas (generación de pisos y terreno, 44 jefes, parry, forja, migraciones, versiones de guardado, logros, entrenamiento); no se jugó en un navegador real.

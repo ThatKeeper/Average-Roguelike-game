@@ -143,6 +143,17 @@ function titleFrame(dt) {
     x.fillStyle = "#f55";
     x.fillText("☠ MODO DIFÍCIL ACTIVO", 480, H - 40);
   }
+  x.textAlign = "right";
+  x.fillStyle = "#fff6";
+  x.font = "11px Georgia";
+  x.fillText("v" + GAME_VERSION, W - 10, H - 10);
+  if (RESET_MSG) {
+    x.textAlign = "center";
+    x.fillStyle = "#ffd34a";
+    x.font = "13px Georgia";
+    x.fillText(RESET_MSG, 480, H - 60);
+  }
+  x.textAlign = "center";
   if (G.tf > 0) {
     x.fillStyle = "#000";
     x.globalAlpha = 1 - G.tf / 0.5;

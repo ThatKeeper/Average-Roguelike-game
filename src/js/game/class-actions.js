@@ -3,7 +3,7 @@
  * Acción de clase (tecla R): escudo, trampa, invocación, rayo, cono, etc. y lógica de trampas/aliados.
  *
  * Define:
- * TR, AL, TM, rk, spl
+ * TR, AL, TM, classAction, spl
  * ====================================================================== */
 
 let TR = [],

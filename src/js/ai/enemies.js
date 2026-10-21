@@ -217,7 +217,7 @@ function upE(dt) {
           if (d < 220) mv(-nx * sp, -ny * sp);
           if (e.cd <= 0 && E.length < 18) {
             e.cd = 5;
-            spawn("grunt", e.x + 20, e.y + 20);
+            spawn("grunt", e.x + 20, e.y + 20).minion = 1; // invocado: sin oro ni XP
           }
           break;
         case "shield": {

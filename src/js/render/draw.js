@@ -78,6 +78,10 @@ function draw() {
     x.fill();
   }
   for (const o of r.obs) {
+    if (o.pit) {
+      pitDraw(o);
+      continue;
+    }
     x.fillRect(o.x, o.y, o.w, o.h);
     x.strokeStyle = b[3];
     x.lineWidth = 2;

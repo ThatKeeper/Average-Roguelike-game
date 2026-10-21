@@ -10,6 +10,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 let html = read('index.html');
 
+// El favicon vive solo en el index normal: se omite en la versión de un solo archivo
+html = html.replace(/\s*<link rel="icon"[^>]*>/, '');
+
 // CSS local -> <style>
 html = html.replace(/<link rel="stylesheet" href="([^"]+)"\s*\/?>/g, (_, href) => `<style>\n${read(href)}</style>`);
 

@@ -1,10 +1,12 @@
 # Average roguelike game
 
-Roguelike de mazmorras con vista cenital, hecho en un único archivo HTML (canvas + JavaScript, sin dependencias). Basado en *Infinite Depths*.
+Roguelike de mazmorras con vista cenital, en un único archivo HTML (canvas + JavaScript, sin dependencias). Basado en *Infinite Depths*.
+
+**Versión actual: 1.3.4**
 
 - **Archivo del juego:** `average-roguelike-game.html`
 - **Cómo jugar:** abre el archivo en un navegador moderno (escritorio o móvil). No necesita instalación ni servidor.
-- **Guardado:** `localStorage`, con la misma clave que la versión anterior (`idv1`). Tu progreso anterior se conserva y se migra solo.
+- **Guardado:** `localStorage` (clave `idv1`), con sistema de versiones (ver [Versiones del guardado](#versiones-del-guardado)).
 
 > El HTML enlaza `manifest.webmanifest`, `sw.js` y `icons/` (PWA). Esos archivos no forman parte de este paquete; el juego funciona igual sin ellos.
 
@@ -12,10 +14,10 @@ Roguelike de mazmorras con vista cenital, hecho en un único archivo HTML (canva
 
 ## Flujo del juego
 
-1. **Pantalla de título** → clic o cualquier tecla.
-2. **Hub (habitación central)** → mueves a un personaje en blanco y te acercas a los objetos (F o clic).
-3. **Mazmorra** → pisos con salas, jefe al final de cada piso, descenso cada vez más difícil.
-4. Al morir vuelves al hub; conservas almas, logros, bestiario y mejoras permanentes.
+1. **Pantalla de título** animada → clic o cualquier tecla.
+2. **Hub** (habitación central) → mueves a un personaje en blanco y te acercas a los objetos (`F` o clic).
+3. **Mazmorra** → pisos con salas, un jefe al final de cada piso, descenso cada vez más difícil.
+4. Al morir vuelves al hub; conservas almas, mejoras de la forja, logros y bestiario.
 
 ### El hub
 
@@ -24,13 +26,13 @@ Roguelike de mazmorras con vista cenital, hecho en un único archivo HTML (canva
 | Puerta de la mazmorra | Inicia la partida con la clase elegida (pide confirmación) |
 | Pedestal de clases | Elegir Guerrero, Cazador o Mago (descripción, estadísticas, estilo y habilidades) |
 | Tablón de logros | Lista de logros, progreso y fecha de desbloqueo |
-| Bestiario | Fichas de enemigos y jefes descubiertos, con filtro y búsqueda |
+| Bestiario | Fichas de enemigos y jefes descubiertos, con filtro y búsqueda por nombre |
 | Mesa de estadísticas | Datos acumulados de todas tus partidas |
 | Forja de almas | Mejoras permanentes que se compran con almas |
 | Arena de jefes | Practicar cualquiera de los 44 jefes (sin recompensas) |
-| Campo de entrenamiento | Maniquíes, arquero de práctica y combatiente, para probar ataques, habilidades, parry y esquivas |
+| Campo de entrenamiento | Maniquíes, arquero de práctica y combatiente para probar ataques, habilidades, parry y esquivas |
 | Cartel de progresión y créditos | Explica el modo difícil y la progresión |
-| Ajustes | Controles, música, volúmenes, temblor de pantalla, controles táctiles, gráficos |
+| Ajustes | Controles, música, volúmenes (general, música, efectos), temblor de pantalla, controles táctiles, gráficos |
 
 El entrenamiento y la arena **no dan** experiencia, botín, oro, logros ni progreso.
 
@@ -55,7 +57,7 @@ En móvil se muestran controles táctiles (joystick y botones), configurables en
 
 ---
 
-## Clases
+## Clases y armas
 
 | Clase | Arma inicial | Estilo |
 |---|---|---|
@@ -63,48 +65,60 @@ En móvil se muestran controles táctiles (joystick y botones), configurables en
 | Cazador | Arco (cargador de 12) | A distancia: andanada, flecha explosiva y flecha venenosa |
 | Mago | Báculo arcano | Magia con maná y cartas de hechizo elementales |
 
-**Armas:** todas las armas cuerpo a cuerpo escalan con **Fuerza**. Las de distancia escalan con Destreza y las mágicas con Inteligencia. Las armas con cargador (Arco, Ballesta, Arma rúnica) muestran una barra de munición junto al personaje.
+- Todas las armas **cuerpo a cuerpo escalan con Fuerza**. Las de distancia escalan con Destreza y las mágicas con Inteligencia.
+- Las armas con cargador (Arco, Ballesta, Arma rúnica) muestran una **barra de munición** junto al personaje con el progreso de recarga. No hay reserva de munición: la recarga es gratuita.
 
 ---
 
 ## Combate
 
 ### Parry (armas cuerpo a cuerpo)
-- Mantén el clic derecho para guardia: reduce el daño recibido.
-- Los primeros **0,22 s** son la ventana de **parry perfecto**: anula el golpe, aturde al atacante (los jefes son inmunes al aturdimiento), le **devuelve el doble de su daño** y activa sonido propio, destello y una pausa de impacto de 0,07 s.
-- Un parry perfecto sobre un **proyectil** lo refleja hacia el enemigo más cercano con más velocidad y el doble de daño. Un proyectil reflejado no se puede reflejar de nuevo.
-- Enfriamiento: 0,9 s tras un parry perfecto y 0,45 s tras soltar la guardia, para impedir el spam. El borde de la guardia es blanco (perfecto disponible), gris (enfriamiento) o azul (guardia normal).
-- No funciona contra zonas de área sin atacante, solo contra golpes y proyectiles.
+- Mantén el clic derecho para la guardia: reduce el daño recibido.
+- Los primeros **0,22 s** son la ventana de **parry perfecto**: anula el golpe, aturde al atacante (los jefes son inmunes), le **devuelve el doble de su daño** y activa sonido, destello y una pausa de impacto de 0,07 s.
+- Un parry perfecto sobre un **proyectil** lo refleja hacia el enemigo más cercano, con más velocidad y el doble de daño. Un proyectil reflejado no se puede reflejar de nuevo.
+- Enfriamiento: 0,9 s tras un parry perfecto y 0,45 s tras soltar la guardia (evita el spam). El borde de la guardia es blanco (perfecto disponible), gris (enfriamiento) o azul (guardia normal).
+- Solo afecta a golpes y proyectiles con atacante; las zonas de área no se pueden parar.
 
 ### Robo de vida
-Es una ventaja especializada: fuentes reducidas, tope de **6 %** del daño por golpe y máximo **3 % de la vida máxima** por golpe. El daño periódico (veneno, quemadura, hemorragia) no cura. La regeneración (talento/forja) es independiente.
+Fuentes reducidas, con tope de **6 %** del daño por golpe y máximo **3 % de la vida máxima** por golpe. El daño periódico (veneno, quemadura, hemorragia) y el daño devuelto por parry no curan. La regeneración (forja) es independiente.
 
 ### Estados
-Los jefes **ignoran** aturdimiento, congelación y enraizamiento. Los enemigos normales y élites siguen sufriéndolos (con duración reducida en élites).
+Los jefes **ignoran** aturdimiento, congelación y enraizamiento. Enemigos normales y élites siguen sufriéndolos (reducido en élites).
 
 ---
 
 ## Dificultad
 
 - La vida y el daño de los enemigos crecen con la profundidad.
-- **Escalado adaptativo:** la vida enemiga sube con tu daño y con tu vida máxima (hasta +120 %); el daño enemigo sube con tu vida máxima y algo con tu daño (hasta +60 %).
-- **Modo difícil:** se desbloquea **permanentemente** al alcanzar el **nivel 10** por primera vez. Se muestra el aviso *“Todo se ha vuelto un poco más difícil”* una sola vez y un indicador ☠ permanente.
+- **Escalado adaptativo:** la vida enemiga sube con tu daño y tu vida máxima (hasta +120 %); el daño enemigo sube con tu vida máxima y algo con tu daño (hasta +60 %).
+- **Modo difícil:** se desbloquea **permanentemente al derrotar al jefe de la profundidad 10**, con un aviso único (*“Todo se ha vuelto un poco más difícil”*) y un indicador ☠ permanente.
   - Enemigos con +20 % de vida y +12 % de daño.
-  - Pisos de **10–20 salas** (antes 5–12), con bucles, rutas alternativas, una segunda cámara secreta, más obstáculos y oleadas mayores.
+  - Pisos de **10–20 salas** (antes 5–12), con bucles y rutas alternativas, una segunda cámara secreta, más obstáculos, oleadas mayores (hasta 18) y plantillas de terreno combinables.
   - El minimapa se centra en tu sala.
 
+### Terreno de las salas (estilo *The Binding of Isaac*)
+Sin cambiar el tamaño de las salas, alrededor del **40 %** usan plantillas con **hoyos** y **muros**; el otro **60 %** son salas comunes (también entre las de jefe).
+- Los **hoyos** bloquean el paso de jugador y enemigos, pero **no** los proyectiles ni la línea de visión.
+- Hay 13 plantillas: Pilares, Hoyos laterales, Grietas, Esquinas en L, Galería, Diagonales, Río, Estanques, Ajedrez, Muralla partida, Fosos de esquina, Cruz de muros e Islotes.
+- Cada plantilla se **valida** para que las cuatro puertas, el centro y todo el suelo libre estén conectados (sin zonas aisladas). Las salas de jefe usan solo plantillas abiertas.
+
 ### Jefes
-- **44 jefes**: 12 originales + **32 nuevos** (22 normales y 10 finales). 15 son jefes finales en total.
-- Aparecen en **cualquier bioma** y **rotan en cada partida** (el orden se baraja con la semilla de la partida).
+- **44 jefes**: 12 originales + **32 nuevos** (22 normales y 10 finales). 15 son jefes finales.
+- Aparecen en **cualquier bioma** y **rotan en cada partida** (el orden se baraja con la semilla).
 - Los jefes eligen sus ataques **al azar**, sin repetir el anterior, y se exponen (vulnerables) cada pocos ataques.
-- Jefes nuevos: 5 ataques (normales) o 7 (finales, 3 fases). Se combinan 13 ataques: lluvia de meteoros, onda expansiva, cruz mortal, espiral, plaga rastreadora, embestida telegrafiada, convocar secuaces, abanico, anillos concéntricos, minas retardadas, barrido, salto sombrío y jaula. Los finales añaden en fase 3 el colapso del suelo y la inversión de controles.
+- **Diseño propio de cada jefe nuevo:**
+  - una **firma** única, con nombre propio, de entre 8 geometrías con parámetros propios (pétalos, rayos giratorios, columnas de meteoros con hueco, embestida con estela, tablero, anillos que se cierran, ráfagas dirigidas, pulsar con huecos);
+  - un **rasgo pasivo** (furia veloz, aura abrasadora, estela ardiente, pulso, cría esbirros, parpadeo, buscador teledirigido o meteoros);
+  - un **combo** propio (la firma encadena otro ataque de su kit) y satélites orbitales distintos.
+  - Las 32 combinaciones geometría + rasgo son únicas.
+- Jefes nuevos: 5 ataques (normales) o 7 (finales, con 3 fases), más su firma. Catálogo de 13 ataques: lluvia de meteoros, onda expansiva, cruz mortal, espiral, plaga rastreadora, embestida telegrafiada, convocar secuaces, abanico, anillos concéntricos, minas retardadas, barrido, salto sombrío y jaula. En la fase 3 los finales añaden el colapso del suelo y la inversión de controles, y refuerzan su firma.
 - Los 12 jefes originales también usan estos ataques como extra.
-- **Seguridad:** inmunidad del 99 %, sin aturdimiento, máximo 10 % de su vida por golpe y 25 % por segundo (no se pueden matar de un golpe), y un sistema anti-bloqueo que los deja vulnerables si pasan 20 s sin recibir daño.
+- **Seguridad:** inmunidad del 99 %, sin aturdimiento, máximo 10 % de su vida por golpe y 25 % por segundo (no se pueden matar de un golpe) y un sistema anti-bloqueo que los deja vulnerables si pasan 20 s sin recibir daño.
 
 ### Botín y rarezas
 - Menos objetos de enemigos comunes; las ranuras vacías aumentan algo la probabilidad (sin garantizarla).
 - **Niveles 0–5:** nada por encima de *raro* (botín, cofres, mercader).
-- **Nivel 6+:** épico y legendario con probabilidad reducida. Hay armaduras legendarias.
+- **Nivel 6+:** épico y legendario con probabilidad reducida; hay armaduras legendarias.
 - El **mercader** genera su inventario una sola vez por sala y lo conserva.
 
 ---
@@ -128,10 +142,10 @@ Las almas se ganan al morir (mitad del oro) o al retirarte con gloria. Cada mejo
 | Renacer | Revives una vez por partida con el 50 % de vida | 1 |
 
 ### Cartas de hechizo (Mago)
-Se desbloquean con profundidad y jefes derrotados. Los requisitos de jefe ahora son *“derrotar a N jefes distintos”* para que funcionen con la rotación.
+Se desbloquean con profundidad y jefes derrotados. Los requisitos de jefe son *“derrotar a N jefes distintos”*, compatibles con la rotación.
 
 ### Logros (34)
-Cada logro tiene id estable, fecha de desbloqueo y +10 almas. Los marcados con (oculto) no muestran su condición hasta conseguirlos.
+Cada logro tiene id estable, fecha de desbloqueo y +10 almas. Los marcados (oculto) no muestran su condición hasta conseguirlos. Las partidas de Arena y Entrenamiento no cuentan.
 
 | Logro | Condición |
 |---|---|
@@ -157,13 +171,30 @@ Cada logro tiene id estable, fecha de desbloqueo y +10 almas. Los marcados con (
 | Gloria eterna (oculto) | Retirarte con gloria |
 
 ### Bestiario
-Una ficha se desbloquea al derrotar al enemigo una vez. Muestra comportamiento, consejo, estadísticas base y resistencias (enemigos), o ataques y profundidad (jefes), y las veces derrotado. Aviso al descubrir una entrada, filtro (todos/enemigos/jefes), búsqueda por nombre y porcentaje total.
+Una ficha se desbloquea al derrotar al enemigo una vez. Muestra comportamiento, consejo, estadísticas base y resistencias (enemigos), o firma, rasgo y profundidad (jefes), y las veces derrotado. Incluye aviso de descubrimiento, filtro (todos / enemigos / jefes), búsqueda por nombre entre los descubiertos y porcentaje total.
+
+---
+
+## Versiones del guardado
+
+Al principio del script (`// ===== VERSIONES =====`) hay tres constantes:
+
+| Constante | Qué hace al subirla en +1 |
+|---|---|
+| `HARD_RESET` | **Borra todo** el guardado: partida nueva desde cero (incluye logros, bestiario y ajustes). |
+| `SOFT_RESET` | Reinicia solo el **progreso** (claves de `SOFT_WIPE`: mejor profundidad, almas, forja, cartas, modo difícil). **Conserva** logros, bestiario, estadísticas, jefes derrotados y ajustes. |
+| `GAME_VERSION` | Informativa (actualmente `1.3.4`): se muestra abajo a la derecha en el título y se añade a la URL del service worker (`sw.js?v=…`) para forzar su actualización. |
+
+- Un guardado antiguo sin versión se **adopta** sin borrar nada.
+- Tras un reinicio, el título muestra un aviso con el motivo.
+- Para cambiar lo que conserva el reinicio suave, edita la lista `SOFT_WIPE`.
+- Si en GitHub Pages sigues viendo la versión vieja, casi seguro es la caché del navegador o de tu `sw.js`. La versión visible en el título indica qué HTML se sirve; si tu `sw.js` guarda caché, usa también `GAME_VERSION` en el nombre de esa caché.
 
 ---
 
 ## Límites conocidos
 
-- Las salas mantienen el tamaño de pantalla; el modo difícil aumenta el número de salas, no su tamaño.
-- Los 32 jefes nuevos son combinaciones de un catálogo de 13 ataques con nombre, color y forma propios; no tienen mecánicas únicas por jefe como los 12 originales.
+- Las salas mantienen el tamaño de pantalla; el modo difícil aumenta el número de salas y la complejidad del terreno, no su tamaño.
+- Los 32 jefes nuevos tienen firma, rasgo y combo propios, pero comparten el motor de ataques: no tienen animaciones ni escenas únicas como un jefe hecho a mano.
 - No hay sonidos de ambiente, por lo que los volúmenes son general, música y efectos.
 - Las pruebas realizadas fueron simulaciones automáticas sin navegador; la sensación de combate y el aspecto visual requieren probarse jugando.
