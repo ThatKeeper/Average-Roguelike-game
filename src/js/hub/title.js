@@ -32,7 +32,7 @@ function titleFrame(dt) {
       hub();
       return;
     }
-  } else if (M.d) {
+  } else if (M.d || tapped()) {
     M.d = 0;
     G.tf = 0.5;
   }

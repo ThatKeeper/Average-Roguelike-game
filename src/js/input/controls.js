@@ -3,7 +3,7 @@
  * Teclas configurables (KD/KY) y manejadores de teclado y ratón.
  *
  * Define:
- * KD, KY
+ * KD, KY, tapped
  * ====================================================================== */
 
 // ===== ENTRADA =====
@@ -74,3 +74,19 @@ onmouseup = (e) => {
   e.button ? (M.r = 0) : (M.d = 0);
 };
 cv.oncontextmenu = (e) => e.preventDefault();
+
+// Táctil/lápiz: el navegador emite mousedown+mouseup juntos al soltar el dedo, así que M.d
+// vuelve a 0 antes de que el bucle lo lea y los menús (título, hub) nunca ven el clic.
+// pointerdown registra el toque y lo conserva un instante; tapped() lo consume una vez.
+cv.addEventListener("pointerdown", (e) => {
+  if (e.pointerType == "mouse") return;
+  const b = cv.getBoundingClientRect();
+  M.x = ((e.clientX - b.left) * W) / b.width;
+  M.y = ((e.clientY - b.top) * H) / b.height;
+  M.tap = performance.now();
+});
+const tapped = () => {
+  const v = M.tap && performance.now() - M.tap < 400;
+  M.tap = 0;
+  return !!v;
+};

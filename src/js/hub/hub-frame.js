@@ -14,7 +14,7 @@ function hubFrame(dt) {
       l = Math.hypot(ix, iy) || 1;
     HB.x = cl(HB.x + (ix / l) * 210 * dt, 80, 880);
     HB.y = cl(HB.y + (iy / l) * 210 * dt, 95, 535);
-    if (M.d) {
+    if (M.d || tapped()) {
       M.d = 0;
       const q = HS.find((q) => Math.hypot(q.x - M.x, q.y - M.y) < 42);
       if (q) hubUse(q);
