@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0b0a10" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="src/public/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="src/public/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="src/public/icons/icon-512.png" />
+    <title>Average roguelike game</title>
+    <link rel="stylesheet" href="src/css/base.css" />
+    <link rel="stylesheet" href="src/css/touch.css" />
+  </head>
+  <body>
+    <div id="w">
+      <canvas id="c" width="960" height="600"></canvas>
+      <div id="ov"></div>
+    </div>
+  <script>window.SPRITE_DIR = "src/assets/sprites/";</script>
+  <!-- El orden importa: son scripts clásicos que comparten el ámbito global (mismo orden que src/modules.json). -->
+  <script src="src/js/core/helpers.js"></script>
+  <script src="src/js/core/storage.js"></script>
+  <script src="src/js/core/audio.js"></script>
+  <script src="src/js/data/world.js"></script>
+  <script src="src/js/data/weapons.js"></script>
+  <script src="src/js/data/weapon-sprites.js"></script>
+  <script src="src/js/data/relics.js"></script>
+  <script src="src/js/data/enemy-types.js"></script>
+  <script src="src/js/game/state.js"></script>
+  <script src="src/js/input/controls.js"></script>
+  <script src="src/js/game/talents.js"></script>
+  <script src="src/js/data/spells.js"></script>
+  <script src="src/js/spells/casting.js"></script>
+  <script src="src/js/ui/overlay.js"></script>
+  <script src="src/js/game/run.js"></script>
+  <script src="src/js/combat/damage.js"></script>
+  <script src="src/js/game/levels.js"></script>
+  <script src="src/js/game/progression.js"></script>
+  <script src="src/js/combat/melee-swing.js"></script>
+  <script src="src/js/combat/ranged-hold.js"></script>
+  <script src="src/js/combat/player-actions.js"></script>
+  <script src="src/js/game/player-update.js"></script>
+  <script src="src/js/ui/windows.js"></script>
+  <script src="src/js/render/sprites-emoji.js"></script>
+  <script src="src/js/data/items.js"></script>
+  <script src="src/js/ui/inventory.js"></script>
+  <script src="src/js/ui/controls-menu.js"></script>
+  <script src="src/js/game/class-actions.js"></script>
+  <script src="src/js/game/interaction.js"></script>
+  <script src="src/js/ai/enemies.js"></script>
+  <script src="src/js/game/projectiles.js"></script>
+  <script src="src/js/bosses/boss-core.js"></script>
+  <script src="src/js/bosses/boss-catalog.js"></script>
+  <script src="src/js/bosses/boss-lifecycle.js"></script>
+  <script src="src/js/meta/achievements.js"></script>
+  <script src="src/js/meta/bestiary.js"></script>
+  <script src="src/js/bosses/boss-kits.js"></script>
+  <script src="src/js/bosses/boss-signatures.js"></script>
+  <script src="src/js/hub/hub.js"></script>
+  <script src="src/js/hub/menus.js"></script>
+  <script src="src/js/hub/training.js"></script>
+  <script src="src/js/hub/hub-frame.js"></script>
+  <script src="src/js/hub/title.js"></script>
+  <script src="src/js/game/terrain.js"></script>
+  <script src="src/js/hub/arena.js"></script>
+  <script src="src/js/render/draw-boss.js"></script>
+  <script src="src/js/render/draw-melee.js"></script>
+  <script src="src/js/render/draw-ranged.js"></script>
+  <script src="src/js/render/draw-entities.js"></script>
+  <script src="src/js/spells/cards.js"></script>
+  <script src="src/js/ui/spell-book.js"></script>
+  <script src="src/js/render/hud-slots.js"></script>
+  <script src="src/js/render/draw.js"></script>
+  <script src="src/js/render/hud.js"></script>
+  <script src="src/js/game/loop.js"></script>
+  <script src="src/js/input/touch.js"></script>
+  <script src="src/js/core/pwa.js"></script>
+  <script src="src/js/main.js"></script>
+</body>
+</html>
