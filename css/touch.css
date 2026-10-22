@@ -1,0 +1,81 @@
+/* Controles táctiles (joystick, botones) y aviso de rotación de pantalla */
+/* ---- controles táctiles ---- */
+.tc {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+  --s: 1;
+}
+.tc.on {
+  display: block;
+}
+.tj {
+  position: absolute;
+  left: calc(26px + env(safe-area-inset-left, 0px));
+  bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+  width: calc(var(--s) * 130px);
+  height: calc(var(--s) * 130px);
+  border-radius: 50%;
+  border: 2px solid #c9a24acc;
+  background: #161120aa;
+  pointer-events: auto;
+  touch-action: none;
+}
+.tk {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46%;
+  height: 46%;
+  margin: -23% 0 0 -23%;
+  border-radius: 50%;
+  background: #c9a24acc;
+  border: 2px solid #fff6;
+  pointer-events: none;
+}
+.tb {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 50%;
+  border: 2px solid #c9a24acc;
+  background: #161120aa;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: bold calc(var(--s) * 13px) Georgia;
+  width: calc(var(--s) * var(--z, 1) * 56px);
+  height: calc(var(--s) * var(--z, 1) * 56px);
+  margin-right: env(safe-area-inset-right, 0px);
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tb.big {
+  width: calc(var(--s) * 88px);
+  height: calc(var(--s) * 88px);
+  font-size: calc(var(--s) * 14px);
+  background: #5a1f2eaa;
+}
+.tb.p {
+  background: #c9a24acc;
+  color: #000;
+  transform: scale(0.94);
+}
+.rot {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0b0a10;
+  color: #e8e2f0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font: 18px Georgia;
+  z-index: 9;
+  pointer-events: auto;
+  padding: 20px;
+}
