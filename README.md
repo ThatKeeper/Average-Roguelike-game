@@ -2,7 +2,7 @@
 
 Roguelike de mazmorras con vista cenital, en un único archivo HTML (canvas + JavaScript, sin dependencias). Basado en *Infinite Depths*.
 
-**Versión actual: 1.3.4**
+**Versión actual: 1.3.5**
 
 - **Archivo del juego:** `average-roguelike-game.html`
 - **Cómo jugar:** abre el archivo en un navegador moderno (escritorio o móvil). No necesita instalación ni servidor.
