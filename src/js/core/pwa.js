@@ -10,3 +10,4 @@ if (
   /^https?:/.test(location.protocol)
 )
   navigator.serviceWorker.register("sw.js?v=" + GAME_VERSION).catch(() => {});
+

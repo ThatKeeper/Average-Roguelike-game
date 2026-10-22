@@ -256,3 +256,4 @@ if (typeof window == "object" && window.addEventListener) {
     });
 }
 if (TOUCH) buildTouch();
+

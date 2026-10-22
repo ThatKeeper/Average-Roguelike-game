@@ -10,7 +10,7 @@
 // GAME_VERSION: solo informativa (se muestra en el titulo y fuerza a renovar el service worker).
 // HARD_RESET: sube +1 para BORRAR TODO el guardado (partida nueva desde cero, incluidos logros y bestiario).
 // SOFT_RESET: sube +1 para reiniciar solo el PROGRESO (claves de SOFT_WIPE); se conservan logros, bestiario, estadisticas, jefes derrotados y ajustes.
-const GAME_VERSION = "1.3.4",
+const GAME_VERSION = "1.3.5",
   HARD_RESET = 1,
   SOFT_RESET = 1,
   SKEY = "idv1",
@@ -41,3 +41,4 @@ const save = () => {
   } catch (e) {}
 };
 save();
+

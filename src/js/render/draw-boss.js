@@ -294,3 +294,4 @@ function drawBoss(e) {
   }
   x.restore();
 }
+

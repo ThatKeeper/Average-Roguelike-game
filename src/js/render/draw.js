@@ -275,6 +275,7 @@ function draw() {
     x.globalAlpha = 1;
   }
   for (const p of PR) {
+    if (p.spr && drawProj(p)) continue;
     x.fillStyle = p.c;
     x.beginPath();
     x.arc(p.x, p.y, p.r, 0, 7);
@@ -283,7 +284,9 @@ function draw() {
   for (const f of FX) {
     const a = f.t / (f.m || 1);
     x.globalAlpha = a;
-    if (f.k == "arc") {
+    if (f.k == "trail") {
+      drawSwingTrail(f);
+    } else if (f.k == "arc") {
       x.fillStyle = "#fff";
       x.beginPath();
       x.moveTo(f.x, f.y);
@@ -331,3 +334,4 @@ function draw() {
   x.restore();
   hud();
 }
+

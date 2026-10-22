@@ -60,3 +60,4 @@ function spr(i, px, py, s, f) {
   x.fillText(i, px, py + 1);
   x.restore();
 }
+

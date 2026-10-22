@@ -71,3 +71,4 @@ function trainTick(dt) {
   if (!c("archer")) sp("archer", 780, 300);
   if (!c("grunt")) sp("grunt", 200, 450);
 }
+

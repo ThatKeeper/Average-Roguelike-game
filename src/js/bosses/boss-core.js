@@ -105,3 +105,4 @@ function bossIdx(d) {
     ? G.bq.f[(d / 10 - 1) % G.bq.f.length]
     : G.bq.n[(d - 1 - ((d / 10) | 0)) % G.bq.n.length];
 }
+

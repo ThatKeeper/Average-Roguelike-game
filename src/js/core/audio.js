@@ -42,3 +42,4 @@ function bsnd(i, k) {
     for (let j = 0; j < 4; j++) snd(f * (1 + j * 0.25), 0.6 + j * 0.1, "triangle", 0.06);
   else snd(f * 3, 0.08, w, 0.03);
 }
+

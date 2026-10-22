@@ -126,3 +126,4 @@ function win() {
     [{ t: "Volver a la zona segura", nc: 1, f: menu }],
   );
 }
+

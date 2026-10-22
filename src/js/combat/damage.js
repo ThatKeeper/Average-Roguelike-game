@@ -31,6 +31,7 @@ const hpM = () =>
   dmM = () => (1 + 0.09 * (G.d - 1) + 0.12 * Math.floor((G.d - 1) / 4)) * (S.hard ? 1.12 : 1);
 
 // ===== COMBATE =====
+const BOMB_DELAY = 0.6; // segundos hasta que explota un kamikaze al que matas (igual que su mecha propia)
 function col(o) {
   const r = o.r;
   o.x = cl(o.x, 50 + r, 910 - r);
@@ -202,7 +203,11 @@ function kill(e) {
       c: T.c,
     });
   if (e.mod == "explosivo" || e.t == "bomber") {
-    Z.push({ x: e.x, y: e.y, r: 75, t: 0.01, d: e.dmg * (e.t == "bomber" ? 1 : 0.8), c: "#fa4" });
+    // El kamikaze abatido no estalla al instante: la zona avisa durante BOMB_DELAY segundos
+    // para que, si lo mataste de cerca, tengas tiempo de alejarte (esquivar o correr).
+    const dl = e.t == "bomber" ? BOMB_DELAY : 0.01;
+    Z.push({ x: e.x, y: e.y, r: 75, t: dl, m: dl, d: e.dmg * (e.t == "bomber" ? 1 : 0.8), c: "#fa4" });
+    if (e.t == "bomber") snd(380, 0.12, "square", 0.05);
   }
   if (Math.random() < (e.t == "boss" || e.t == "elite" ? 1 : 0.04 + P.a.luk * 0.002 + emptyB()))
     O.push({
@@ -213,3 +218,4 @@ function kill(e) {
     });
   if (!e.minion) xp((6 + G.d * 1.5) * (e.t == "boss" ? 15 : e.t == "elite" ? 5 : 1));
 }
+

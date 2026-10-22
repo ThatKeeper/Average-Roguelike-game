@@ -164,3 +164,4 @@ function loot2(n) {
   }
   return o;
 }
+

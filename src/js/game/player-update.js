@@ -51,6 +51,8 @@ function upP(dt) {
   P.cd = P.cd.map((c) => c - dt);
   P.mp = Math.min(P.mmp, P.mp + P.mr * dt);
   P.hp = Math.min(P.mhp, P.hp + 0.1 * U("rec") * dt);
+  swingTick(dt);
+  rangedTick(dt);
   if (M.d && P.acd <= 0 && !P.dash && !G.ov) atk();
   if (K[KY.q]) ab(0);
   if (K[KY.e]) ab(1);
@@ -70,3 +72,4 @@ function upP(dt) {
 function go(i, f) {
   enter(i, f);
 }
+

@@ -282,53 +282,13 @@ function drawP() {
     x.stroke();
     x.restore();
   }
-  const sw = P.at > 0 ? (P.at / (s == "m" ? 0.2 : 0.12) - 0.5) * 2.4 : 0;
-  x.rotate(s == "m" ? sw : 0);
-  if (s == "m") {
-    x.strokeStyle = "#dde";
-    x.lineWidth = 4;
-    x.beginPath();
-    x.moveTo(P.r * 0.6, 0);
-    x.lineTo(P.r + Math.min(46, P.w.rng * 0.45), 0);
-    x.stroke();
-    x.strokeStyle = "#864";
-    x.lineWidth = 5;
-    x.beginPath();
-    x.moveTo(P.r * 0.4, -5);
-    x.lineTo(P.r * 0.4, 5);
-    x.stroke();
-  } else if (s == "r") {
-    x.strokeStyle = "#cb8";
-    x.lineWidth = 3;
-    x.beginPath();
-    x.arc(P.r * 0.9, 0, P.r * 1.3, -1.2, 1.2);
-    x.stroke();
-    x.strokeStyle = "#eee";
-    x.lineWidth = 1;
-    x.beginPath();
-    x.moveTo(P.r * 0.9 + Math.cos(1.2) * P.r * 1.3, Math.sin(1.2) * P.r * 1.3);
-    x.lineTo(P.r * 0.9 - (P.at > 0 ? 7 : 0) + Math.cos(1.2) * P.r * 1.3 - P.r * 0.1, 0);
-    x.lineTo(P.r * 0.9 + Math.cos(1.2) * P.r * 1.3, -Math.sin(1.2) * P.r * 1.3);
-    x.stroke();
-  } else {
-    x.strokeStyle = "#8a6a4a";
-    x.lineWidth = 3;
-    x.beginPath();
-    x.moveTo(P.r * 0.2, P.r * 0.5);
-    x.lineTo(P.r * 1.7, 0);
-    x.stroke();
-    x.fillStyle = EC[P.w.el] || "#c8a0ff";
-    x.shadowColor = x.fillStyle;
-    x.shadowBlur = P.at > 0 ? 18 : 8;
-    x.beginPath();
-    x.arc(P.r * 1.8, 0, 4.5 + (P.at > 0 ? 3 : 0), 0, 7);
-    x.fill();
-  }
   x.restore();
   x.fillStyle = "#fff";
   x.beginPath();
   x.arc(Math.cos(a) * P.r * 0.45, Math.sin(a) * P.r * 0.45, 2.2, 0, 7);
   x.fill();
+  if (s == "m") drawHeldMelee();
+  else if (RANGED_ART[P.w.n]) drawHeldRanged();
   if (P.g) {
     x.strokeStyle = P.gt < 0.22 && !(P.pcd > 0) ? "#fff" : P.pcd > 0 ? "#667" : "#8cf";
     x.lineWidth = 4;
@@ -345,3 +305,4 @@ function drawP() {
   }
   x.restore();
 }
+

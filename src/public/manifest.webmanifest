@@ -1,0 +1,26 @@
+{
+  "name": "Average roguelike game",
+  "short_name": "Average roguelike game",
+  "description": "Dungeon crawler roguelite de fantasía oscura",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b0a10",
+  "theme_color": "#0b0a10",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

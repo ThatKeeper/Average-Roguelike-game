@@ -287,3 +287,4 @@ function upE(dt) {
 function eshot(e, nx, ny, sp, d) {
   PR.push({ x: e.x, y: e.y, vx: nx * sp, vy: ny * sp, r: 5, d, l: 3, f: "e", c: "#cf6" });
 }
+

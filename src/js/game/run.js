@@ -110,3 +110,4 @@ function ST() {
   if (P.hp > P.mhp) P.hp = P.mhp;
   if (P.mp > P.mmp) P.mp = P.mmp;
 }
+

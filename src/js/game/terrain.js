@@ -228,3 +228,4 @@ function pitDraw(o) {
   for (let i = 8; i < o.w - 4; i += 16) x.fillRect(o.x + i, o.y + 5, 2, o.h - 10);
   x.restore();
 }
+

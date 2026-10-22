@@ -155,3 +155,4 @@ function castCard(i) {
   const c = CARDS[k];
   castSp({ a: c.a, b: c.b, f: c.f }, 4 + i);
 }
+
