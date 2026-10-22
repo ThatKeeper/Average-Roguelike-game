@@ -21,7 +21,6 @@
       <canvas id="c" width="960" height="600"></canvas>
       <div id="ov"></div>
     </div>
-  <script>window.SPRITE_DIR = "src/assets/sprites/";</script>
   <!-- El orden importa: son scripts clásicos que comparten el ámbito global (mismo orden que src/modules.json). -->
   <script src="src/js/core/helpers.js"></script>
   <script src="src/js/core/storage.js"></script>
@@ -29,6 +28,12 @@
   <script src="src/js/data/world.js"></script>
   <script src="src/js/data/weapons.js"></script>
   <script src="src/js/data/weapon-sprites.js"></script>
+  <script>
+    /* Modo sin build: los sprites no vienen incrustados, así que se cargan desde src/assets/sprites/.
+       (weapon-sprites.js ya registró en WSPR todas las claves necesarias.) */
+    for (const k of Object.keys(WSPR)) WEAPON_SPRITE_DATA[k] = "src/assets/sprites/" + k + "_16x16.png";
+    loadWeaponSprites();
+  </script>
   <script src="src/js/data/relics.js"></script>
   <script src="src/js/data/enemy-types.js"></script>
   <script src="src/js/game/state.js"></script>
