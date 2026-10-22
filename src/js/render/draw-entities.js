@@ -224,6 +224,7 @@ function drawEnemy(e) {
   }
 }
 function drawP() {
+  drawStatusRow(statusList(P, P, STATUS_P), P.x, P.y - P.r - 14, 12);
   const s = P.w.s,
     a = P.face,
     mv = Math.min(1, Math.hypot(P.vx, P.vy) / P.spd),

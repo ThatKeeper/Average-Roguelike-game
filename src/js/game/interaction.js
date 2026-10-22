@@ -40,6 +40,7 @@ function interact() {
     cnt("ch");
     if (r.sec) cnt("sc");
     chk();
+    chestFX(480, 300);
     show(
       `<h2>${r.sec ? "Cámara secreta" : "Cofre antiguo"}</h2><p>Elige un tesoro</p>`,
       loot2(r.sec ? 4 : 3),

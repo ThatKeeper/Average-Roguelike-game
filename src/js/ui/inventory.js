@@ -21,7 +21,7 @@ function card(it, btns, cp) {
   const c = RC[it.r || 0],
     d = document.createElement("div");
   d.style.cssText = `border:2px solid ${c};border-radius:8px;padding:8px;width:165px;text-align:left;background:#1a1722;font-size:12px`;
-  d.innerHTML = `<div style="font-size:26px">${it.i}</div><b style="color:${c}">${it.n}</b><br><small>${it.tp || SLOT[it.s]} · ${RN[it.r || 0]}</small><p style="margin:4px 0;font-size:11px">${it.d || ""}</p><small>${it.stx || stT(it.st || {})}</small>${
+  d.innerHTML = `${icoHTML(it)}<b style="color:${c}">${it.n}</b><br><small>${it.tp || SLOT[it.s]} · ${RN[it.r || 0]}</small><p style="margin:4px 0;font-size:11px">${it.d || ""}</p><small>${it.stx || stT(it.st || {})}</small>${
     it.req
       ? `<br><small style="color:${meets(it) ? "#8c8" : "#e66"}">Req: ${Object.entries(it.req)
           .map(([k, v]) => k.toUpperCase() + " " + v)

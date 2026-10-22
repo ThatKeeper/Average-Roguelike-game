@@ -48,6 +48,7 @@ function parryProj(p) {
   });
 }
 function hurtP(d, src) {
+  if (DBG.god) return;
   if (P.inv > 0 || (P.dash && P.dash.inv)) return;
   d *= 1 - P.arm / (P.arm + 100);
   if (src && src.st && src.st.curse > 0) d *= 0.75;

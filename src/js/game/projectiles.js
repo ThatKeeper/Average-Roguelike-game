@@ -101,9 +101,10 @@ function upMisc(dt) {
   Z = Z.filter((z) => z.t > 0);
   for (const f of FX) {
     f.t -= dt;
-    if (f.k == "p") {
+    if (f.k == "p" || f.k == "star") {
       f.x += f.vx * dt;
       f.y += f.vy * dt;
+      if (f.g) f.vy += f.g * dt;
     }
   }
   FX = FX.filter((f) => f.t > 0);
@@ -124,6 +125,8 @@ function upMisc(dt) {
       else if (o.k == "i") {
         P.bag.push(o.it);
         flash("Recoges: " + o.it.n + " (I)");
+        lootSnd(o.it.r);
+        lootFX(o.x, o.y, o.it.r);
       } else P.hp = Math.min(P.mhp, P.hp + P.mhp * o.v);
       snd(900, 0.05, "triangle", 0.03);
     }

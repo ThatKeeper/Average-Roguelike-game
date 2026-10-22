@@ -284,12 +284,50 @@ function drawBoss(e) {
       x.arc(0, 0, r + 14 + Math.sin(t * 20) * 3, 0, 7);
       x.stroke();
     }
+    // --- indicadores de estado: inmune (escudo hexagonal) y vulnerable (aura dorada con cuenta atrás) ---
+    if (e.vul > 0) e._vm = Math.max(e._vm || 0, e.vul);
+    else e._vm = 0;
     if (e.imm > 0) {
-      x.strokeStyle = "#bbb";
-      x.lineWidth = 3;
+      x.save();
+      x.rotate(t * 0.8);
       x.beginPath();
-      x.arc(0, 0, r + 8, 0, 7);
+      for (let i = 0; i < 6; i++) x.lineTo(Math.cos((i * Math.PI) / 3) * (r + 12), Math.sin((i * Math.PI) / 3) * (r + 12));
+      x.closePath();
+      x.fillStyle = "rgba(170,210,255,0.22)";
+      x.fill();
+      x.strokeStyle = `rgba(190,220,255,${0.6 + 0.3 * Math.sin(t * 6)})`;
+      x.lineWidth = 4;
       x.stroke();
+      x.restore();
+      x.textAlign = "center";
+      x.font = "bold 11px Georgia";
+      x.fillStyle = "#cde";
+      x.fillText("🛡 INMUNE", 0, -r - 38);
+    } else if (e.vul > 0) {
+      const g = x.createRadialGradient(0, 0, r * 0.4, 0, 0, r + 20);
+      g.addColorStop(0, "rgba(255,211,74,0)");
+      g.addColorStop(1, `rgba(255,211,74,${0.35 + 0.2 * Math.sin(t * 10)})`);
+      x.fillStyle = g;
+      x.beginPath();
+      x.arc(0, 0, r + 20, 0, 7);
+      x.fill();
+      // cuenta atrás: el anillo se consume hasta que termina la ventana
+      x.strokeStyle = "#ffd34a";
+      x.lineWidth = 4;
+      x.beginPath();
+      x.arc(0, 0, r + 10, -Math.PI / 2, -Math.PI / 2 + 6.2832 * (e.vul / (e._vm || e.vul)));
+      x.stroke();
+      for (let i = 0; i < 4; i++) {
+        const sa = t * 2 + (i * Math.PI) / 2;
+        x.fillStyle = "#fff2a8";
+        x.beginPath();
+        x.arc(Math.cos(sa) * (r + 16), Math.sin(sa) * (r + 16), 2.5, 0, 7);
+        x.fill();
+      }
+      x.textAlign = "center";
+      x.font = "bold 11px Georgia";
+      x.fillStyle = "#ffd34a";
+      x.fillText("✦ VULNERABLE +60%", 0, -r - 38);
     }
   }
   x.restore();

@@ -26,7 +26,8 @@ function loop(t) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.1, (t - lt) / 1000);
   lt = t;
-  ACC += dt;
+  ACC += dt * DBG.ts;
+  dbgTick(dt);
   try {
     let n = 0;
     while (ACC >= 1 / 60 && n++ < 6) {

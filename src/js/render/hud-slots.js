@@ -167,7 +167,8 @@ function slot(px, py, s, o) {
   x.stroke();
   x.setLineDash([]);
   if (o.ico) ico(o.ico, px + s / 2, py + s / 2 + 2, s * 0.8, o.off ? "#666" : o.col || "#ddd");
-  else if (o.em) spr(o.em, px + s / 2, py + s / 2 + 1, s * 0.6);
+  else if (o.em && !(o.it && drawItemIcon(o.it, px + s / 2, py + s / 2, s * 0.78)))
+    spr(o.em, px + s / 2, py + s / 2 + 1, s * 0.6);
   if (o.cd > 0) {
     x.fillStyle = "#000b";
     x.fillRect(px + 2, py + 2, s - 4, (s - 4) * cl(o.cd / (o.cdm || 1), 0, 1));
@@ -307,6 +308,7 @@ function hudSlots() {
   eq.forEach(([k, it]) => {
     slot(ex, y, s - 4, {
       em: it && it.i,
+      it,
       col: it ? RC[it.r || 0] : "#4a4258",
       empty: !it,
       key: "",

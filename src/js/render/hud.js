@@ -34,6 +34,11 @@ function hud() {
     12,
     74,
   );
+  {
+    // estados del jugador: iconos que se oscurecen al agotarse
+    const ps = statusList(P, P, STATUS_P);
+    drawStatusRow(ps, 12 + 9 + ((ps.length - 1) * 20) / 2, 96, 18);
+  }
   hudSlots();
 
   const t = G.R,
@@ -65,21 +70,7 @@ function hud() {
   });
   x.globalAlpha = 1;
   const bs = E.find((e) => e.t == "boss");
-  if (bs) {
-    const B = BD[bs.bi];
-    bar(280, 14, 400, bs.hp / bs.mhp, bs.imm > 0 ? "#999" : bs.vul > 0 ? "#ffd34a" : B.c);
-    x.textAlign = "center";
-    x.fillStyle = "#fff";
-    x.font = "13px Georgia";
-    x.fillText(
-      bs.nm +
-        (FIN(bs.bi) ? "  ★ JEFE FINAL" : "") +
-        (bs.imm > 0 ? "  [INMUNE]" : bs.vul > 0 ? "  [VULNERABLE]" : "") +
-        (P.invc > 0 ? "  ¡CONTROLES INVERTIDOS!" : ""),
-      480,
-      40,
-    );
-  }
+  if (bs) drawBossBar(bs);
   if (G.intro && G.intro.t > 0) {
     x.textAlign = "center";
     x.globalAlpha = Math.min(1, G.intro.t);

@@ -16,6 +16,7 @@ function xp(v) {
     P.pts++;
     chk();
     P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.25);
+    levelUpFX();
   }
 }
 function lvUp() {

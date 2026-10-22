@@ -4,7 +4,7 @@
  *
  * Define:
  * TOUCH_AUTO, TOUCH, LOW, ROT, TC, tcReset, tcAim, bind, mkBtn, hold, buildTouch
- * tcApply, tcSync, tcFS
+ * tcApply, tcSync, tcCooldowns, tcFS
  * ====================================================================== */
 
 // ===== CONTROLES TÁCTILES (Android/iOS), MODO LIGERO Y PWA =====
@@ -84,6 +84,9 @@ function mkBtn(id, label, cls, css) {
   const b = document.createElement("div");
   b.className = "tb " + cls;
   b.textContent = label;
+  const n = document.createElement("span"); // número de enfriamiento superpuesto
+  n.className = "n";
+  b.appendChild(n);
   b.style.cssText = css;
   TC.box.appendChild(b);
   TC.els[id] = b;
@@ -231,6 +234,30 @@ function tcSync() {
   if (G.ov && !TC.wasOv) tcReset();
   TC.wasOv = G.ov ? 1 : 0;
   TC.box.style.display = G.st == "play" || G.st == "hub" || ROT ? "block" : "none";
+  tcCooldowns();
+}
+/** Muestra los segundos de enfriamiento restantes sobre cada botón de habilidad. */
+function tcCooldown(id, cd) {
+  const b = TC.els[id];
+  if (!b) return;
+  const n = b.lastChild,
+    on = cd > 0.05,
+    txt = on ? (cd >= 1 ? String(Math.ceil(cd)) : cd.toFixed(1)) : "";
+  if (b._cd !== txt) {
+    b._cd = txt;
+    n.textContent = txt;
+    b.classList.toggle("cd", on);
+  }
+}
+function tcCooldowns() {
+  const ok = P && G.st == "play",
+    A = ok && AB[P.w.s];
+  tcCooldown("q", ok && A[0] && A[0].f ? P.cd[0] : 0);
+  tcCooldown("e", ok && A[1] && A[1].f ? P.cd[1] : 0);
+  tcCooldown("skill", ok && A[2] && A[2].f ? P.cd[2] : 0); // la guardia del guerrero no tiene enfriamiento
+  tcCooldown("r", ok ? P.cd[3] : 0);
+  tcCooldown("dodge", ok ? P.dcd : 0);
+  for (let i = 0; i < 4; i++) tcCooldown("c" + (i + 1), ok && P.cls == "g" ? P.cd[4 + i] : 0);
 }
 function tcFS() {
   try {

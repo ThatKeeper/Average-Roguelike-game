@@ -54,6 +54,24 @@
   margin-right: env(safe-area-inset-right, 0px);
   margin-bottom: env(safe-area-inset-bottom, 0px);
 }
+.tb .n {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: #000a;
+  color: #ffd98a;
+  font-size: calc(var(--s) * var(--z, 1) * 22px);
+  pointer-events: none;
+}
+.tb.cd .n {
+  display: flex;
+}
+.tb.cd {
+  border-color: #666;
+}
 .tb.big {
   width: calc(var(--s) * 88px);
   height: calc(var(--s) * 88px);

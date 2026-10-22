@@ -146,7 +146,9 @@ function draw() {
     x.fillText(G.train ? "Salir al hub [F]" : "Descender [F]", cx, cy - 34);
   }
   for (const o of O) {
-    if (o.k == "i") spr(o.it.i, o.x, o.y, 20);
+    if (o.k == "i") {
+      if (!drawItemIcon(o.it, o.x, o.y, 26)) spr(o.it.i, o.x, o.y, 20);
+    }
     else {
       x.fillStyle = o.k == "g" ? "#ffd34a" : "#f55";
       x.beginPath();
@@ -216,42 +218,7 @@ function draw() {
       x.arc(e.x, e.y, e.r + 2, 0, 7);
       x.stroke();
     }
-    if (e.st.burn > 0) {
-      x.fillStyle = "#f80";
-      x.fillRect(e.x - 3, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.poison > 0) {
-      x.fillStyle = "#6c4";
-      x.fillRect(e.x + 4, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.stun > 0) {
-      x.fillStyle = "#ff4";
-      x.fillRect(e.x - 10, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.bleed > 0) {
-      x.fillStyle = "#d22";
-      x.fillRect(e.x - 16, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.wet > 0) {
-      x.fillStyle = "#4af";
-      x.fillRect(e.x + 10, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.root > 0) {
-      x.fillStyle = "#4a4";
-      x.fillRect(e.x - 16, e.y - e.r - 18, 6, 6);
-    }
-    if (e.st.frac > 0) {
-      x.fillStyle = "#999";
-      x.fillRect(e.x - 8, e.y - e.r - 18, 6, 6);
-    }
-    if (e.st.curse > 0) {
-      x.fillStyle = "#a4f";
-      x.fillRect(e.x, e.y - e.r - 18, 6, 6);
-    }
-    if (e.st.cor > 0) {
-      x.fillStyle = "#c2a";
-      x.fillRect(e.x + 8, e.y - e.r - 18, 6, 6);
-    }
+    drawStatusRow(statusList(e, e.st, STATUS_E), e.x, e.y - e.r - 12, 12);
     {
       const a = Math.atan2(P.y - e.y, P.x - e.x);
       x.fillStyle = "#fff";
@@ -309,6 +276,28 @@ function draw() {
       x.arc(0, 0, f.r, 0, 7);
       x.fill();
       x.restore();
+    } else if (f.k == "star") {
+      // estrella de cuatro puntas que gira y se encoge
+      const sz = f.s * (0.35 + 0.65 * a);
+      x.fillStyle = f.c;
+      x.save();
+      x.translate(f.x, f.y);
+      x.rotate(f.rot + (f.m - f.t) * f.sp);
+      x.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const rr2 = i % 2 ? sz * 0.35 : sz;
+        x.lineTo(Math.cos((i * Math.PI) / 4) * rr2, Math.sin((i * Math.PI) / 4) * rr2);
+      }
+      x.fill();
+      x.restore();
+    } else if (f.k == "beam") {
+      // columna de luz que se eleva y se estrecha
+      const g = x.createLinearGradient(0, f.y, 0, f.y - 190);
+      g.addColorStop(0, f.c);
+      g.addColorStop(1, "#ffd34a00");
+      x.fillStyle = g;
+      const bw = 8 + 24 * a;
+      x.fillRect(f.x - bw / 2, f.y - 190, bw, 190);
     } else if (f.k == "line") {
       x.strokeStyle = "#fff27a";
       x.lineWidth = 3;
@@ -331,7 +320,9 @@ function draw() {
     x.font = "bold 14px Georgia";
     x.fillText(n.t, n.x, n.y);
   }
+  dbgWorld();
   x.restore();
   hud();
+  dbgHud();
 }
 

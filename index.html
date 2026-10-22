@@ -52,7 +52,14 @@
   <script src="src/js/game/player-update.js"></script>
   <script src="src/js/ui/windows.js"></script>
   <script src="src/js/render/sprites-emoji.js"></script>
+  <script src="src/js/render/item-icons.js"></script>
   <script src="src/js/data/items.js"></script>
+  <script>
+    /* Modo sin build: sprites de equipo y reliquias (el nombre del objeto -> src/assets/sprites/<nombre>_16x16.png).
+       Se registran aquí porque IT (items.js) y RL (relics.js) ya existen, y slug() viene de item-icons.js. */
+    for (const it of IT) WEAPON_SPRITE_DATA[slug(it.n)] = "src/assets/sprites/" + slug(it.n) + "_16x16.png";
+    for (const r of RL) WEAPON_SPRITE_DATA[slug(r[0])] = "src/assets/sprites/" + slug(r[0]) + "_16x16.png";
+  </script>
   <script src="src/js/ui/inventory.js"></script>
   <script src="src/js/ui/controls-menu.js"></script>
   <script src="src/js/game/class-actions.js"></script>
@@ -75,15 +82,20 @@
   <script src="src/js/hub/arena.js"></script>
   <script src="src/js/render/draw-boss.js"></script>
   <script src="src/js/render/draw-melee.js"></script>
+  <script src="src/js/render/status-icons.js"></script>
+  <script src="src/js/render/particles.js"></script>
   <script src="src/js/render/draw-ranged.js"></script>
   <script src="src/js/render/draw-entities.js"></script>
   <script src="src/js/spells/cards.js"></script>
   <script src="src/js/ui/spell-book.js"></script>
   <script src="src/js/render/hud-slots.js"></script>
   <script src="src/js/render/draw.js"></script>
+  <script src="src/js/render/boss-bar.js"></script>
   <script src="src/js/render/hud.js"></script>
   <script src="src/js/game/loop.js"></script>
   <script src="src/js/input/touch.js"></script>
+  <script src="src/js/debug/debug.js"></script>
+  <script src="src/js/debug/debug-features.js"></script>
   <script src="src/js/core/pwa.js"></script>
   <script src="src/js/main.js"></script>
 </body>

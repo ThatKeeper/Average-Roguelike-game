@@ -3,7 +3,7 @@
  * Sonido procedural con WebAudio: efectos (snd) y sonidos de jefe (bsnd).
  *
  * Define:
- * AC, snd, bsT, bsnd
+ * AC, snd, lootSnd, bsT, bsnd
  * ====================================================================== */
 
 let AC;
@@ -22,6 +22,29 @@ function snd(f, d, t = "sine", v = 0.04, m = 0) {
     o.start();
     o.stop(n + d);
   } catch (e) {}
+}
+/**
+ * Sonido al conseguir un objeto: r = rareza (2 épico, 3 legendario; las demás no suenan especial).
+ * Épico: arpegio ascendente brillante. Legendario: acorde grave que se abre en fanfarria con destello.
+ */
+function lootSnd(r) {
+  const at = (ms, f) => setTimeout(f, ms);
+  if (r == 2) {
+    [523, 659, 784, 1047].forEach((f, i) => at(i * 70, () => snd(f, 0.28, "triangle", 0.05)));
+    at(300, () => snd(1568, 0.5, "sine", 0.03));
+  } else if (r >= 3) {
+    [392, 523, 659, 784].forEach((f, i) =>
+      at(i * 90, () => {
+        snd(f, 0.5, "sawtooth", 0.03);
+        snd(f * 2, 0.5, "triangle", 0.04);
+      }),
+    );
+    at(420, () => {
+      [523, 659, 784, 1047].forEach((f) => snd(f, 1.1, "triangle", 0.05));
+      snd(2093, 0.9, "sine", 0.03);
+    });
+    at(520, () => snd(3136, 0.6, "sine", 0.02));
+  }
 }
 let bsT = 0;
 function bsnd(i, k) {

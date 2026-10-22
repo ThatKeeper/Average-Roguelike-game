@@ -54,6 +54,10 @@ function show(h, btns, keep) {
       }
       if (b.c) P.gold -= b.c;
       if (b.f) b.f();
+      if (b.r >= 2 && P && G.st == "play") {
+        lootSnd(b.r); // sonido propio al elegir un objeto épico o legendario
+        lootFX(P.x, P.y, b.r);
+      }
       if (!keep || b.x) hide();
       else if (b.re) b.re();
     };
