@@ -3,7 +3,7 @@
  * Dibujado principal del juego en el canvas.
  *
  * Define:
- * ammoBar, draw
+ * ammoBar, draw, drawWorld
  * ====================================================================== */
 
 // ===== RENDER =====
@@ -24,14 +24,22 @@ function ammoBar() {
   x.restore();
 }
 function draw() {
-  x.save();
-  x.clearRect(0, 0, W, H);
   if (G.st != "play") {
+    x.save();
+    x.clearRect(0, 0, W, H);
     x.fillStyle = "#0b0a10";
     x.fillRect(0, 0, W, H);
     x.restore();
     return;
   }
+  drawWorld();
+  hud();
+  dbgHud();
+}
+// Dibuja la sala y todo lo que hay en ella (sin HUD). noPlayer: omite al jugador (transición de cámara).
+function drawWorld(noPlayer) {
+  x.save();
+  x.clearRect(0, 0, W, H);
   const sk = S.nosh ? 0 : shake;
   x.translate(rnd(-sk, sk), rnd(-sk, sk));
   for (const a of AMB) {
@@ -42,100 +50,12 @@ function draw() {
   x.globalAlpha = 1;
   const b = G.bi,
     r = RM_;
-  x.fillStyle = b[1];
-  x.fillRect(0, 0, W, H);
-  x.fillStyle = b[2];
-  x.fillRect(50, 50, 860, 500);
-  x.strokeStyle = b[1];
-  x.lineWidth = 1;
-  x.globalAlpha = 0.35;
-  for (let i = 50; i <= 910; i += 40) {
-    x.beginPath();
-    x.moveTo(i, 50);
-    x.lineTo(i, 550);
-    x.stroke();
-  }
-  for (let i = 50; i <= 550; i += 40) {
-    x.beginPath();
-    x.moveTo(50, i);
-    x.lineTo(910, i);
-    x.stroke();
-  }
-  x.globalAlpha = 1;
-  x.fillStyle = b[1];
-  for (let i = 0; i < 24; i++) {
-    const px = 50 + i * 36 + ((r.gx * 7) & 7),
-      hh = 10 + ((i * 37 + r.gy * 13 + G.d) % 5) * 5;
-    x.beginPath();
-    x.moveTo(px, 50);
-    x.lineTo(px + 18, 50);
-    x.lineTo(px + 9, 50 + hh);
-    x.fill();
-    x.beginPath();
-    x.moveTo(px, 550);
-    x.lineTo(px + 18, 550);
-    x.lineTo(px + 9, 550 - hh);
-    x.fill();
-  }
-  for (const o of r.obs) {
-    if (o.pit) {
-      pitDraw(o);
-      continue;
-    }
-    x.fillRect(o.x, o.y, o.w, o.h);
-    x.strokeStyle = b[3];
-    x.lineWidth = 2;
-    x.strokeRect(o.x, o.y, o.w, o.h);
-  }
-  for (const k in r.nb) {
-    if (!doorVis(r, k)) continue;
-    const d = [
-      [430, 38, 100, 14],
-      [896, 250, 14, 100],
-      [430, 548, 100, 14],
-      [48, 250, 14, 100],
-    ][k];
-    x.save();
-    x.shadowColor = r.cl ? b[3] : "#f33";
-    x.shadowBlur = r.cl ? 16 : 10;
-    x.fillStyle = "#000";
-    x.fillRect(d[0] - 3, d[1] - 3, d[2] + 6, d[3] + 6);
-    x.fillStyle = r.cl ? b[3] : "#922";
-    x.fillRect(...d);
-    x.restore();
-    if (!r.cl) {
-      x.fillStyle = "#000";
-      for (let i = 1; i < 5; i++) {
-        if (k % 2) x.fillRect(d[0], d[1] + i * 20 - 2, d[2], 3);
-        else x.fillRect(d[0] + i * 20 - 2, d[1], 3, d[3]);
-      }
-    }
-  }
+  drawRoomBase(r);
+  drawDoors(r);
   x.textAlign = "center";
   const cx = 480,
     cy = 300;
-  if (["treasure", "shrine", "shop", "event"].includes(r.tp)) {
-    x.fillStyle =
-      r.used && r.tp != "shop"
-        ? "#444"
-        : r.tp == "treasure"
-          ? "#c9a24a"
-          : r.tp == "shrine"
-            ? "#b07af0"
-            : r.tp == "event"
-              ? "#e66"
-              : "#5c8";
-    x.fillRect(cx - 16, cy - 12, 32, 24);
-    x.fillStyle = "#fff";
-    x.font = "12px Georgia";
-    x.fillText(
-      { treasure: "Cofre [F]", shrine: "Santuario [F]", shop: "Mercader [F]", event: "Suceso [F]" }[
-        r.tp
-      ],
-      cx,
-      cy - 20,
-    );
-  }
+  if (["treasure", "shrine", "shop", "event"].includes(r.tp)) drawProp(r, cx, cy);
   if (r.tp == "boss" && r.cl) {
     x.fillStyle = "#5ff";
     x.beginPath();
@@ -146,7 +66,9 @@ function draw() {
     x.fillText(G.train ? "Salir al hub [F]" : "Descender [F]", cx, cy - 34);
   }
   for (const o of O) {
-    if (o.k == "i") spr(o.it.i, o.x, o.y, 20);
+    if (o.k == "i") {
+      if (!drawItemIcon(o.it, o.x, o.y, 26)) spr(o.it.i, o.x, o.y, 20);
+    }
     else {
       x.fillStyle = o.k == "g" ? "#ffd34a" : "#f55";
       x.beginPath();
@@ -216,42 +138,7 @@ function draw() {
       x.arc(e.x, e.y, e.r + 2, 0, 7);
       x.stroke();
     }
-    if (e.st.burn > 0) {
-      x.fillStyle = "#f80";
-      x.fillRect(e.x - 3, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.poison > 0) {
-      x.fillStyle = "#6c4";
-      x.fillRect(e.x + 4, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.stun > 0) {
-      x.fillStyle = "#ff4";
-      x.fillRect(e.x - 10, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.bleed > 0) {
-      x.fillStyle = "#d22";
-      x.fillRect(e.x - 16, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.wet > 0) {
-      x.fillStyle = "#4af";
-      x.fillRect(e.x + 10, e.y - e.r - 10, 6, 6);
-    }
-    if (e.st.root > 0) {
-      x.fillStyle = "#4a4";
-      x.fillRect(e.x - 16, e.y - e.r - 18, 6, 6);
-    }
-    if (e.st.frac > 0) {
-      x.fillStyle = "#999";
-      x.fillRect(e.x - 8, e.y - e.r - 18, 6, 6);
-    }
-    if (e.st.curse > 0) {
-      x.fillStyle = "#a4f";
-      x.fillRect(e.x, e.y - e.r - 18, 6, 6);
-    }
-    if (e.st.cor > 0) {
-      x.fillStyle = "#c2a";
-      x.fillRect(e.x + 8, e.y - e.r - 18, 6, 6);
-    }
+    drawStatusRow(statusList(e, e.st, STATUS_E), e.x, e.y - e.r - 12, 12);
     {
       const a = Math.atan2(P.y - e.y, P.x - e.x);
       x.fillStyle = "#fff";
@@ -275,6 +162,7 @@ function draw() {
     x.globalAlpha = 1;
   }
   for (const p of PR) {
+    if (p.spr && drawProj(p)) continue;
     x.fillStyle = p.c;
     x.beginPath();
     x.arc(p.x, p.y, p.r, 0, 7);
@@ -283,7 +171,9 @@ function draw() {
   for (const f of FX) {
     const a = f.t / (f.m || 1);
     x.globalAlpha = a;
-    if (f.k == "arc") {
+    if (f.k == "trail") {
+      drawSwingTrail(f);
+    } else if (f.k == "arc") {
       x.fillStyle = "#fff";
       x.beginPath();
       x.moveTo(f.x, f.y);
@@ -306,6 +196,28 @@ function draw() {
       x.arc(0, 0, f.r, 0, 7);
       x.fill();
       x.restore();
+    } else if (f.k == "star") {
+      // estrella de cuatro puntas que gira y se encoge
+      const sz = f.s * (0.35 + 0.65 * a);
+      x.fillStyle = f.c;
+      x.save();
+      x.translate(f.x, f.y);
+      x.rotate(f.rot + (f.m - f.t) * f.sp);
+      x.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const rr2 = i % 2 ? sz * 0.35 : sz;
+        x.lineTo(Math.cos((i * Math.PI) / 4) * rr2, Math.sin((i * Math.PI) / 4) * rr2);
+      }
+      x.fill();
+      x.restore();
+    } else if (f.k == "beam") {
+      // columna de luz que se eleva y se estrecha
+      const g = x.createLinearGradient(0, f.y, 0, f.y - 190);
+      g.addColorStop(0, f.c);
+      g.addColorStop(1, "#ffd34a00");
+      x.fillStyle = g;
+      const bw = 8 + 24 * a;
+      x.fillRect(f.x - bw / 2, f.y - 190, bw, 190);
     } else if (f.k == "line") {
       x.strokeStyle = "#fff27a";
       x.lineWidth = 3;
@@ -319,15 +231,18 @@ function draw() {
     }
     x.globalAlpha = 1;
   }
-  x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
-  safe(drawP);
-  ammoBar();
+  if (!noPlayer) {
+    x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
+    safe(drawP);
+    ammoBar();
+  }
   x.globalAlpha = 1;
   for (const n of NM) {
     x.fillStyle = n.c;
     x.font = "bold 14px Georgia";
     x.fillText(n.t, n.x, n.y);
   }
+  dbgWorld();
   x.restore();
-  hud();
 }
+

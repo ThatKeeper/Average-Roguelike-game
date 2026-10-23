@@ -2,7 +2,7 @@
 
 Roguelike de mazmorras con vista cenital, en un único archivo HTML (canvas + JavaScript, sin dependencias). Basado en *Infinite Depths*.
 
-**Versión actual: 1.3.4**
+**Versión actual: 1.3.7**
 
 - **Archivo del juego:** `average-roguelike-game.html`
 - **Cómo jugar:** abre el archivo en un navegador moderno (escritorio o móvil). No necesita instalación ni servidor.
@@ -101,6 +101,18 @@ Sin cambiar el tamaño de las salas, alrededor del **40 %** usan plantillas con 
 - Los **hoyos** bloquean el paso de jugador y enemigos, pero **no** los proyectiles ni la línea de visión.
 - Hay 13 plantillas: Pilares, Hoyos laterales, Grietas, Esquinas en L, Galería, Diagonales, Río, Estanques, Ajedrez, Muralla partida, Fosos de esquina, Cruz de muros e Islotes.
 - Cada plantilla se **valida** para que las cuatro puertas, el centro y todo el suelo libre estén conectados (sin zonas aisladas). Las salas de jefe usan solo plantillas abiertas.
+
+### Tilemaps, puertas y transiciones (1.3.6)
+- Cada sala es una cuadrícula de **24×15 tiles de 40 px** dibujada con el tileset de su bioma (terreno, 3 decoraciones, obstáculo, agujero y muro). Los obstáculos y hoyos se alinean a la cuadrícula, así que lo que ves coincide con la colisión.
+- **Puertas** con la hoja del bioma: el tipo depende de la sala de destino (normal, tesoro, secreta, mercader, santuario/suceso, jefe). Se ven **cerradas** mientras queden enemigos, se **abren** al limpiar la sala y la secreta no descubierta se ve como muro.
+- **Transiciones:** al cruzar una puerta la cámara se desplaza hacia la nueva sala; al bajar de piso, entrar a la mazmorra o volver al hub se usan cubitos negros (descendentes al entrar, ascendentes al volver al hub).
+- **Mapa:** marco propio, el minimapa sigue a tu sala y oculta las lejanas; completadas en blanco, con marca de color para tesoro/tienda/santuario/élite/suceso/jefe. `M` abre el mapa grande con leyenda.
+
+### Móvil, inventario y mercader (1.3.7)
+- **Controles táctiles:** iconos SVG que cambian con tu clase/arma/tomo/cartas; el botón de ataque es un joystick que muestra el arma equipada; el movimiento puede ser joystick o cruceta. Los botones se recolocan según el tamaño de pantalla sin solaparse.
+- **Ajustes:** movimiento (joystick/cruceta), apuntar al moverse, ordenar botones (editor por arrastre) y restablecer.
+- **Inventario por slots (32):** personaje con sus 6 ranuras de equipo, pociones apilables (Z vida / X maná), favoritos ★, papelera de un hueco, arrastrar y soltar y panel de acciones al pulsar. Atajos de ratón: Ctrl+clic tirar, Alt+clic favorito, Mayús+clic equipar/desequipar; en móvil, doble toque equipa.
+- **Cofres y mercader** equipan el objeto directamente (lo sustituido pasa a la mochila). El mercader también compra, tiene "vender todos los comunes" con vista previa y un nivel oculto (10 compras → 4 objetos, 20 → 5).
 
 ### Jefes
 - **44 jefes**: 12 originales + **32 nuevos** (22 normales y 10 finales). 15 son jefes finales.

@@ -34,52 +34,16 @@ function hud() {
     12,
     74,
   );
+  {
+    // estados del jugador: iconos que se oscurecen al agotarse
+    const ps = statusList(P, P, STATUS_P);
+    drawStatusRow(ps, 12 + 9 + ((ps.length - 1) * 20) / 2, 96, 18);
+  }
   hudSlots();
 
-  const t = G.R,
-    sz = bigmap ? (S.hard ? 12 : 26) : S.hard ? 9 : 12,
-    Cc = G.R[G.cur],
-    rel = S.hard && !bigmap,
-    ox = bigmap ? 480 - 0 : 940,
-    oy = bigmap ? 300 : 20;
-  t.forEach((r, i) => {
-    if (!G.seen[i]) return;
-    if (rel && (Math.abs(r.gx - Cc.gx) > 5 || Math.abs(r.gy - Cc.gy) > 4)) return;
-    const px = (bigmap ? 480 : rel ? 860 : 900) + (rel ? r.gx - Cc.gx : r.gx) * (sz + 3),
-      py = (bigmap ? 300 : rel ? 60 : 50) + (rel ? r.gy - Cc.gy : r.gy) * (sz + 3);
-    x.fillStyle =
-      i == G.cur
-        ? "#fff"
-        : {
-            boss: "#f35",
-            treasure: "#ca4",
-            shrine: "#a7e",
-            shop: "#5c8",
-            elite: "#e83",
-            start: "#888",
-            combat: "#556",
-            event: "#e66",
-          }[r.tp];
-    x.globalAlpha = r.cl || i == G.cur ? 1 : 0.6;
-    x.fillRect(px, py, sz, sz);
-  });
-  x.globalAlpha = 1;
+  drawMap();
   const bs = E.find((e) => e.t == "boss");
-  if (bs) {
-    const B = BD[bs.bi];
-    bar(280, 14, 400, bs.hp / bs.mhp, bs.imm > 0 ? "#999" : bs.vul > 0 ? "#ffd34a" : B.c);
-    x.textAlign = "center";
-    x.fillStyle = "#fff";
-    x.font = "13px Georgia";
-    x.fillText(
-      bs.nm +
-        (FIN(bs.bi) ? "  ★ JEFE FINAL" : "") +
-        (bs.imm > 0 ? "  [INMUNE]" : bs.vul > 0 ? "  [VULNERABLE]" : "") +
-        (P.invc > 0 ? "  ¡CONTROLES INVERTIDOS!" : ""),
-      480,
-      40,
-    );
-  }
+  if (bs) drawBossBar(bs);
   if (G.intro && G.intro.t > 0) {
     x.textAlign = "center";
     x.globalAlpha = Math.min(1, G.intro.t);
@@ -116,3 +80,4 @@ function hud() {
     x.fillText(msg[0], 480, 100);
   }
 }
+

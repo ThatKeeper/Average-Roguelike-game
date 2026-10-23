@@ -50,7 +50,7 @@ const BO = [
       e.t1 -= dt;
       if (e.wl && !e.lu) {
         e.wl = 0;
-        const w = e.x < e.r + 58 || e.x > 902 - e.r || e.y < e.r + 58 || e.y > 542 - e.r;
+        const w = e.x < e.r + RB.x0 + 8 || e.x > RB.x1 - 8 - e.r || e.y < e.r + RB.y0 + 8 || e.y > RB.y1 - 8 - e.r;
         RM_.obs = RM_.obs.filter(
           (b) => b.pit || Math.hypot(b.x + b.w / 2 - e.x, b.y + b.h / 2 - e.y) > 140,
         );
@@ -491,3 +491,4 @@ const BO = [
     },
   },
 ];
+

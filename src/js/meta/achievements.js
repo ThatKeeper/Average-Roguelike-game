@@ -138,7 +138,7 @@ function bk(e) {
 function chk() {
   if (!P || G.arena || G.st == "menu") return;
   S.st.ml = Math.max(st("ml"), P.lv);
-  const all = [...P.bag, ...Object.values(P.eq)];
+  const all = [...P.bag.filter(Boolean), ...Object.values(P.eq)];
   if (all.some((i) => i.r == 3) || P.w.rn == "Legendaria") S.st.lg = 1;
   if (all.some((i) => i.r == 2) || P.w.rn == "Épica") S.st.ep = 1;
   let nw = 0;
@@ -172,3 +172,4 @@ function achMenu() {
     }).concat([{ t: "Volver", nc: 1, f: menu }]),
   );
 }
+

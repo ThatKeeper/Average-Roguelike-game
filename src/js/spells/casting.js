@@ -24,7 +24,7 @@ function build(a, b, f) {
             [b, 0.4],
           ]
         : [[a, 1]];
-  let cost = F[0] * (b && b != a ? 1.2 : 1) * (1 - 0.08 * (P.tal.alch || 0)),
+  let cost = F[0] * (b && b != a ? 1.2 : 1) * (1 - 0.08 * (P.tal.alch || 0)) * mpK(),
     cd = F[1],
     hpc = has("blood") ? P.mhp * (k == "blood+dark" ? 0.15 : 0.06) : 0;
   const dmg = wd(1) * F[2] * (c?.m || 1) * (has("blood") ? 1.35 : 1);
@@ -80,7 +80,13 @@ function castSp(spec, ci = 4) {
   sp.st = !(P.stcd > 0);
   const col = EL[sp.a].c;
   if (sp.f == "bolt")
-    shoot(P.face, 560, sp.dmg, "m", { sf: sp, c: col, r: 8, pierce: sp.c ? 1 : 0 });
+    shoot(P.face, 560, sp.dmg, "m", {
+      sf: sp,
+      c: col,
+      r: 8,
+      pierce: sp.c ? 1 : 0,
+      spr: SPELL_SPR[sp.a],
+    });
   else if (sp.f == "zone") {
     const d = Math.min(300, dist(P, M)),
       a = P.face;
@@ -96,6 +102,7 @@ function castSp(spec, ci = 4) {
         spHit(e, sp, P.x, P.y);
   }
   if (sp.c && sp.c.cap) P.stcd = 6;
+  rangedKick();
   snd(500, 0.12, "sine");
 }
 function zn(dt) {
@@ -109,3 +116,4 @@ function zn(dt) {
   }
   ZN = ZN.filter((z) => z.t > 0);
 }
+

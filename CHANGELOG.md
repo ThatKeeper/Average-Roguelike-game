@@ -2,6 +2,28 @@
 
 Formato basado en *Keep a Changelog*. Los cambios se comparan con la versión anterior, *Infinite Depths*.
 
+## [1.3.7]
+
+### Añadido
+- Controles táctiles con iconos, joystick de ataque con icono del arma, cruceta opcional, apuntar al moverse, editor de distribución y distribución automática sin solapes.
+- Inventario por slots (32), personaje con equipo, pociones de vida/maná (teclas Z/X y botones táctiles), favoritos, papelera, arrastrar y soltar, atajos (Ctrl/Alt/Mayús + clic, doble toque en móvil).
+- Mercader: vender, vender todos los comunes con vista previa y nivel oculto (10/20 compras → 4/5 objetos).
+
+### Cambiado
+- Los cofres y el mercader equipan directamente el equipo y las armas; lo sustituido va a la mochila.
+- Textos e iconos de talentos corregidos (se veían como "U0001f…"). Minimapa bajo la fila de botones en móvil.
+
+## [1.3.6]
+
+### Añadido
+- Tilemaps y tilesets por bioma en las salas; puertas con estado (cerrada/abierta/oculta) y tipo según la sala de destino; sprites de cofre, santuario y mercader.
+- Transición de cámara al cruzar puertas y transición de cubitos negros (ascendente/descendente) en cambios de piso, entrada a la mazmorra y regreso al hub.
+- Mapa con marco, minimapa que sigue al jugador, salas completadas en blanco y mapa grande con leyenda.
+
+### Cambiado
+- Zona jugable de la sala: 40–920 × 40–560 (antes 50–910 × 50–550). Obstáculos y hoyos alineados a tiles de 40 px.
+- Puertas: 80 px arriba/abajo y 120 px a los lados.
+
 ## [1.3.4]
 
 ### Renombrado

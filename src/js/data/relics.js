@@ -38,3 +38,4 @@ const RL = [
   ["Hoja envenenada", "tus golpes envenenan", (p) => (p.pzn = 1)],
   ["Resonancia carmesí", "los críticos detonan 50% de la hemorragia", (p) => (p.det = 1)],
 ];
+

@@ -48,6 +48,7 @@ function parryProj(p) {
   });
 }
 function hurtP(d, src) {
+  if (DBG.god) return;
   if (P.inv > 0 || (P.dash && P.dash.inv)) return;
   d *= 1 - P.arm / (P.arm + 100);
   if (src && src.st && src.st.curse > 0) d *= 0.75;
@@ -114,12 +115,13 @@ function dodge() {
   FX.push({ k: "ring", x: P.x, y: P.y, r: 18, t: 0.2, m: 0.2, c: "#9cf" });
 }
 function shoot(a, sp, d, t, o = {}) {
-  const sd = a + (o.sp ? rnd(-o.sp, o.sp) : 0);
+  const sd = a + (o.sp ? rnd(-o.sp, o.sp) : 0),
+    mz = Math.min(30, o.mz ?? rangedMuzzle(P.w)); // sale de la boca del arma (con tope para no nacer dentro de un muro)
   PR.push(
     Object.assign(
       {
-        x: P.x + Math.cos(a) * 14,
-        y: P.y + Math.sin(a) * 14,
+        x: P.x + Math.cos(a) * mz,
+        y: P.y + Math.sin(a) * mz,
         vx: Math.cos(sd) * sp,
         vy: Math.sin(sd) * sp,
         s: sp,
@@ -143,22 +145,10 @@ function atk() {
     a = P.face;
   P.at = w.s == "m" ? 0.2 : 0.12;
   if (w.s == "m") {
-    const c = (P.cb = (P.cb + 1) % 3) == 2,
-      rg = w.rng * (c ? 1.15 : 1),
-      ar = w.arc * (c ? 1.3 : 1);
-    FX.push({ k: "arc", x: P.x, y: P.y, a, r: rg, w: ar, t: 0.15, m: 0.15 });
-    for (const e of E)
-      if (e.hp > 0) {
-        const d = dist(P, e);
-        if (d < rg + e.r && (Math.abs(nrm(ang(P, e) - a)) < ar / 2 || d < e.r + 20))
-          hit(e, wd(c ? 1.5 : 1), "p", {
-            kb: w.stun ? 300 : 150,
-            a: ang(P, e),
-            stun: w.stun ? 0.8 : 0,
-            fx: w.bleed ? { bleed: 1 + (Math.random() < P.cc ? 1 : 0) } : null,
-          });
-      }
+    // el daño lo aplica el propio sprite al moverse (ver combat/melee-swing.js)
+    const c = (P.cb = (P.cb + 1) % 3) == 2;
     P.acd = w.cd / P.as;
+    startSwing(w, a, c, P.acd);
     snd(w.n == "Martillo" ? 90 : 230, 0.08, "sawtooth");
   } else if (w.s == "r") {
     if (P.rl > 0) return;
@@ -167,14 +157,19 @@ function atk() {
       P.am = w.mag;
       flash("Recargando...");
     }
-    shoot(a, w.sp, wd(), "p", {
-      pierce: w.pierce,
-      bounce: w.bounce,
-      ret: w.ret,
-      sp: w.spread,
-      fx: w.fx ? { poison: 3 } : null,
-      c: w.ret ? "#ccc" : "#fff",
-    });
+    const art = RANGED_ART[w.n],
+      o = {
+        pierce: w.pierce,
+        bounce: w.bounce,
+        ret: w.ret,
+        sp: w.spread,
+        fx: w.fx ? { poison: 3 } : null,
+        c: w.ret ? "#ccc" : "#fff",
+        spr: art && art.proj,
+      };
+    if (w.n == "Chakram") o.r = 11; // el radio de colisión sigue al tamaño del sprite
+    shoot(a, w.sp, wd(), "p", o);
+    rangedKick();
     P.acd = w.cd / P.as;
     snd(w.n == "Ballesta" ? 140 : 520, 0.07, "square");
   } else {
@@ -198,7 +193,9 @@ function atk() {
       ch: el == "light" ? 2 : 0,
       c: EC[el],
       r: 7,
+      spr: RANGED_ART[w.n] && RANGED_ART[w.n].proj,
     });
+    rangedKick();
     P.acd = w.cd / P.as;
     snd(700, 0.08, "sine");
   }
@@ -226,36 +223,61 @@ const AB = {
       cd: 6,
       f: () => {
         for (let i = -2; i <= 2; i++)
-          shoot(P.face + i * 0.13, P.w.sp || 640, wd(0.7), "p", { c: "#fff" });
+          shoot(P.face + i * 0.13, P.w.sp || 640, wd(0.7), "p", { c: "#fff", spr: projFor(false) });
       },
     },
-    { cd: 7, f: () => shoot(P.face, 560, wd(1.5), "p", { ex: 95, c: "#fa4", r: 7 }) },
+    {
+      cd: 7,
+      f: () => shoot(P.face, 560, wd(1.5), "p", { ex: 95, c: "#fa4", r: 7, spr: projFor(true) }),
+    },
     {
       cd: 5,
-      f: () => shoot(P.face, 600, wd(1.2), "p", { pierce: 3, fx: { poison: 5 }, c: "#6e4", r: 6 }),
+      f: () =>
+        shoot(P.face, 600, wd(1.2), "p", {
+          pierce: 3,
+          fx: { poison: 5 },
+          c: "#6e4",
+          r: 6,
+          spr: projFor(false),
+          gl: "#6e4",
+        }),
     },
   ],
   g: [
     {
       cd: 4,
       mp: 22,
-      f: () => shoot(P.face, 450, wd(2), "m", { ex: 100, fx: { burn: 3 }, c: "#f60", r: 9 }),
+      f: () =>
+        shoot(P.face, 450, wd(2), "m", {
+          ex: 100,
+          fx: { burn: 3 },
+          c: "#f60",
+          r: 9,
+          spr: "magia_ignea",
+        }),
     },
     {
       cd: 8,
       mp: 25,
       f: () => area(P.x, P.y, 150, wd(0.8), "m", { fx: { slow: 3 }, c: "#9fe8ff", stun: 0.5 }),
     },
-    { cd: 2.5, mp: 18, f: () => shoot(P.face, 1000, wd(1.1), "m", { ch: 4, c: "#fff27a" }) },
+    {
+      cd: 2.5,
+      mp: 18,
+      f: () => shoot(P.face, 1000, wd(1.1), "m", { ch: 4, c: "#fff27a", spr: "magia_tormenta" }),
+    },
   ],
 };
 function ab(i) {
   const s = P.w.s,
     A = AB[s][i];
   if (!A.f || P.cd[i] > 0 || P.dash) return;
-  if (A.mp && P.mp < A.mp) return;
-  P.mp -= A.mp || 0;
+  const mcost = A.mp ? spMp(A.mp) : 0; // el coste de maná escala con el daño (ver mpK)
+  if (mcost && P.mp < mcost) return;
+  P.mp -= mcost;
   P.cd[i] = A.cd * (1 - 0.01 * U("cdr"));
   A.f();
+  if (s != "m") rangedKick();
   snd(300, 0.15, "triangle");
 }
+

@@ -15,6 +15,8 @@
  *      en lugar del marcador `/*__WEAPON_SPRITES__*\/ {}` (así el juego
  *      sigue siendo un solo archivo y funciona abriéndolo con doble clic).
  *   5. Copia src/public/* (manifest, iconos, service worker...) a dist/.
+ *   6. Inserta los tilesets, puertas y props de src/assets/world/ (data-URI) en lugar del
+ *      marcador `/*__WORLD_ASSETS__*\/ {}` (módulo js/render/tiles.js).
  * ====================================================================== */
 
 "use strict";
@@ -40,6 +42,22 @@ function loadSprites() {
   return out;
 }
 
+/** Devuelve { ts:[8 tilesets], d2:[8 puertas 2 casillas], d3:[8 puertas 3 casillas], pr:{props} } como data-URI. */
+function loadWorldAssets() {
+  const base = path.join(SRC, "assets", "world");
+  const uri = (f) => "data:image/png;base64," + fs.readFileSync(f).toString("base64");
+  const list = (d) =>
+    fs.existsSync(path.join(base, d))
+      ? fs.readdirSync(path.join(base, d)).filter((f) => f.endsWith(".png")).sort()
+      : [];
+  const out = { ts: [], d2: [], d3: [], pr: {} };
+  for (const f of list("tilesets")) out.ts.push(uri(path.join(base, "tilesets", f)));
+  for (const f of list("doors2")) out.d2.push(uri(path.join(base, "doors2", f)));
+  for (const f of list("doors3")) out.d3.push(uri(path.join(base, "doors3", f)));
+  for (const f of list("props")) out.pr[f.replace(/_16x16\.png$/, "")] = uri(path.join(base, "props", f));
+  return out;
+}
+
 /** Copia recursivamente src/public a dist (si existe). */
 function copyDir(from, to) {
   if (!fs.existsSync(from)) return;
@@ -54,6 +72,7 @@ function copyDir(from, to) {
 function build() {
   const modules = JSON.parse(read(path.join(SRC, "modules.json")));
   const sprites = loadSprites();
+  const world = loadWorldAssets();
 
   const scripts = modules
     .map((m) => {
@@ -61,6 +80,7 @@ function build() {
       if (!fs.existsSync(file)) throw new Error("Falta el módulo listado en modules.json: " + m);
       let code = read(file);
       code = code.replace("/*__WEAPON_SPRITES__*/ {}", () => JSON.stringify(sprites, null, 2));
+      code = code.replace("/*__WORLD_ASSETS__*/ {}", () => JSON.stringify(world));
       return "// ---- src/" + m + " ----\n" + code;
     })
     .join("");
@@ -74,7 +94,7 @@ function build() {
   copyDir(path.join(SRC, "public"), DIST);
 
   const kb = (Buffer.byteLength(html) / 1024).toFixed(1);
-  console.log(`dist/index.html listo (${kb} KB, ${modules.length} módulos, ${Object.keys(sprites).length} sprites)`);
+  console.log(`dist/index.html listo (${kb} KB, ${modules.length} módulos, ${Object.keys(sprites).length} sprites, ${world.ts.length} tilesets, ${world.d2.length + world.d3.length} hojas de puertas)`);
 }
 
 build();

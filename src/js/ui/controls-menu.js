@@ -25,6 +25,8 @@ function ctrls() {
     c4: "Carta 4 (Mago)",
     book: "Cartas de hechizo (Mago)",
     tal: "Talentos",
+    php: "Poción de vida",
+    pmp: "Poción de maná",
   };
   show(
     "<h2>Controles</h2><p>Pulsa una acción y luego la nueva tecla (Esc cancela)</p>",
@@ -52,3 +54,4 @@ function ctrls() {
       ]),
   );
 }
+

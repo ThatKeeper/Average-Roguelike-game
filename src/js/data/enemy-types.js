@@ -19,3 +19,4 @@ const ET = {
   elite: { hp: 220, sp: 70, dm: 15, r: 18, c: "#f44", ai: "elite" },
   boss: { hp: 1000, sp: 55, dm: 14, r: 34, c: "#ff2d6a", ai: "boss", res: { p: 0.15, m: 0.15 } },
 };
+

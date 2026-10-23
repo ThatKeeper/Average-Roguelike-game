@@ -3,7 +3,7 @@
  * Ventanas de tarjetas: menús, subida de nivel, cofres y botín.
  *
  * Define:
- * ATI, ATN, ATD, TD, show, loot2
+ * ATI, ATN, ATD, TD, show, lootRa, lootTome, lootWeapon, lootGear, lootRelic, loot2
  * ====================================================================== */
 
 // ===== VENTANAS DE TARJETAS (menús, nivel, cofres, mercader, santuarios, sucesos) =====
@@ -54,6 +54,10 @@ function show(h, btns, keep) {
       }
       if (b.c) P.gold -= b.c;
       if (b.f) b.f();
+      if (b.r >= 2 && P && G.st == "play") {
+        lootSnd(b.r); // sonido propio al elegir un objeto épico o legendario
+        lootFX(P.x, P.y, b.r);
+      }
       if (!keep || b.x) hide();
       else if (b.re) b.re();
     };
@@ -97,70 +101,72 @@ function show(h, btns, keep) {
     }
   });
 }
-function loot2(n) {
-  const o = [],
-    q = Math.random() + G.d * 0.03 + P.a.luk * 0.01,
-    ra = Math.min(rcap(), q > 1.1 ? 3 : q > 0.85 ? 2 : q > 0.55 ? 1 : 0);
-  if (Math.random() < 0.3) {
-    const k = pick(Object.keys(TM));
-    o.push({
-      i: "📖",
-      n: "Tomo: " + TM[k],
-      tp: "Tomo mágico",
-      r: ra,
-      d: TD[k],
-      stx: "Se lanza con R",
-      f: () => {
-        P.tm = k;
-      },
-    });
-  } else {
-    const w = mk((Math.random() * WP.length) | 0, ra);
-    o.push({
-      i: WI[w.n] || "⚔️",
-      n: w.n,
-      tp: { m: "Arma cuerpo a cuerpo", r: "Arma a distancia", g: "Arma mágica" }[w.s],
-      r: ra,
-      d: w.bleed
-        ? "Cada golpe aplica hemorragia acumulable (máx. 8); los críticos añaden una acumulación extra."
-        : w.el == "water"
-          ? "Empapa al objetivo: la electricidad le hace +60% de daño."
-          : "Cambia tu estilo de combate.",
-      stx: `Daño ×${(w.dmg * w.rm).toFixed(2)} · Crít ${Math.round(w.crit * 100)}% · ${w.sc.toUpperCase()}`,
-      cp: `${P.w.n} → ${w.n}`,
-      f: () => {
-        P.w = w;
-        ST();
-        P.am = undefined;
-        P.rl = 0;
-      },
-    });
-  }
+// ---- generadores de opciones de botín (cofres y mercader) ----
+const lootRa = () => {
+  const q = Math.random() + G.d * 0.03 + P.a.luk * 0.01;
+  return Math.min(rcap(), q > 1.1 ? 3 : q > 0.85 ? 2 : q > 0.55 ? 1 : 0);
+};
+function lootTome(ra) {
+  const k = pick(Object.keys(TM));
+  return {
+    i: "📖",
+    n: "Tomo: " + TM[k],
+    tp: "Tomo mágico",
+    r: ra,
+    d: TD[k],
+    stx: "Se lanza con R",
+    f: () => {
+      P.tm = k;
+    },
+  };
+}
+function lootWeapon(ra) {
+  const w = mk((Math.random() * WP.length) | 0, ra);
+  return {
+    i: WI[w.n] || "⚔️",
+    n: w.n,
+    tp: { m: "Arma cuerpo a cuerpo", r: "Arma a distancia", g: "Arma mágica" }[w.s],
+    r: ra,
+    d: w.bleed
+      ? "Cada golpe aplica hemorragia acumulable (máx. 8); los críticos añaden una acumulación extra."
+      : w.el == "water"
+        ? "Empapa al objetivo: la electricidad le hace +60% de daño."
+        : "Cambia tu estilo de combate.",
+    stx: `Daño ×${(w.dmg * w.rm).toFixed(2)} · Crít ${Math.round(w.crit * 100)}% · ${w.sc.toUpperCase()}`,
+    cp: `${P.w.n} → ${w.n}`,
+    f: () => {
+      giveItem(wrapWeapon(w)); // se equipa directamente; la anterior pasa a la mochila
+    },
+  };
+}
+function lootGear() {
   const it = Object.assign({}, pickIT(), { id: Date.now() + Math.random() });
-  o.push(
-    Object.assign({}, it, {
-      tp: SLOT[it.s],
-      cp: cmp(it),
-      f: () => {
-        P.bag.push(it);
-      },
-    }),
-  );
-  const ix = [...RL.keys()].sort(() => Math.random() - 0.5);
-  for (let i = 0; i < n - 2; i++) {
-    const R = RL[ix[i]];
-    o.push({
-      i: "💎",
-      n: R[0],
-      tp: "Reliquia",
-      r: Math.min(rcap(), 1 + (i & 1)),
-      d: R[1],
-      f: () => {
-        R[2](P);
-        P.relics.push(R[0]);
-        ST();
-      },
-    });
-  }
+  return Object.assign({}, it, {
+    tp: SLOT[it.s],
+    cp: cmp(it),
+    f: () => {
+      giveItem(it); // se equipa directamente (si cumples los requisitos)
+    },
+  });
+}
+function lootRelic(R, r) {
+  return {
+    i: "💎",
+    n: R[0],
+    tp: "Reliquia",
+    r,
+    d: R[1],
+    f: () => {
+      R[2](P);
+      P.relics.push(R[0]);
+      ST();
+    },
+  };
+}
+function loot2(n) {
+  const ra = lootRa(),
+    o = [Math.random() < 0.3 ? lootTome(ra) : lootWeapon(ra), lootGear()],
+    ix = [...RL.keys()].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < n - 2; i++) o.push(lootRelic(RL[ix[i]], Math.min(rcap(), 1 + (i & 1))));
   return o;
 }

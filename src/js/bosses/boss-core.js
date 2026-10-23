@@ -17,13 +17,13 @@ Object.assign(ET, {
 let AMB = [];
 function amb(dt) {
   if (AMB.length < (LOW ? 16 : 40))
-    AMB.push({ x: rnd(50, 910), y: rnd(50, 550), v: rnd(8, 26), s: rnd(1, 3), p: rnd(0, 6) });
+    AMB.push({ x: rnd(RB.x0, RB.x1), y: rnd(RB.y0, RB.y1), v: rnd(8, 26), s: rnd(1, 3), p: rnd(0, 6) });
   for (const a of AMB) {
     a.y -= a.v * dt;
     a.x += Math.sin((a.p += dt)) * 10 * dt;
-    if (a.y < 50) {
-      a.y = 550;
-      a.x = rnd(50, 910);
+    if (a.y < RB.y0) {
+      a.y = RB.y1;
+      a.x = rnd(RB.x0, RB.x1);
     }
   }
 }
@@ -105,3 +105,4 @@ function bossIdx(d) {
     ? G.bq.f[(d / 10 - 1) % G.bq.f.length]
     : G.bq.n[(d - 1 - ((d / 10) | 0)) % G.bq.n.length];
 }
+

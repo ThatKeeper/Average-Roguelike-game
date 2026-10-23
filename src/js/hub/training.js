@@ -40,8 +40,8 @@ function startTrain(w) {
       cl: 1,
       dist: 0,
       obs: [
-        { x: 200, y: 230, w: 40, h: 110 },
-        { x: 720, y: 230, w: 40, h: 110 },
+        { x: 200, y: 240, w: 40, h: 120 },
+        { x: 720, y: 240, w: 40, h: 120 },
       ],
       hz: [],
       wv: 1,
@@ -71,3 +71,4 @@ function trainTick(dt) {
   if (!c("archer")) sp("archer", 780, 300);
   if (!c("grunt")) sp("grunt", 200, 450);
 }
+

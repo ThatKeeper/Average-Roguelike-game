@@ -9,26 +9,26 @@
     <meta name="theme-color" content="#0b0a10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+    <link rel="manifest" href="src/public/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="src/public/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="src/public/icons/icon-512.png" />
     <title>Average roguelike game</title>
-    <link rel="stylesheet" href="src/styles/base.css" />
-    <link rel="stylesheet" href="src/styles/touch.css" />
+    <link rel="stylesheet" href="src/css/base.css" />
+    <link rel="stylesheet" href="src/css/touch.css" />
+    <link rel="stylesheet" href="src/css/inventory.css" />
   </head>
   <body>
     <div id="w">
       <canvas id="c" width="960" height="600"></canvas>
       <div id="ov"></div>
     </div>
-
-    <!-- IMPORTANTE: el orden importa. Son scripts clásicos que comparten el ámbito global
-         (S, G, P, E...). Cada carpeta agrupa un dominio; ver README.md. -->
+  <!-- El orden importa: son scripts clásicos que comparten el ámbito global (mismo orden que src/modules.json). -->
   <script src="src/js/core/helpers.js"></script>
   <script src="src/js/core/storage.js"></script>
   <script src="src/js/core/audio.js"></script>
   <script src="src/js/data/world.js"></script>
   <script src="src/js/data/weapons.js"></script>
+  <script src="src/js/data/weapon-sprites.js"></script>
   <script src="src/js/data/relics.js"></script>
   <script src="src/js/data/enemy-types.js"></script>
   <script src="src/js/game/state.js"></script>
@@ -41,12 +41,17 @@
   <script src="src/js/combat/damage.js"></script>
   <script src="src/js/game/levels.js"></script>
   <script src="src/js/game/progression.js"></script>
+  <script src="src/js/combat/melee-swing.js"></script>
+  <script src="src/js/combat/ranged-hold.js"></script>
   <script src="src/js/combat/player-actions.js"></script>
   <script src="src/js/game/player-update.js"></script>
   <script src="src/js/ui/windows.js"></script>
   <script src="src/js/render/sprites-emoji.js"></script>
+  <script src="src/js/render/item-icons.js"></script>
   <script src="src/js/data/items.js"></script>
+  <script src="src/js/game/bag.js"></script>
   <script src="src/js/ui/inventory.js"></script>
+  <script src="src/js/ui/shop.js"></script>
   <script src="src/js/ui/controls-menu.js"></script>
   <script src="src/js/game/class-actions.js"></script>
   <script src="src/js/game/interaction.js"></script>
@@ -67,15 +72,78 @@
   <script src="src/js/game/terrain.js"></script>
   <script src="src/js/hub/arena.js"></script>
   <script src="src/js/render/draw-boss.js"></script>
+  <script src="src/js/render/draw-melee.js"></script>
+  <script src="src/js/render/status-icons.js"></script>
+  <script src="src/js/render/particles.js"></script>
+  <script src="src/js/render/draw-ranged.js"></script>
   <script src="src/js/render/draw-entities.js"></script>
   <script src="src/js/spells/cards.js"></script>
   <script src="src/js/ui/spell-book.js"></script>
   <script src="src/js/render/hud-slots.js"></script>
+  <script src="src/js/render/tiles.js"></script>
+  <script src="src/js/render/transitions.js"></script>
   <script src="src/js/render/draw.js"></script>
+  <script src="src/js/render/boss-bar.js"></script>
+  <script src="src/js/render/minimap.js"></script>
   <script src="src/js/render/hud.js"></script>
   <script src="src/js/game/loop.js"></script>
   <script src="src/js/input/touch.js"></script>
+  <script src="src/js/debug/debug.js"></script>
+  <script src="src/js/debug/debug-features.js"></script>
   <script src="src/js/core/pwa.js"></script>
   <script src="src/js/main.js"></script>
-  </body>
+  <script>
+    /* Modo sin build: los sprites no vienen incrustados, así que se cargan desde src/assets/sprites/.
+       (weapon-sprites.js ya registró en WSPR todas las claves necesarias.) */
+    for (const k of Object.keys(WSPR)) WEAPON_SPRITE_DATA[k] = "src/assets/sprites/" + k + "_16x16.png";
+    loadWeaponSprites();
+  </script>
+  <script>
+    /* Modo sin build: sprites de equipo y reliquias (el nombre del objeto -> src/assets/sprites/<nombre>_16x16.png).
+       Se registran aquí porque IT (items.js) y RL (relics.js) ya existen, y slug() viene de item-icons.js. */
+    for (const it of IT) WEAPON_SPRITE_DATA[slug(it.n)] = "src/assets/sprites/" + slug(it.n) + "_16x16.png";
+    for (const r of RL) WEAPON_SPRITE_DATA[slug(r[0])] = "src/assets/sprites/" + slug(r[0]) + "_16x16.png";
+  </script>
+  <script>
+    /* Modo sin build: tilesets, puertas y props se cargan desde src/assets/world/ (el build los incrusta como data-URI). */
+    Object.assign(WORLD_ASSETS, {
+      "ts": [
+        "src/assets/world/tilesets/01_catacumbas_tileset_16x16.png",
+        "src/assets/world/tilesets/02_criptas_malditas_tileset_16x16.png",
+        "src/assets/world/tilesets/03_minas_abandonadas_tileset_16x16.png",
+        "src/assets/world/tilesets/04_bosque_subterraneo_tileset_16x16.png",
+        "src/assets/world/tilesets/05_ruinas_arcanas_tileset_16x16.png",
+        "src/assets/world/tilesets/06_cavernas_de_lava_tileset_16x16.png",
+        "src/assets/world/tilesets/07_abismos_helados_tileset_16x16.png",
+        "src/assets/world/tilesets/08_dimension_corrupta_tileset_16x16.png"
+      ],
+      "d2": [
+        "src/assets/world/doors2/01_catacumbas_puertas_2x.png",
+        "src/assets/world/doors2/02_criptas_malditas_puertas_2x.png",
+        "src/assets/world/doors2/03_minas_abandonadas_puertas_2x.png",
+        "src/assets/world/doors2/04_bosque_subterraneo_puertas_2x.png",
+        "src/assets/world/doors2/05_ruinas_arcanas_puertas_2x.png",
+        "src/assets/world/doors2/06_cavernas_de_lava_puertas_2x.png",
+        "src/assets/world/doors2/07_abismos_helados_puertas_2x.png",
+        "src/assets/world/doors2/08_dimension_corrupta_puertas_2x.png"
+      ],
+      "d3": [
+        "src/assets/world/doors3/01_catacumbas_puertas_3x.png",
+        "src/assets/world/doors3/02_criptas_malditas_puertas_3x.png",
+        "src/assets/world/doors3/03_minas_abandonadas_puertas_3x.png",
+        "src/assets/world/doors3/04_bosque_subterraneo_puertas_3x.png",
+        "src/assets/world/doors3/05_ruinas_arcanas_puertas_3x.png",
+        "src/assets/world/doors3/06_cavernas_de_lava_puertas_3x.png",
+        "src/assets/world/doors3/07_abismos_helados_puertas_3x.png",
+        "src/assets/world/doors3/08_dimension_corrupta_puertas_3x.png"
+      ],
+      "pr": {
+        "cofre_abierto": "src/assets/world/props/cofre_abierto_16x16.png",
+        "cofre_cerrado": "src/assets/world/props/cofre_cerrado_16x16.png",
+        "mercader": "src/assets/world/props/mercader_16x16.png",
+        "santuario": "src/assets/world/props/santuario_16x16.png"
+      }
+    });
+  </script>
+</body>
 </html>
