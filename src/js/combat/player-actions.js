@@ -272,8 +272,9 @@ function ab(i) {
   const s = P.w.s,
     A = AB[s][i];
   if (!A.f || P.cd[i] > 0 || P.dash) return;
-  if (A.mp && P.mp < A.mp) return;
-  P.mp -= A.mp || 0;
+  const mcost = A.mp ? spMp(A.mp) : 0; // el coste de maná escala con el daño (ver mpK)
+  if (mcost && P.mp < mcost) return;
+  P.mp -= mcost;
   P.cd[i] = A.cd * (1 - 0.01 * U("cdr"));
   A.f();
   if (s != "m") rangedKick();

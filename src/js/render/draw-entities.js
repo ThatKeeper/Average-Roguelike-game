@@ -223,6 +223,65 @@ function drawEnemy(e) {
     x.restore();
   }
 }
+/**
+ * Cuerpo del héroe (capa, círculo, adorno de clase y ojo) centrado en el origen del contexto `c`.
+ * Lo usa drawP() en el juego y el muñeco del inventario, para que ambos se vean idénticos.
+ *  s: estilo de arma (m/r/g) · a: ángulo de mirada · r: radio · mv: 0..1 (largo de la capa)
+ *  col / dk: color principal y oscuro de la clase.
+ */
+function drawHeroBody(c, s, a, r, mv, col, dk) {
+  c.fillStyle = dk;
+  c.beginPath();
+  c.moveTo(-Math.cos(a) * 6, -Math.sin(a) * 6 - 8);
+  c.lineTo(
+    -Math.cos(a) * (20 + mv * 9) + Math.sin(a) * 8,
+    -Math.sin(a) * (20 + mv * 9) - Math.cos(a) * 8,
+  );
+  c.lineTo(
+    -Math.cos(a) * (20 + mv * 9) - Math.sin(a) * 8,
+    -Math.sin(a) * (20 + mv * 9) + Math.cos(a) * 8,
+  );
+  c.closePath();
+  c.fill();
+  c.fillStyle = col;
+  c.strokeStyle = "#000";
+  c.lineWidth = 2;
+  c.beginPath();
+  c.arc(0, 0, r, 0, 7);
+  c.fill();
+  c.stroke();
+  c.save();
+  c.rotate(a);
+  c.fillStyle = dk;
+  if (s == "m") {
+    c.fillRect(r * 0.2, -r * 0.55, r * 0.7, r * 1.1);
+    c.fillStyle = "#000";
+    c.fillRect(r * 0.55, -r * 0.2, r * 0.3, r * 0.4);
+  } else if (s == "r") {
+    c.beginPath();
+    c.moveTo(r * 0.9, 0);
+    c.lineTo(-r * 0.4, -r * 1.1);
+    c.lineTo(-r * 0.4, r * 1.1);
+    c.closePath();
+    c.fill();
+  } else {
+    c.save();
+    c.rotate(-a);
+    c.beginPath();
+    c.moveTo(-r * 0.8, -r * 0.6);
+    c.lineTo(0, -r * 2.1);
+    c.lineTo(r * 0.8, -r * 0.6);
+    c.closePath();
+    c.fill();
+    c.stroke();
+    c.restore();
+  }
+  c.restore();
+  c.fillStyle = "#fff";
+  c.beginPath();
+  c.arc(Math.cos(a) * r * 0.45, Math.sin(a) * r * 0.45, 2.2, 0, 7);
+  c.fill();
+}
 function drawP() {
   drawStatusRow(statusList(P, P, STATUS_P), P.x, P.y - P.r - 14, 12);
   const s = P.w.s,
@@ -237,57 +296,7 @@ function drawP() {
   x.ellipse(P.x, P.y + 11, 12, 4.5, 0, 0, 7);
   x.fill();
   x.translate(P.x, P.y + bob);
-  x.fillStyle = dk;
-  x.beginPath();
-  x.moveTo(-Math.cos(a) * 6, -Math.sin(a) * 6 - 8);
-  x.lineTo(
-    -Math.cos(a) * (20 + mv * 9) + Math.sin(a) * 8,
-    -Math.sin(a) * (20 + mv * 9) - Math.cos(a) * 8,
-  );
-  x.lineTo(
-    -Math.cos(a) * (20 + mv * 9) - Math.sin(a) * 8,
-    -Math.sin(a) * (20 + mv * 9) + Math.cos(a) * 8,
-  );
-  x.closePath();
-  x.fill();
-  x.fillStyle = col;
-  x.strokeStyle = "#000";
-  x.lineWidth = 2;
-  x.beginPath();
-  x.arc(0, 0, P.r, 0, 7);
-  x.fill();
-  x.stroke();
-  x.save();
-  x.rotate(a);
-  x.fillStyle = dk;
-  if (s == "m") {
-    x.fillRect(P.r * 0.2, -P.r * 0.55, P.r * 0.7, P.r * 1.1);
-    x.fillStyle = "#000";
-    x.fillRect(P.r * 0.55, -P.r * 0.2, P.r * 0.3, P.r * 0.4);
-  } else if (s == "r") {
-    x.beginPath();
-    x.moveTo(P.r * 0.9, 0);
-    x.lineTo(-P.r * 0.4, -P.r * 1.1);
-    x.lineTo(-P.r * 0.4, P.r * 1.1);
-    x.closePath();
-    x.fill();
-  } else {
-    x.save();
-    x.rotate(-a);
-    x.beginPath();
-    x.moveTo(-P.r * 0.8, -P.r * 0.6);
-    x.lineTo(0, -P.r * 2.1);
-    x.lineTo(P.r * 0.8, -P.r * 0.6);
-    x.closePath();
-    x.fill();
-    x.stroke();
-    x.restore();
-  }
-  x.restore();
-  x.fillStyle = "#fff";
-  x.beginPath();
-  x.arc(Math.cos(a) * P.r * 0.45, Math.sin(a) * P.r * 0.45, 2.2, 0, 7);
-  x.fill();
+  drawHeroBody(x, s, a, P.r, mv, col, dk);
   if (s == "m") drawHeldMelee();
   else if (RANGED_ART[P.w.n]) drawHeldRanged();
   if (P.g) {

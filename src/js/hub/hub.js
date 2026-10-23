@@ -53,6 +53,10 @@ const HS = [
   { x: 630, y: 500, i: "🪧", n: "Progresión y créditos", f: () => infoMenu() },
 ];
 function hub() {
+  if (G.fromRun) {
+    G.fromRun = 0;
+    trnCubes("up", G.st == "over"); // tras morir la pantalla ya está oscura: solo se descubre
+  }
   hide();
   G.st = "hub";
   G.cfg = 0;

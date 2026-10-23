@@ -32,7 +32,7 @@ function loop(t) {
     let n = 0;
     while (ACC >= 1 / 60 && n++ < 6) {
       ACC -= 1 / 60;
-      if (G.st == "play" && !G.ov && !ROT && !(G.hs > 0 && ((G.hs -= 1 / 60), 1))) {
+      if (G.st == "play" && !G.ov && !ROT && !trnBusy() && !(G.hs > 0 && ((G.hs -= 1 / 60), 1))) {
         const h = 1 / 60;
         upP(h);
         if (G.st == "play") {
@@ -45,7 +45,11 @@ function loop(t) {
       }
     }
     if (n >= 6) ACC = 0;
-    G.st == "title" ? titleFrame(dt) : G.st == "hub" ? hubFrame(dt) : draw();
+    trnTick(dt);
+    if (!trnFull()) {
+      G.st == "title" ? titleFrame(dt) : G.st == "hub" ? hubFrame(dt) : draw();
+      trnOverlay();
+    }
   } catch (er) {
     console.error(er);
     cv.width = W;

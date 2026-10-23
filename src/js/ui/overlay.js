@@ -123,6 +123,36 @@ function legacy() {
         },
       },
       {
+        t: "Movimiento táctil: " + (S.dpad ? "cruceta" : "joystick"),
+        nc: 1,
+        f: () => {
+          S.dpad = !S.dpad;
+          save();
+          tcReset();
+          tcApply();
+          menu();
+        },
+      },
+      {
+        t: "Apuntar al moverse: " + (S.aimmv ? "sí (el ataque sale hacia donde caminas)" : "no (auto-apuntado)"),
+        nc: 1,
+        f: () => {
+          S.aimmv = !S.aimmv;
+          save();
+          menu();
+        },
+      },
+      { t: "🎛️ Ordenar botones táctiles", nc: 1, f: () => tcEditStart(menu) },
+      {
+        t: "↺ Restablecer botones táctiles",
+        nc: 1,
+        f: () => {
+          tcResetLayout();
+          flash("Botones restablecidos");
+          menu();
+        },
+      },
+      {
         t: "Gráficos: " + (S.hq ? "altos" : "ligeros (recomendado en móvil)"),
         nc: 1,
         f: () => {

@@ -24,7 +24,7 @@ function build(a, b, f) {
             [b, 0.4],
           ]
         : [[a, 1]];
-  let cost = F[0] * (b && b != a ? 1.2 : 1) * (1 - 0.08 * (P.tal.alch || 0)),
+  let cost = F[0] * (b && b != a ? 1.2 : 1) * (1 - 0.08 * (P.tal.alch || 0)) * mpK(),
     cd = F[1],
     hpc = has("blood") ? P.mhp * (k == "blood+dark" ? 0.15 : 0.06) : 0;
   const dmg = wd(1) * F[2] * (c?.m || 1) * (has("blood") ? 1.35 : 1);

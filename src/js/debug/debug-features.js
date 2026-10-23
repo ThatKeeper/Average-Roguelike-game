@@ -57,7 +57,7 @@ dbgAdd("Objetos y botín", "Abrir cofre", () => {
 });
 dbgAdd("Objetos y botín", "Elegir: épico y legendario", () => {
   const card = (it) =>
-    Object.assign({}, it, { tp: it.tp || SLOT[it.s], cp: it.s ? cmp(it) : "", f: () => it.s && P.bag.push(Object.assign({}, it, { id: Date.now() + Math.random() })) });
+    Object.assign({}, it, { tp: it.tp || SLOT[it.s], cp: it.s ? cmp(it) : "", f: () => it.s && giveItem(Object.assign({}, it, { id: Date.now() + Math.random() })) });
   const itm = (r) => card(pick(IT.filter((i) => (i.r || 0) == r)) || pickIT()),
     wpn = (r) => {
       const w = mk((Math.random() * WP.length) | 0, r);

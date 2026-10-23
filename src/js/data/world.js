@@ -3,7 +3,7 @@
  * Datos del mundo: biomas, nombres de los jefes de bioma y direcciones del mapa de salas.
  *
  * Define:
- * BI, BN, DIR
+ * BI, BN, DIR, TS, GW, GH, RB
  * ====================================================================== */
 
 const BI = [
@@ -33,3 +33,9 @@ const DIR = [
   [-1, 0],
 ];
 
+
+// Sala = cuadrícula de 24x15 tiles de 40 px (960x600). El anillo exterior es muro; la zona jugable es RB.
+const TS = 40,
+  GW = 24,
+  GH = 15,
+  RB = { x0: TS, y0: TS, x1: (GW - 1) * TS, y1: (GH - 1) * TS };

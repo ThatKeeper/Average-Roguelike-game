@@ -12,7 +12,7 @@ function interact() {
     return;
   }
   const r = RM_;
-  if (G.ov || dist(P, { x: 480, y: 300 }) > 70) return;
+  if (G.ov || trnBusy() || dist(P, { x: 480, y: 300 }) > 70) return;
   if (r.tp == "boss" && r.cl) {
     if (G.arena) {
       endPractice();
@@ -23,8 +23,8 @@ function interact() {
       vic();
       return;
     }
-    G.d++;
-    P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.3);
+    trnCubes("down");
+    G.d++; // la vida se conserva tal cual al bajar de piso (ya no se cura)
     genLevel();
     enter(0, 4);
     flash("Profundidad " + G.d + " — " + G.bi[0]);
@@ -48,7 +48,8 @@ function interact() {
   } else if (r.tp == "shrine") {
     r.used = 1;
     show("<h2>Santuario</h2><p>Un altar susurra...</p>", [
-      { t: "Sanación completa", f: () => (P.hp = P.mhp) },
+      // El trago solo se ofrece si te falta vida.
+      ...(P.hp < P.mhp ? [{ t: "Beber un trago: recuperas el 40% de la vida", f: () => (P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.4)) }] : []),
       { t: "Bendición: +10% daño", f: () => (P.dm *= 1.1) },
       {
         t: "Pacto: −20 vida máx., +3 a un atributo al azar",
@@ -93,44 +94,5 @@ function interact() {
       },
       { t: "Ignorar", f: () => {} },
     ]);
-  } else if (r.tp == "shop") {
-    const it =
-      r.stock ||
-      (r.stock = [
-        {
-          t: "Poción (+50% vida)",
-          c: Math.round(30 * (1 + 0.1 * G.d)),
-          f: () => (P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.5)),
-        },
-        ...loot2(3).map((x, i) =>
-          Object.assign(x, { c: Math.round((i ? 130 : 90) * (1 + 0.1 * G.d)) }),
-        ),
-      ]);
-    const draw = () =>
-      show(
-        `<h2>Mercader</h2><p>Oro: ${P.gold}</p>`,
-        it
-          .map((x) =>
-            Object.assign({}, x, {
-              f: () => {
-                const g = x.f;
-                x.t = x.n = "(vendido)";
-                x.d = x.stx = "";
-                x.i = "✔️";
-                x.c = 0;
-                x.dis = 1;
-                x.f = () => {};
-                cnt("sh");
-                chk();
-                g();
-              },
-              re: draw,
-            }),
-          )
-          .concat([{ t: "Salir", x: 1, f: () => {} }]),
-        true,
-      );
-    draw();
-  }
+  } else if (r.tp == "shop") shop(r);
 }
-

@@ -3,7 +3,7 @@
  * Terreno estilo "Binding of Isaac": plantillas de hoyos y muros, validación de salas, disposición y dibujado de hoyos.
  *
  * Define:
- * okItems, TPL, cv_, OKT, layout, pitDraw
+ * okItems, TPL, cv_, OKT, layout, snapObs, pitDraw
  * ====================================================================== */
 
 // ===== TERRENO ESTILO "BINDING OF ISAAC": hoyos (bloquean el paso, no los proyectiles) y muros. Cada plantilla se valida (sin zonas aisladas) =====
@@ -212,6 +212,26 @@ function layout(o, tp, rr) {
     if (okItems(e)) it = e;
   }
   return it;
+}
+// Alinea cada obstáculo/hoyo a la cuadrícula de tiles (40 px) para que lo dibujado coincida con la colisión.
+// Después descarta obstáculos (del último al primero) hasta que la sala vuelva a ser transitable.
+function snapObs(list) {
+  const out = [];
+  for (const b of list) {
+    let x0 = Math.round(b.x / TS),
+      y0 = Math.round(b.y / TS),
+      x1 = Math.round((b.x + b.w) / TS),
+      y1 = Math.round((b.y + b.h) / TS);
+    if (x1 <= x0) x1 = x0 + 1;
+    if (y1 <= y0) y1 = y0 + 1;
+    x0 = cl(x0, 1, GW - 2);
+    y0 = cl(y0, 1, GH - 2);
+    x1 = cl(x1, x0 + 1, GW - 1);
+    y1 = cl(y1, y0 + 1, GH - 1);
+    out.push({ x: x0 * TS, y: y0 * TS, w: (x1 - x0) * TS, h: (y1 - y0) * TS, pit: !!b.pit });
+  }
+  while (out.length && !okItems(out)) out.pop();
+  return out;
 }
 function pitDraw(o) {
   x.save();

@@ -20,6 +20,7 @@ function upP(dt) {
   if (!P.g && P.pg0) P.pcd = Math.max(P.pcd, 0.45);
   P.pg0 = P.g;
   P.pcd -= dt;
+  P.potcd -= dt;
   P.gt = P.g ? P.gt + dt : 0;
   const sp = P.spd * (P.g ? 0.5 : 1) * (P.slow > 0 ? 0.55 : 1);
   if (P.dash) {
@@ -60,16 +61,17 @@ function upP(dt) {
   if (K[KY.r]) classAction(dt);
   if (P.cls == "g") for (let i = 0; i < 4; i++) if (K[KY["c" + (i + 1)]]) castCard(i);
   const r = RM_;
+  // Puertas: solo se cruzan con la sala limpia (r.cl). Arriba/abajo miden 2 tiles (80 px) y los lados 3 tiles (120 px).
   if (r.cl)
     for (const k in r.nb) {
-      const L = Math.abs([P.x, P.y, P.x, P.y][k] - 480 + (k % 2 ? -180 : 0));
-      if (k == 0 && P.y <= P.r + 52 && Math.abs(P.x - 480) < 50) return go(r.nb[0], 2);
-      if (k == 2 && P.y >= 548 - P.r && Math.abs(P.x - 480) < 50) return go(r.nb[2], 0);
-      if (k == 1 && P.x >= 908 - P.r && Math.abs(P.y - 300) < 50) return go(r.nb[1], 3);
-      if (k == 3 && P.x <= P.r + 52 && Math.abs(P.y - 300) < 50) return go(r.nb[3], 1);
+      if (k == 0 && P.y <= RB.y0 + P.r + 2 && Math.abs(P.x - 480) < 40) return go(r.nb[0], 2, 0);
+      if (k == 2 && P.y >= RB.y1 - P.r - 2 && Math.abs(P.x - 480) < 40) return go(r.nb[2], 0, 2);
+      if (k == 1 && P.x >= RB.x1 - P.r - 2 && Math.abs(P.y - 300) < 60) return go(r.nb[1], 3, 1);
+      if (k == 3 && P.x <= RB.x0 + P.r + 2 && Math.abs(P.y - 300) < 60) return go(r.nb[3], 1, 3);
     }
 }
-function go(i, f) {
-  enter(i, f);
+// Cruza la puerta k hacia la sala i (entrando por el lado f) con la cámara desplazándose hacia la nueva sala.
+function go(i, f, k) {
+  trnSlide(k, i, f);
 }
 

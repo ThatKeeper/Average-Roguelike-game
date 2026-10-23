@@ -47,13 +47,13 @@ function upPR(dt) {
       p.vy = Math.sin(a) * p.s;
       if (dist(p, P) < 20) p.l = 0;
     }
-    if (p.x < 50 || p.x > 910 || p.y < 50 || p.y > 550) {
+    if (p.x < RB.x0 || p.x > RB.x1 || p.y < RB.y0 || p.y > RB.y1) {
       if (p.bn > 0) {
         p.bn--;
-        if (p.x < 50 || p.x > 910) p.vx *= -1;
+        if (p.x < RB.x0 || p.x > RB.x1) p.vx *= -1;
         else p.vy *= -1;
-        p.x = cl(p.x, 50, 910);
-        p.y = cl(p.y, 50, 550);
+        p.x = cl(p.x, RB.x0, RB.x1);
+        p.y = cl(p.y, RB.y0, RB.y1);
       } else p.l = 0;
     }
     for (const b of RM_.obs)
@@ -115,15 +115,20 @@ function upMisc(dt) {
   NM = NM.filter((n) => n.l > 0);
   for (const o of O) {
     const d = dist(o, P);
-    if (d < 100 * (1 + 0.1 * U("mag"))) {
+    if (o.hold > 0) o.hold -= dt; // objeto soltado o con mochila llena: no se recoge hasta que pase el tiempo
+    if (d < 100 * (1 + 0.1 * U("mag")) && !(o.hold > 0)) {
       o.x += (P.x - o.x) * dt * 6;
       o.y += (P.y - o.y) * dt * 6;
     }
-    if (d < 20) {
+    if (d < 20 && !(o.hold > 0)) {
+      if (o.k == "i" && !bagAdd(o.it)) {
+        o.hold = 2.5;
+        flash("Mochila llena (I)");
+        continue;
+      }
       o.got = 1;
       if (o.k == "g") P.gold += o.v;
       else if (o.k == "i") {
-        P.bag.push(o.it);
         flash("Recoges: " + o.it.n + " (I)");
         lootSnd(o.it.r);
         lootFX(o.x, o.y, o.it.r);
@@ -148,7 +153,7 @@ function upMisc(dt) {
       flash(r.tp == "boss" ? "¡Jefe derrotado! Pulsa F en el portal" : "Sala despejada");
       for (let i = 0; i < 3; i++)
         O.push({ x: 480 + rnd(-40, 40), y: 300 + rnd(-40, 40), k: "g", v: Math.ceil(G.d * 3) });
-      if (r.tp == "elite") O.push({ x: 480, y: 300, k: "h", v: 0.3 });
+      if (r.tp == "elite") O.push({ x: 480, y: 300, k: "h", v: 0.1 });
     }
   }
   for (const h of RM_.hz || [])

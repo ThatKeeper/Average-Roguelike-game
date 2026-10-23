@@ -19,7 +19,7 @@ function classAction(dt) {
   const s = P.tm;
   if (s == "beam") {
     if (P.mp > 0) {
-      P.mp -= 25 * dt;
+      P.mp -= 25 * dt * mpK();
       P.bd = (P.bd || 0) - dt;
       if (P.bd <= 0) {
         P.bd = 0.12;
@@ -48,23 +48,23 @@ function classAction(dt) {
   if (P.cd[3] > 0) return;
   const w = P.w.s;
   if (s == "shield") {
-    if (P.mp < 20) return;
-    P.mp -= 20;
+    if (P.mp < spMp(20)) return;
+    P.mp -= spMp(20);
     P.sh = 30 + P.a.int * 8;
     P.cd[3] = 10;
   } else if (s == "trap") {
-    if (P.mp < 15) return;
-    P.mp -= 15;
+    if (P.mp < spMp(15)) return;
+    P.mp -= spMp(15);
     P.cd[3] = 4;
     TR.push({ x: M.x, y: M.y, t: 15 });
   } else if (s == "summon") {
-    if (P.mp < 30) return;
-    P.mp -= 30;
+    if (P.mp < spMp(30)) return;
+    P.mp -= spMp(30);
     P.cd[3] = 14;
     AL.push({ x: P.x, y: P.y, t: 15, c: 0 });
   } else if (s == "cone") {
-    if (P.mp < 18) return;
-    P.mp -= 18;
+    if (P.mp < spMp(18)) return;
+    P.mp -= spMp(18);
     P.cd[3] = 5;
     FX.push({ k: "arc", x: P.x, y: P.y, a: P.face, r: 150, w: 1.2, t: 0.25, m: 0.25 });
     for (const e of E)

@@ -8,7 +8,8 @@
 
 // ===== PARTIDA =====
 function run(wi) {
-  G = { st: "play", seed: Date.now() % 1e9, d: 1, ov: 0, kills: 0 };
+  trnCubes("down"); // el estado nuevo se prepara ya; los cubitos tapan el cambio
+  G = { st: "play", seed: Date.now() % 1e9, d: 1, ov: 0, kills: 0, fromRun: 1 };
   const a = { str: 3, dex: 3, int: 3, vit: 3, agi: 3, luk: 3 },
     w = mk(wi);
   a[w.sc] += 4;
@@ -31,7 +32,6 @@ function run(wi) {
     acd: 0,
     cd: [0, 0, 0, 0],
     eq: {},
-    bag: [],
     tal: {},
     pts: 0,
     cls: w.s,
@@ -51,6 +51,7 @@ function run(wi) {
     fl: 0,
     pcd: 0,
   };
+  bagInit();
   ST();
   P.hp = P.mhp;
   P.mp = P.mmp;

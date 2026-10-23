@@ -25,6 +25,8 @@ const KD = {
     c4: "Digit4",
     book: "KeyB",
     tal: "KeyT",
+    php: "KeyZ",
+    pmp: "KeyX",
   },
   KY = Object.assign({}, KD, S.keys);
 onkeydown = (e) => {
@@ -49,13 +51,15 @@ onkeydown = (e) => {
     else if (e.code == "Escape" && G.ov) hide();
     return;
   }
-  if (G.st != "play") return;
+  if (G.st != "play" || trnBusy()) return;
   if (e.code == "Escape") pause();
   if (e.code == KY.map) bigmap ^= 1;
   if (e.code == KY.inv) inv();
   if (e.code == KY.use) interact();
   if (e.code == KY.book) book();
   if (e.code == KY.tal) tal();
+  if (e.code == KY.php && !G.ov) usePotion("hp");
+  if (e.code == KY.pmp && !G.ov) usePotion("mp");
   if (e.code == KY.dodge) {
     e.preventDefault();
     if (!G.ov) dodge();

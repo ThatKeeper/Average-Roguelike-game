@@ -82,7 +82,7 @@ function genLevel() {
       if ((ox + w > 400 && ox < 560) || (oy + h > 240 && oy < 360)) continue;
       o.push({ x: ox, y: oy, w, h });
     }
-    r.obs = layout(o, r.tp, rr);
+    r.obs = snapObs(layout(o, r.tp, rr));
     r.hz = [];
     if ([3, 5, 6, 7].includes((d - 1) % 8))
       for (let j = 0; j < 2; j++)
@@ -114,6 +114,7 @@ function genLevel() {
   }
   G.R = R;
   G.seen = { 0: 1 };
+  G.vis = {};
   G.bi = BI[(d - 1) % 8];
 }
 function enter(i, from) {
@@ -122,6 +123,7 @@ function enter(i, from) {
   const r = G.R[i];
   RM_ = r;
   G.seen[i] = 1;
+  (G.vis || (G.vis = {}))[i] = 1;
   E = [];
   PR = [];
   Z = [];

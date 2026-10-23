@@ -3,7 +3,7 @@
  * Dibujado principal del juego en el canvas.
  *
  * Define:
- * ammoBar, draw
+ * ammoBar, draw, drawWorld
  * ====================================================================== */
 
 // ===== RENDER =====
@@ -24,14 +24,22 @@ function ammoBar() {
   x.restore();
 }
 function draw() {
-  x.save();
-  x.clearRect(0, 0, W, H);
   if (G.st != "play") {
+    x.save();
+    x.clearRect(0, 0, W, H);
     x.fillStyle = "#0b0a10";
     x.fillRect(0, 0, W, H);
     x.restore();
     return;
   }
+  drawWorld();
+  hud();
+  dbgHud();
+}
+// Dibuja la sala y todo lo que hay en ella (sin HUD). noPlayer: omite al jugador (transición de cámara).
+function drawWorld(noPlayer) {
+  x.save();
+  x.clearRect(0, 0, W, H);
   const sk = S.nosh ? 0 : shake;
   x.translate(rnd(-sk, sk), rnd(-sk, sk));
   for (const a of AMB) {
@@ -42,100 +50,12 @@ function draw() {
   x.globalAlpha = 1;
   const b = G.bi,
     r = RM_;
-  x.fillStyle = b[1];
-  x.fillRect(0, 0, W, H);
-  x.fillStyle = b[2];
-  x.fillRect(50, 50, 860, 500);
-  x.strokeStyle = b[1];
-  x.lineWidth = 1;
-  x.globalAlpha = 0.35;
-  for (let i = 50; i <= 910; i += 40) {
-    x.beginPath();
-    x.moveTo(i, 50);
-    x.lineTo(i, 550);
-    x.stroke();
-  }
-  for (let i = 50; i <= 550; i += 40) {
-    x.beginPath();
-    x.moveTo(50, i);
-    x.lineTo(910, i);
-    x.stroke();
-  }
-  x.globalAlpha = 1;
-  x.fillStyle = b[1];
-  for (let i = 0; i < 24; i++) {
-    const px = 50 + i * 36 + ((r.gx * 7) & 7),
-      hh = 10 + ((i * 37 + r.gy * 13 + G.d) % 5) * 5;
-    x.beginPath();
-    x.moveTo(px, 50);
-    x.lineTo(px + 18, 50);
-    x.lineTo(px + 9, 50 + hh);
-    x.fill();
-    x.beginPath();
-    x.moveTo(px, 550);
-    x.lineTo(px + 18, 550);
-    x.lineTo(px + 9, 550 - hh);
-    x.fill();
-  }
-  for (const o of r.obs) {
-    if (o.pit) {
-      pitDraw(o);
-      continue;
-    }
-    x.fillRect(o.x, o.y, o.w, o.h);
-    x.strokeStyle = b[3];
-    x.lineWidth = 2;
-    x.strokeRect(o.x, o.y, o.w, o.h);
-  }
-  for (const k in r.nb) {
-    if (!doorVis(r, k)) continue;
-    const d = [
-      [430, 38, 100, 14],
-      [896, 250, 14, 100],
-      [430, 548, 100, 14],
-      [48, 250, 14, 100],
-    ][k];
-    x.save();
-    x.shadowColor = r.cl ? b[3] : "#f33";
-    x.shadowBlur = r.cl ? 16 : 10;
-    x.fillStyle = "#000";
-    x.fillRect(d[0] - 3, d[1] - 3, d[2] + 6, d[3] + 6);
-    x.fillStyle = r.cl ? b[3] : "#922";
-    x.fillRect(...d);
-    x.restore();
-    if (!r.cl) {
-      x.fillStyle = "#000";
-      for (let i = 1; i < 5; i++) {
-        if (k % 2) x.fillRect(d[0], d[1] + i * 20 - 2, d[2], 3);
-        else x.fillRect(d[0] + i * 20 - 2, d[1], 3, d[3]);
-      }
-    }
-  }
+  drawRoomBase(r);
+  drawDoors(r);
   x.textAlign = "center";
   const cx = 480,
     cy = 300;
-  if (["treasure", "shrine", "shop", "event"].includes(r.tp)) {
-    x.fillStyle =
-      r.used && r.tp != "shop"
-        ? "#444"
-        : r.tp == "treasure"
-          ? "#c9a24a"
-          : r.tp == "shrine"
-            ? "#b07af0"
-            : r.tp == "event"
-              ? "#e66"
-              : "#5c8";
-    x.fillRect(cx - 16, cy - 12, 32, 24);
-    x.fillStyle = "#fff";
-    x.font = "12px Georgia";
-    x.fillText(
-      { treasure: "Cofre [F]", shrine: "Santuario [F]", shop: "Mercader [F]", event: "Suceso [F]" }[
-        r.tp
-      ],
-      cx,
-      cy - 20,
-    );
-  }
+  if (["treasure", "shrine", "shop", "event"].includes(r.tp)) drawProp(r, cx, cy);
   if (r.tp == "boss" && r.cl) {
     x.fillStyle = "#5ff";
     x.beginPath();
@@ -311,9 +231,11 @@ function draw() {
     }
     x.globalAlpha = 1;
   }
-  x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
-  safe(drawP);
-  ammoBar();
+  if (!noPlayer) {
+    x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
+    safe(drawP);
+    ammoBar();
+  }
   x.globalAlpha = 1;
   for (const n of NM) {
     x.fillStyle = n.c;
@@ -322,7 +244,5 @@ function draw() {
   }
   dbgWorld();
   x.restore();
-  hud();
-  dbgHud();
 }
 

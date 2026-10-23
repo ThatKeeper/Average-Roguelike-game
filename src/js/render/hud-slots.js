@@ -219,6 +219,19 @@ function hudSlots() {
     EC2 = { m: "#d8b36a", r: "#7fd08a", g: "#8aa8ff" }[w];
   HT = null;
   tcSync();
+  if (!TOUCH)
+    ["hp", "mp"].forEach((k, n) =>
+      slot(12 + n * 38, y - 38, 32, {
+        em: POT[k].i,
+        key: KL(KY[k == "hp" ? "php" : "pmp"]),
+        col: POT[k].c,
+        off: !potCount(k),
+        cd: P.potcd,
+        cdm: 1,
+        mp: potCount(k) || "",
+        tip: [POT[k].n, `Tecla ${KL(KY[k == "hp" ? "php" : "pmp"])} · tienes ${potCount(k)}`],
+      }),
+    );
   let px = TOUCH ? Math.max(12, (W - (5 + (mg ? 4 : 0)) * (s + g)) / 2) : 12;
   for (let i = 0; i < 3; i++) {
     const a = A[i],
@@ -230,13 +243,13 @@ function hudSlots() {
       off: !ok,
       cd: ok ? P.cd[i] : 0,
       cdm: a.cd,
-      nomp: a.mp && P.mp < a.mp,
+      nomp: a.mp && P.mp < spMp(a.mp),
       sel: i == 2 && P.g,
-      mp: a.mp || "",
+      mp: a.mp ? Math.ceil(spMp(a.mp)) : "",
       tip: [
         NM[w][i],
         ok
-          ? `Enfriamiento ${a.cd || 0}s${a.mp ? " \u00b7 " + a.mp + " man\u00e1" : ""}`
+          ? `Enfriamiento ${a.cd || 0}s${a.mp ? " \u00b7 " + Math.ceil(spMp(a.mp)) + " man\u00e1" : ""}`
           : "Mant\u00e9n el clic derecho para guardia",
       ],
     });

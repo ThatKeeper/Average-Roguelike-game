@@ -22,6 +22,16 @@ const wd = (k = 1) =>
   P.dm *
   P.edm *
   (P.bt > 0 ? 1.35 : 1);
+// Maná de los hechizos: el coste base se multiplica por la raíz cuadrada del crecimiento de daño del personaje
+// (nivel × atributo principal × multiplicadores de daño), respecto al inicio de la partida (nivel 1, atributo 7).
+// Así crece más despacio que el daño (mejorar sigue compensando), el coste nunca baja de su valor base
+// y se limita a ×4 para que a niveles altos el maná siga gestionándose sin volverse imposible.
+const MP_G0 = 1 + 0.045 * 7,
+  mpK = () => {
+    const g = (1 + 0.06 * (P.lv - 1)) * (1 + 0.045 * P.a[P.w.sc]) * P.dm * P.edm;
+    return Math.min(4, Math.max(1, Math.sqrt(g / MP_G0)));
+  },
+  spMp = (base) => base * mpK();
 // Vida enemiga = (1+0.22(d-1)) * (1+0.35*floor((d-1)/4)) * (1+0.025*max(0,d-8))  (suave al inicio, tramos cada 4 niveles y empuje extra desde d>8)
 const hpM = () =>
     (1 + 0.22 * (G.d - 1)) *
@@ -34,8 +44,8 @@ const hpM = () =>
 const BOMB_DELAY = 0.6; // segundos hasta que explota un kamikaze al que matas (igual que su mecha propia)
 function col(o) {
   const r = o.r;
-  o.x = cl(o.x, 50 + r, 910 - r);
-  o.y = cl(o.y, 50 + r, 550 - r);
+  o.x = cl(o.x, RB.x0 + r, RB.x1 - r);
+  o.y = cl(o.y, RB.y0 + r, RB.y1 - r);
   for (const b of RM_.obs) {
     const cx = cl(o.x, b.x, b.x + b.w),
       cy = cl(o.y, b.y, b.y + b.h),
@@ -190,7 +200,8 @@ function kill(e) {
         k: "g",
         v: Math.ceil((3 + G.d * 1.5) * (1 + P.a.luk * 0.02) * (1 + 0.03 * U("gre"))),
       });
-  if (Math.random() < 0.1 + P.a.luk * 0.005) O.push({ x: e.x, y: e.y, k: "h", v: 0.15 });
+  // Corazón: cura el 10 % de la vida máxima. Probabilidad a la mitad (0,10 → 0,05 base; la Suerte también).
+  if (Math.random() < 0.05 + P.a.luk * 0.0025) O.push({ x: e.x, y: e.y, k: "h", v: 0.1 });
   for (let i = 0; i < 8; i++)
     FX.push({
       k: "p",
@@ -209,13 +220,23 @@ function kill(e) {
     Z.push({ x: e.x, y: e.y, r: 75, t: dl, m: dl, d: e.dmg * (e.t == "bomber" ? 1 : 0.8), c: "#fa4" });
     if (e.t == "bomber") snd(380, 0.12, "square", 0.05);
   }
-  if (Math.random() < (e.t == "boss" || e.t == "elite" ? 1 : 0.04 + P.a.luk * 0.002 + emptyB()))
-    O.push({
-      x: e.x,
-      y: e.y,
-      k: "i",
-      it: Object.assign({}, pickIT(), { id: Date.now() + Math.random() }),
-    });
+  // Botín de objetos y pociones: los enemigos invocados no sueltan ninguno.
+  // Objetos: probabilidad base a la mitad (0,04 → 0,02; la Suerte y las ranuras vacías también se reducen a la mitad).
+  // Pociones: un tercio menos (0,05 → 0,0333). Jefes y élites siguen soltando siempre un objeto.
+  if (!e.minion) {
+    if (
+      Math.random() <
+      (e.t == "boss" || e.t == "elite" ? 1 : (0.04 + P.a.luk * 0.002 + emptyB()) * 0.5)
+    )
+      O.push({
+        x: e.x,
+        y: e.y,
+        k: "i",
+        it: Object.assign({}, pickIT(), { id: Date.now() + Math.random() }),
+      });
+    else if (Math.random() < 0.05 * (2 / 3))
+      O.push({ x: e.x, y: e.y, k: "i", it: newPotion(Math.random() < 0.6 ? "hp" : "mp") });
+  }
   if (!e.minion) xp((6 + G.d * 1.5) * (e.t == "boss" ? 15 : e.t == "elite" ? 5 : 1));
 }
 
