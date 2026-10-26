@@ -2,7 +2,7 @@
 
 Roguelike de mazmorras con vista cenital, en un único archivo HTML (canvas + JavaScript, sin dependencias). Basado en *Infinite Depths*.
 
-**Versión actual: 1.3.7**
+**Versión actual: 1.3.9**
 
 - **Archivo del juego:** `average-roguelike-game.html`
 - **Cómo jugar:** abre el archivo en un navegador moderno (escritorio o móvil). No necesita instalación ni servidor.
@@ -24,7 +24,7 @@ Roguelike de mazmorras con vista cenital, en un único archivo HTML (canvas + Ja
 | Objeto | Función |
 |---|---|
 | Puerta de la mazmorra | Inicia la partida con la clase elegida (pide confirmación) |
-| Pedestal de clases | Elegir Guerrero, Cazador o Mago (descripción, estadísticas, estilo y habilidades) |
+| Sala de clases (arco de la derecha) | 9 clases ramificadas por estadística; al elegir una se equipa. A su derecha, la sala de pruebas con maniquíes (único sitio donde se combate fuera de la mazmorra) |
 | Tablón de logros | Lista de logros, progreso y fecha de desbloqueo |
 | Bestiario | Fichas de enemigos y jefes descubiertos, con filtro y búsqueda por nombre |
 | Mesa de estadísticas | Datos acumulados de todas tus partidas |
@@ -46,8 +46,8 @@ El entrenamiento y la arena **no dan** experiencia, botín, oro, logros ni progr
 | Apuntar / atacar | Ratón / clic izquierdo |
 | Habilidad o guardia (parry) | Clic derecho |
 | Esquivar | `Espacio` |
-| Habilidades | `Q`, `E` |
-| Acción de clase | `R` |
+| Habilidades de clase | `Q`, `E`, `R` (únicas de cada clase) |
+| Habilidad de rama | `C` (parry / reiniciar enfriamientos / recargar maná) |
 | Interactuar | `F` |
 | Inventario / Mapa / Talentos | `I` / `M` / `T` |
 | Cartas de hechizo (Mago) | `B` y `1`–`4` |
@@ -59,11 +59,23 @@ En móvil se muestran controles táctiles (joystick y botones), configurables en
 
 ## Clases y armas
 
-| Clase | Arma inicial | Estilo |
-|---|---|---|
-| Guerrero | Espada | Cuerpo a cuerpo, guardia con parry perfecto, remolino y salto |
-| Cazador | Arco (cargador de 12) | A distancia: andanada, flecha explosiva y flecha venenosa |
-| Mago | Báculo arcano | Magia con maná y cartas de hechizo elementales |
+Tres ramas por estadística; cada base tiene dos clases avanzadas que se desbloquean con requisitos permanentes.
+
+| Rama | Clase | Arma inicial | Q / E / R |
+|---|---|---|---|
+| Fuerza | Guerrero | Espada | Remolino / Salto con impacto / Veredicto |
+| Fuerza | Tanque | Martillo | Onda sísmica / Bastión / Golpe del coloso |
+| Fuerza | Asesino | Dagas | Paso sombrío / Lluvia de dagas / Danza mortal |
+| Destreza | Cazador | Arco | Andanada / Flecha explosiva / Lluvia de flechas (clic der.: flecha venenosa) |
+| Destreza | Ballestero | Ballesta | Virote perforante / Trampa de púas / Fuego de asedio |
+| Destreza | Disparador rúnico | Arma rúnica | Runas buscadoras / Sello rúnico / Sobrecarga rúnica |
+| Inteligencia | Mago | Báculo arcano | Bola de fuego / Nova de hielo / Sobrecarga arcana (clic der.: rayo en cadena) |
+| Inteligencia | Mago de fuego y hielo | Báculo ígneo | Llamarada / Glaciar / Choque térmico |
+| Inteligencia | Alquimista | Báculo venenoso | Frasco corrosivo / Nube tóxica / Pandemia |
+
+- **Habilidad de rama (`C`)**: Fuerza = guardia/parry (mantener, también clic derecho), Destreza = reiniciar enfriamientos, Inteligencia = recargar maná.
+- Las clases de **Inteligencia** solo tienen hechizos y cartas mientras llevas un arma mágica equipada.
+- Requisitos de las clases avanzadas: Tanque (prof. 3 + 15 parries perfectos), Asesino (prof. 4 + 300 enemigos), Ballestero (prof. 3 + 2 jefes), Disparador rúnico (prof. 5 + 3 jefes), Mago de fuego y hielo (prof. 4 + 250 enemigos), Alquimista (prof. 6 + 3 jefes).
 
 - Todas las armas **cuerpo a cuerpo escalan con Fuerza**. Las de distancia escalan con Destreza y las mágicas con Inteligencia.
 - Las armas con cargador (Arco, Ballesta, Arma rúnica) muestran una **barra de munición** junto al personaje con el progreso de recarga. No hay reserva de munición: la recarga es gratuita.

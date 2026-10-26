@@ -80,9 +80,10 @@ const DOLL_W = 128,
   DOLL_H = 160;
 function drawDoll(cv2) {
   const c = cv2.getContext("2d"),
-    s = P.w.s,
-    col = { m: "#d8b36a", r: "#7fd08a", g: "#8aa8ff" }[s],
-    dk = { m: "#6b5530", r: "#3c6a44", g: "#3a4a8a" }[s],
+    c0 = curCls(),
+    s = { str: "m", dex: "r", int: "g" }[P.br] || "m",
+    col = c0.col,
+    dk = c0.dk,
     k = 3.6; // escala respecto al tamaño dentro del juego
   c.clearRect(0, 0, DOLL_W, DOLL_H);
   c.save();
@@ -92,7 +93,7 @@ function drawDoll(cv2) {
   c.beginPath();
   c.ellipse(0, 11, 12, 4.5, 0, 0, 7); // sombra, igual que en drawP
   c.fill();
-  drawHeroBody(c, s, 0, P.r, 0, col, dk); // mirando a la derecha, quieto
+  drawHeroBody(c, s, 0, P.r, 0, col, dk, P.ck); // mirando a la derecha, quieto
   c.restore();
 }
 
@@ -321,6 +322,17 @@ function inv(f) {
   invWire(tr, { k: "t" });
   bar.appendChild(tr);
   bx.appendChild(bar);
+  // objetos clave de la partida (no ocupan mochila)
+  const kys = Object.keys(P.keys || {}).filter((k) => P.keys[k] && KEYI[k]);
+  if (kys.length) {
+    const kb = E_("div", "iv-keys", "<b>Objetos clave</b>");
+    kys.forEach((k) => {
+      const sp = E_("span", "kk", `<i>${KEYI[k].i}</i>${KEYI[k].n}`);
+      sp.title = KEYI[k].d;
+      kb.appendChild(sp);
+    });
+    bx.appendChild(kb);
+  }
   bx.appendChild(
     E_(
       "small",

@@ -9,13 +9,23 @@
     <meta name="theme-color" content="#0b0a10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="src/public/manifest.webmanifest" />
+    <script>
+      // El manifiesto solo se enlaza con http(s): desde file:// el navegador lo bloquea por CORS y llena la consola de errores
+      if (/^https?:$/.test(location.protocol)) {
+        const l = document.createElement("link");
+        l.rel = "manifest";
+        l.href = "src/public/manifest.webmanifest";
+        document.head.appendChild(l);
+      }
+    </script>
     <link rel="apple-touch-icon" href="src/public/icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="src/public/icons/icon-512.png" />
     <title>Average roguelike game</title>
     <link rel="stylesheet" href="src/css/base.css" />
     <link rel="stylesheet" href="src/css/touch.css" />
     <link rel="stylesheet" href="src/css/inventory.css" />
+    <link rel="stylesheet" href="src/css/secret.css" />
+    <link rel="stylesheet" href="src/css/windows.css" />
   </head>
   <body>
     <div id="w">
@@ -28,6 +38,7 @@
   <script src="src/js/core/audio.js"></script>
   <script src="src/js/data/world.js"></script>
   <script src="src/js/data/weapons.js"></script>
+  <script src="src/js/data/classes.js"></script>
   <script src="src/js/data/weapon-sprites.js"></script>
   <script src="src/js/data/relics.js"></script>
   <script src="src/js/data/enemy-types.js"></script>
@@ -48,12 +59,14 @@
   <script src="src/js/ui/windows.js"></script>
   <script src="src/js/render/sprites-emoji.js"></script>
   <script src="src/js/render/item-icons.js"></script>
+  <script src="src/js/render/hud-assets.js"></script>
   <script src="src/js/data/items.js"></script>
   <script src="src/js/game/bag.js"></script>
   <script src="src/js/ui/inventory.js"></script>
   <script src="src/js/ui/shop.js"></script>
   <script src="src/js/ui/controls-menu.js"></script>
   <script src="src/js/game/class-actions.js"></script>
+  <script src="src/js/game/secret-quest.js"></script>
   <script src="src/js/game/interaction.js"></script>
   <script src="src/js/ai/enemies.js"></script>
   <script src="src/js/game/projectiles.js"></script>
@@ -64,7 +77,9 @@
   <script src="src/js/meta/bestiary.js"></script>
   <script src="src/js/bosses/boss-kits.js"></script>
   <script src="src/js/bosses/boss-signatures.js"></script>
+  <script src="src/js/bosses/secret-boss.js"></script>
   <script src="src/js/hub/hub.js"></script>
+  <script src="src/js/hub/class-room.js"></script>
   <script src="src/js/hub/menus.js"></script>
   <script src="src/js/hub/training.js"></script>
   <script src="src/js/hub/hub-frame.js"></script>
@@ -74,6 +89,7 @@
   <script src="src/js/render/draw-boss.js"></script>
   <script src="src/js/render/draw-melee.js"></script>
   <script src="src/js/render/status-icons.js"></script>
+  <script src="src/js/render/class-look.js"></script>
   <script src="src/js/render/particles.js"></script>
   <script src="src/js/render/draw-ranged.js"></script>
   <script src="src/js/render/draw-entities.js"></script>
@@ -82,6 +98,7 @@
   <script src="src/js/render/hud-slots.js"></script>
   <script src="src/js/render/tiles.js"></script>
   <script src="src/js/render/transitions.js"></script>
+  <script src="src/js/render/death.js"></script>
   <script src="src/js/render/draw.js"></script>
   <script src="src/js/render/boss-bar.js"></script>
   <script src="src/js/render/minimap.js"></script>
@@ -144,6 +161,16 @@
         "santuario": "src/assets/world/props/santuario_16x16.png"
       }
     });
+  </script>
+  <script>
+    /* Modo sin build: el atlas, el mapa de piezas y los iconos del HUD se cargan desde src/assets/hud/
+       (el build los incrusta como data-URI). Sin esto no se dibujan ni las barras ni los iconos de habilidades. */
+    Object.assign(HUD_DATA, {
+      atlas: "src/assets/hud/hud_tilemap.png",
+      map: {"slot":[0,0,16,16],"slot_ready":[16,0,16,16],"slot_sel":[32,0,16,16],"slot_off":[48,0,16,16],"slot_empty":[64,0,16,16],"slot_equip":[80,0,16,16],"panel":[96,0,16,16],"panel_soft":[112,0,16,16],"key":[128,0,8,11],"key_dim":[128,16,8,11],"bar_l":[0,16,8,16],"bar_m":[16,16,8,16],"bar_r":[32,16,8,16],"fill_hp":[48,16,8,16],"fill_mp":[64,16,8,16],"fill_xp":[80,16,8,16],"fill_sh":[96,16,8,16],"bi_heart":[128,32,16,16],"bi_manadrop":[144,32,16,16],"bi_star":[160,32,16,16],"shine":[176,32,16,16],"eq_w":[0,48,16,16],"eq_h":[16,48,16,16],"eq_b":[32,48,16,16],"eq_g":[48,48,16,16],"eq_f":[64,48,16,16],"eq_a":[80,48,16,16],"lock":[96,48,16,16]},
+      icons: Object.fromEntries(["bomb", "bulwark", "chain", "cloud", "coin", "colossus", "daggers", "dance", "dodge", "el_blood", "el_corr", "el_dark", "el_fire", "el_ice", "el_light", "el_plant", "el_rock", "el_water", "el_wind", "eq_a", "eq_b", "eq_f", "eq_g", "eq_h", "eq_w", "fireball", "flare", "flask", "frostnova", "glacier", "guard", "heart", "homing", "leap", "lock", "mana", "manadrop", "overload", "pierce", "plague", "potion_hp", "potion_mp", "quake", "rain", "reset", "runeover", "seal", "shadowstep", "shock", "siege", "spiketrap", "stairs", "star", "venom", "verdict", "volley", "whirl"].map((k) => [k, "src/assets/hud/icons/" + k + ".png"])),
+    });
+    hudLoad();
   </script>
 </body>
 </html>

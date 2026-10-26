@@ -1,6 +1,6 @@
 /* ======================================================================
  * src/js/spells/cards.js
- * Cartas de hechizo (Mago): niveles, requisitos, desbloqueos, normalización del guardado y equipamiento.
+ * Cartas de hechizo: niveles, requisitos, desbloqueos, normalización del guardado y equipamiento.
  *
  * Define:
  * ETIER, EFORM, STARTERS, EREQ, FN, tsum, CARDS, CORDER, reqOK, reqTxt, checkUnlocks
@@ -92,6 +92,8 @@ function checkUnlocks() {
         ch = 1;
       }
   }
+  const nc = clsCheck(); // clases nuevas (data/classes.js)
+  if (nc.length) G.ncl = (G.ncl || []).concat(nc);
   return nu;
 }
 // Guardado: tolera datos inexistentes, incompletos, corruptos o antiguos (v1 sin cartas → v2; los jefes de profundidades superadas se dan por derrotados)
@@ -114,6 +116,7 @@ function normS() {
   S.bk = o(S.bk);
   S.ach = o(S.ach);
   S.bosses = o(S.bosses);
+  S.cu = o(S.cu);
   S.cards = o(S.cards);
   S.cards.unlocked = o(S.cards.unlocked);
   const sl = Array.isArray(S.cards.slots) ? S.cards.slots.slice(0, 4) : [];
@@ -133,7 +136,7 @@ function normS() {
 }
 normS();
 function equipCard(k, sl) {
-  if (!P || P.cls != "g" || !CARDS[k] || sl < 0 || sl > 3) return false;
+  if (!mageOn() || !CARDS[k] || sl < 0 || sl > 3) return false;
   if (!S.cards.unlocked[k]) {
     flash("Carta bloqueada: " + CARDS[k].req.filter((r) => !reqOK(r)).map(reqTxt)[0]);
     return false;
@@ -151,7 +154,7 @@ function unequipCard(sl) {
 }
 function castCard(i) {
   const k = S.cards.slots[i];
-  if (!k || !S.cards.unlocked[k] || !P || P.cls != "g") return;
+  if (!k || !S.cards.unlocked[k] || !mageOn()) return;
   const c = CARDS[k];
   castSp({ a: c.a, b: c.b, f: c.f }, 4 + i);
 }

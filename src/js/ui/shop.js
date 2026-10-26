@@ -7,9 +7,9 @@
  * merchLv, shopStock, shop
  * ====================================================================== */
 
-const merchLv = () => 1 + (st("sh") >= 10 ? 1 : 0) + (st("sh") >= 20 ? 1 : 0);
+const merchLv = () => (G.dbgQ ? 3 : 1 + (st("sh") >= 10 ? 1 : 0) + (st("sh") >= 20 ? 1 : 0)); // G.dbgQ: atajo del panel de debug
 
-// Objetos a la venta: arma, equipo y reliquia (nivel 1) + 1 pieza más por nivel (equipo, luego tomo).
+// Objetos a la venta: arma, equipo y reliquia (nivel 1) + 1 pieza más por nivel (equipo).
 function shopStock() {
   const ra = lootRa(),
     k = 1 + 0.1 * G.d,
@@ -19,7 +19,7 @@ function shopStock() {
       [lootGear(), [60, 100, 160, 250]],
       [lootRelic(RL[rel[0]], Math.min(rcap(), 1 + (Math.random() < 0.5 ? 1 : 0))), [130, 130, 190, 260]],
       [lootGear(), [60, 100, 160, 250]],
-      [lootTome(ra), [90, 120, 180, 270]],
+      [lootGear(), [60, 100, 160, 250]],
     ].slice(0, 2 + merchLv());
   return L.map(([o, pr]) => Object.assign(o, { c: Math.round(pr[o.r || 0] * k) }));
 }

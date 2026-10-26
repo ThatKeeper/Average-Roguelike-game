@@ -9,7 +9,15 @@
     <meta name="theme-color" content="#0b0a10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <script>
+      // El manifiesto solo se enlaza con http(s): desde file:// el navegador lo bloquea por CORS y llena la consola de errores
+      if (/^https?:$/.test(location.protocol)) {
+        const l = document.createElement("link");
+        l.rel = "manifest";
+        l.href = "manifest.webmanifest";
+        document.head.appendChild(l);
+      }
+    </script>
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>Average roguelike game</title>
     <style>
@@ -18,6 +26,10 @@
 {{css/touch.css}}</style>
     <style>
 {{css/inventory.css}}</style>
+<style>
+{{css/secret.css}}</style>
+    <style>
+{{css/windows.css}}</style>
   </head>
   <body>
     <div id="w">

@@ -1,6 +1,6 @@
 /* Service Worker: prioriza la versión publicada en GitHub Pages */
 
-const VERSION = "average-roguelike-v1.3.7";
+const VERSION = "average-roguelike-v1.3.9";
 const CACHE = VERSION;
 
 self.addEventListener("install", (event) => {

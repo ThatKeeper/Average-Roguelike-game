@@ -24,7 +24,7 @@ function interact() {
       return;
     }
     trnCubes("down");
-    G.d++; // la vida se conserva tal cual al bajar de piso (ya no se cura)
+    G.d = G.dbgQ && G.d == 7 ? 10 : G.d + 1; // la vida se conserva tal cual al bajar de piso (ya no se cura); el atajo de debug salta de 7 a 10
     genLevel();
     enter(0, 4);
     flash("Profundidad " + G.d + " — " + G.bi[0]);
@@ -32,6 +32,10 @@ function interact() {
     checkUnlocks();
     save();
     chk();
+    return;
+  }
+  if (r.tp == "puzzle") {
+    sqUse();
     return;
   }
   if (r.used) return;

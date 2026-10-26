@@ -1,9 +1,10 @@
 /* ======================================================================
  * src/js/combat/player-actions.js
- * Acciones de combate del jugador: parry, daño recibido, esquivar, disparar, atacar y habilidades Q/E/clic derecho.
+ * Acciones de combate del jugador: parry, daño recibido, esquivar, disparar y atacar.
  *
  * Define:
- * parryFx, parryProj, hurtP, die, dodge, shoot, atk, AB, ab
+ * parryFx, parryProj, hurtP, die, dodge, shoot, atk
+ * (las habilidades Q/E/R/clic derecho están en game/class-actions.js)
  * ====================================================================== */
 
 function parryFx() {
@@ -51,6 +52,7 @@ function hurtP(d, src) {
   if (DBG.god) return;
   if (P.inv > 0 || (P.dash && P.dash.inv)) return;
   d *= 1 - P.arm / (P.arm + 100);
+  if (P.dr > 0) d *= P.dr > 1 ? 0.1 : 0.45; // Bastión (−55 %) / preparación del Golpe del coloso (−90 %)
   if (src && src.st && src.st.curse > 0) d *= 0.75;
   const be = EBI[(G.d - 1) % 8];
   if (be && P.res[be]) d *= 1 - P.res[be];
@@ -69,7 +71,7 @@ function hurtP(d, src) {
     d -= a;
   }
   P.hp -= d;
-  if (G.train && P.hp < 1) P.hp = P.mhp;
+  if ((G.train || G.sbx) && P.hp < 1) P.hp = P.mhp;
   G.hurt = 1;
   P.inv = 0.5;
   P.fl = 0.15;
@@ -98,10 +100,24 @@ function die(q) {
     G.nu = checkUnlocks();
     save();
   }
-  show(
-    `<h1>${q ? "EXPEDICIÓN ABANDONADA" : "HAS CAÍDO"}</h1><p>Profundidad ${G.d} · Nivel ${P.lv} · ${G.kills} enemigos</p>${G.nu && G.nu.length ? "<p>¡Cartas nuevas: " + G.nu.join(", ") + "!</p>" : ""}<p>Pierdes tu equipo y reliquias. Conviertes ${s} oro en almas (total ${S.souls}).</p>`,
-    [{ t: "Volver a la zona segura", nc: 1, f: menu }],
-  );
+  const t = Math.max(0, Math.floor((Date.now() - (G.t0 || Date.now())) / 1000));
+  G.dst = {
+    q,
+    arena: G.arena,
+    depth: G.d,
+    lv: P.lv,
+    kills: G.kills,
+    gold: P.gold,
+    souls: s,
+    relics: P.relics.length,
+    best: S.best,
+    cls: curCls().n,
+    weapon: P.w.n,
+    time: `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`,
+  };
+  hide();
+  if (q) deathStats(); // al abandonar no hay escena de muerte
+  else dthStart();
 }
 function dodge() {
   if (P.dcd > 0 || P.dash) return;
@@ -152,7 +168,7 @@ function atk() {
     snd(w.n == "Martillo" ? 90 : 230, 0.08, "sawtooth");
   } else if (w.s == "r") {
     if (P.rl > 0) return;
-    if (w.mag && (P.am = (P.am ?? w.mag) - 1) <= 0) {
+    if (w.mag && !(P.ovr > 0) && (P.am = (P.am ?? w.mag) - 1) <= 0) {
       P.rl = w.rt || 1.6;
       P.am = w.mag;
       flash("Recargando...");
@@ -169,14 +185,19 @@ function atk() {
       };
     if (w.n == "Chakram") o.r = 11; // el radio de colisión sigue al tamaño del sprite
     shoot(a, w.sp, wd(), "p", o);
+    if (P.ovr > 0) for (const s of [-0.22, 0.22]) shoot(a + s, w.sp, wd(0.8), "p", Object.assign({}, o)); // Sobrecarga rúnica
     rangedKick();
-    P.acd = w.cd / P.as;
+    P.acd = w.cd / P.as / (P.ovr > 0 ? 1.8 : 1);
     snd(w.n == "Ballesta" ? 140 : 520, 0.07, "square");
   } else {
     if (P.mp < w.mp) return;
     P.mp -= w.mp;
-    const el = w.el,
-      f =
+    let el = w.el;
+    if (P.ck == "fimg" && (el == "fire" || el == "ice")) {
+      el = P.pol ? "ice" : "fire"; // el Mago de fuego y hielo alterna los dos elementos en cada disparo
+      P.pol ^= 1;
+    }
+    const f =
         el == "fire"
           ? { burn: 3 }
           : el == "ice"
@@ -193,91 +214,10 @@ function atk() {
       ch: el == "light" ? 2 : 0,
       c: EC[el],
       r: 7,
-      spr: RANGED_ART[w.n] && RANGED_ART[w.n].proj,
+      spr: P.ck == "fimg" && (el == "fire" || el == "ice") ? (el == "ice" ? "magia_helada" : "magia_ignea") : RANGED_ART[w.n] && RANGED_ART[w.n].proj,
     });
     rangedKick();
     P.acd = w.cd / P.as;
     snd(700, 0.08, "sine");
   }
 }
-const AB = {
-  m: [
-    { cd: 6, f: () => area(P.x, P.y, 115, wd(1.8), "p", { c: "#f93" }) },
-    {
-      cd: 8,
-      f: () => {
-        const a = P.face;
-        P.dash = {
-          t: 0.25,
-          vx: Math.cos(a) * 620,
-          vy: Math.sin(a) * 620,
-          inv: 1,
-          end: () => area(P.x, P.y, 90, wd(2.2), "p", { stun: 1, c: "#fc6" }),
-        };
-      },
-    },
-    {},
-  ],
-  r: [
-    {
-      cd: 6,
-      f: () => {
-        for (let i = -2; i <= 2; i++)
-          shoot(P.face + i * 0.13, P.w.sp || 640, wd(0.7), "p", { c: "#fff", spr: projFor(false) });
-      },
-    },
-    {
-      cd: 7,
-      f: () => shoot(P.face, 560, wd(1.5), "p", { ex: 95, c: "#fa4", r: 7, spr: projFor(true) }),
-    },
-    {
-      cd: 5,
-      f: () =>
-        shoot(P.face, 600, wd(1.2), "p", {
-          pierce: 3,
-          fx: { poison: 5 },
-          c: "#6e4",
-          r: 6,
-          spr: projFor(false),
-          gl: "#6e4",
-        }),
-    },
-  ],
-  g: [
-    {
-      cd: 4,
-      mp: 22,
-      f: () =>
-        shoot(P.face, 450, wd(2), "m", {
-          ex: 100,
-          fx: { burn: 3 },
-          c: "#f60",
-          r: 9,
-          spr: "magia_ignea",
-        }),
-    },
-    {
-      cd: 8,
-      mp: 25,
-      f: () => area(P.x, P.y, 150, wd(0.8), "m", { fx: { slow: 3 }, c: "#9fe8ff", stun: 0.5 }),
-    },
-    {
-      cd: 2.5,
-      mp: 18,
-      f: () => shoot(P.face, 1000, wd(1.1), "m", { ch: 4, c: "#fff27a", spr: "magia_tormenta" }),
-    },
-  ],
-};
-function ab(i) {
-  const s = P.w.s,
-    A = AB[s][i];
-  if (!A.f || P.cd[i] > 0 || P.dash) return;
-  const mcost = A.mp ? spMp(A.mp) : 0; // el coste de maná escala con el daño (ver mpK)
-  if (mcost && P.mp < mcost) return;
-  P.mp -= mcost;
-  P.cd[i] = A.cd * (1 - 0.01 * U("cdr"));
-  A.f();
-  if (s != "m") rangedKick();
-  snd(300, 0.15, "triangle");
-}
-

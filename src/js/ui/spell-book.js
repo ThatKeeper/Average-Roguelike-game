@@ -54,7 +54,7 @@ function dragify(el, k, from) {
   };
 }
 function book(f) {
-  if (G.st != "play" || !P || P.cls != "g" || (G.ov && !G.bk)) return;
+  if ((G.st != "play" && !G.sbx) || !mageOn() || (G.ov && !G.bk)) return;
   if (G.bk && !f) {
     hide();
     return;

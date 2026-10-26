@@ -22,10 +22,10 @@ const mOut3 = (q) => 1 - Math.pow(1 - q, 3);
 const mIO = (q) => (q < 0.5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2);
 
 /** Inicia un golpe. `c` = tercer golpe del combo (más grande y fuerte, como antes). */
-function startSwing(w, aim, c, cdv) {
+function startSwing(w, aim, c, cdv, o) {
   const A = meleeArt(w),
-    kS = c ? 1.15 : 1,
-    arc = (w.arc || 1.6) * (c ? 1.3 : 1);
+    kS = (c ? 1.15 : 1) * ((o && o.k) || 1),
+    arc = (w.arc || 1.6) * (c ? 1.3 : 1) * ((o && o.arc) || 1);
   SWDIR = -SWDIR;
   const sw = (SW = {
     owner: P,
@@ -41,6 +41,7 @@ function startSwing(w, aim, c, cdv) {
     back: A.back || 0,
     seen: new Set(),
     ring: false,
+    ver: (o && o.ver) || null, // golpe especial (p. ej. Veredicto): su daño y efectos los define la propia habilidad
   });
   const L = (A.tu - A.gu) * A.s * kS;
   sw.qa = A.fam == "thrust" ? 0.05 : sw.back / (sw.amp + sw.back);
@@ -148,6 +149,12 @@ function swingStrike(sw, pose) {
 function swingHitEnemy(sw, e, px, py) {
   const w = sw.w;
   sw.seen.add(e);
+  if (sw.ver) {
+    sw.ver.hit(e, sw); // Veredicto: el daño sale del swing real del arma
+    for (let i = 0; i < 3; i++) FX.push({ k: "p", x: px, y: py, vx: rnd(-200, 200), vy: rnd(-200, 200), t: 0.25, m: 0.25, c: "#ffd34a" });
+    shake = Math.max(shake, 3);
+    return;
+  }
   hit(e, wd(sw.c ? 1.5 : 1), "p", {
     kb: w.stun ? 300 : 150,
     a: ang(P, e),
@@ -189,7 +196,7 @@ function trailSample(sw, pose, t) {
 function swingTick(dt) {
   const sw = SW;
   if (!sw) return;
-  if (sw.owner !== P || G.st != "play") {
+  if (sw.owner !== P || (G.st != "play" && !G.sbx)) {
     SW = null;
     return;
   }

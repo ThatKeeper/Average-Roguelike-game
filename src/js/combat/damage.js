@@ -29,7 +29,7 @@ const wd = (k = 1) =>
 const MP_G0 = 1 + 0.045 * 7,
   mpK = () => {
     const g = (1 + 0.06 * (P.lv - 1)) * (1 + 0.045 * P.a[P.w.sc]) * P.dm * P.edm;
-    return Math.min(4, Math.max(1, Math.sqrt(g / MP_G0)));
+    return Math.min(4, Math.max(1, Math.sqrt(g / MP_G0))) * (P.ovc > 0 ? 0.4 : 1); // Sobrecarga arcana: −60 % de coste
   },
   spMp = (base) => base * mpK();
 // Vida enemiga = (1+0.22(d-1)) * (1+0.35*floor((d-1)/4)) * (1+0.025*max(0,d-8))  (suave al inicio, tramos cada 4 niveles y empuje extra desde d>8)
@@ -98,7 +98,7 @@ function apply(e, f) {
   if (f.stun) e.st.stun = Math.max(e.st.stun || 0, f.stun);
 }
 function hit(e, b, t, o = {}) {
-  if (e.hp <= 0 || e.sp > 0) return;
+  if (e.hp <= 0 || e.sp > 0 || e.invl) return; // invl: invulnerable del todo (jefe secreto)
   const cr = Math.random() < P.cc;
   let d = Math.max(
     1,
@@ -139,7 +139,7 @@ function hit(e, b, t, o = {}) {
   }
   apply(e, o.fx);
   if (P.bn) apply(e, { burn: 2 });
-  if (P.pzn) apply(e, { poison: 3 });
+  if (P.pzn || P.ck == "alch") apply(e, { poison: 3 }); // el Alquimista envenena todo lo que toca
   if (P.fz) apply(e, { slow: 1.5 });
   if (o.stun) apply(e, { stun: o.stun });
   nm(e.x, e.y - e.r, d, cr ? "#ffd34a" : "#fff");
@@ -174,7 +174,7 @@ function chain(e, d, n) {
 }
 function kill(e) {
   e.dead = 1;
-  if (G.train) {
+  if (G.train || G.sbx) {
     FX.push({ k: "dead", x: e.x, y: e.y, r: e.r, c: "#a86", t: 0.5, m: 0.5 });
     return;
   }

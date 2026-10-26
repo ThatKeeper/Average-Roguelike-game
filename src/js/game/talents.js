@@ -120,6 +120,7 @@ function win() {
   chk();
   S.best = Math.max(S.best, G.d);
   S.souls += P.gold + 50;
+  checkUnlocks();
   save();
   show(
     `<h1>VICTORIA</h1><p>Profundidad ${G.d} \u00b7 Nivel ${P.lv} \u00b7 ${G.kills} enemigos. Almas totales: ${S.souls}</p>`,

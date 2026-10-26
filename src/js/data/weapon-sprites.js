@@ -87,6 +87,8 @@ const PROJ_ART = {
   magia_marea: { s: 2.2, r: 7, ax: 9, ay: 7.5 },
   magia_runica: { s: 2, r: 5, ax: 10.5, ay: 8 },
   chakram: { s: 1.9, r: 11, ax: 8, ay: 8, spin: 22 },
+  daga_lanzada: { s: 2.2, r: 5, ax: 14, ay: 8 },
+  frasco: { s: 2.2, r: 7, ax: 8, ay: 8, spin: 9 },
 };
 
 // Elemento de un hechizo de carta -> sprite de proyectil (los demás elementos siguen como orbe de color)

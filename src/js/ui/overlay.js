@@ -41,7 +41,7 @@ function legacy() {
         r: 0,
         d: "Arco, andanada, flecha explosiva y flecha venenosa. Movilidad y crítico.",
         stx: "DES +4 · Arco",
-        f: () => run(5),
+        f: () => run(1),
       },
       {
         t: "✦ Mago (magia)",
@@ -51,7 +51,7 @@ function legacy() {
         r: 0,
         d: "Báculo arcano, bola de fuego, nova de hielo y rayo en cadena. Usa maná.",
         stx: "INT +4 · Báculo",
-        f: () => run(9),
+        f: () => run(2),
       },
       {
         t: `Forja de almas: +6% daño permanente (nivel ${S.pw}, ${40 * (S.pw + 1)} almas)`,
@@ -174,17 +174,64 @@ function pause() {
     return;
   }
   if (G.ov) return;
-  G.pz = 1;
-  show("<h2>Pausa</h2>", [
-    { t: "Reanudar", f: () => {} },
-    {
-      t: "Abandonar expedición",
-      nc: 1,
-      f: () => {
-        G.pz = 0;
-        die(1);
-      },
-    },
-  ]);
+  pauseMenu();
 }
-
+// Ventana de pausa: personaje, accesos rápidos y salida con confirmación
+function pauseMenu(confirm) {
+  G.pz = 1;
+  G.ov = 1;
+  ov.style.display = "flex";
+  ov.innerHTML = "";
+  const win = uiEl("div", "uw ps"),
+    top = uiEl("div", "uw-top", "<h2>⏸ Pausa</h2>"),
+    b = (t, f) => {
+      const e = uiEl("button", "uw-btn", t);
+      e.onclick = f;
+      return e;
+    };
+  top.appendChild(b("Reanudar (Esc)", hide));
+  win.appendChild(top);
+  win.appendChild(uiEl("p", "uw-sub", `Profundidad ${G.d} · ${G.bi[0]}${G.train ? " · entrenamiento" : G.arena ? " · arena" : ""}`));
+  const main = uiEl("div", "ps-main"),
+    ch = uiEl("div", "ps-char"),
+    cv = uiEl("canvas");
+  cv.width = DOLL_W;
+  cv.height = DOLL_H;
+  try {
+    drawDoll(cv);
+  } catch (e) {}
+  const pc = (v, c) => `<div class="ps-bar"><i style="width:${Math.round(cl(v, 0, 1) * 100)}%;background:${c}"></i></div>`;
+  ch.append(cv, uiEl("b", "", `${curCls().n}`), uiEl("small", "", `Nivel ${P.lv} · ${P.w.n}<br>Vida ${Math.ceil(P.hp)}/${P.mhp} · Maná ${Math.floor(P.mp)}/${P.mmp}<br>Oro ${P.gold} · ${G.kills} enemigos`),
+    uiEl("div", "ps-bars", pc(P.hp / P.mhp, "#d9434e") + pc(P.mp / Math.max(1, P.mmp), "#4a90e2") + pc(P.xp / P.nx, "#e0b84a")));
+  const menu_ = uiEl("div", "ps-menu"),
+    item = (ic, t, k, f, c) => {
+      const e = uiEl("button", c || "", `<i>${ic}</i>${t}${k ? `<kbd>${k}</kbd>` : ""}`);
+      e.onclick = f;
+      menu_.appendChild(e);
+    };
+  item("▶", "Reanudar", "Esc", hide, "pri");
+  item("🎒", "Inventario", KL(KY.inv), () => {
+    hide();
+    inv();
+  });
+  item("🗺️", "Mapa", KL(KY.map), () => {
+    hide();
+    bigmap = 1;
+  });
+  item("⚙", "Ajustes", "", () => cfgMenu(() => pauseMenu()));
+  if (confirm) {
+    const cf = uiEl("div", "cf", `<b>${G.train || G.arena ? "¿Salir?" : "¿Abandonar la expedición?"}</b><br><small>${G.train || G.arena ? "No pierdes nada." : "Perderás tu equipo y reliquias; conservas la mitad del oro como almas."}</small>`),
+      r = uiEl("div");
+    r.append(b(G.train || G.arena ? "Sí, salir" : "Sí, abandonar", () => {
+      G.pz = 0;
+      hide();
+      die(1);
+    }), b("Cancelar", () => pauseMenu()));
+    cf.appendChild(r);
+    r.firstChild.classList.add("dng");
+    menu_.appendChild(cf);
+  } else item("🚪", G.train || G.arena ? "Salir" : "Abandonar expedición", "", () => pauseMenu(1), "dng");
+  main.append(ch, menu_);
+  win.appendChild(main);
+  ov.appendChild(win);
+}

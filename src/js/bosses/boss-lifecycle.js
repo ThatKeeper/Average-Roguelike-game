@@ -7,6 +7,11 @@
  * ====================================================================== */
 
 function spawnBoss() {
+  if (G.bo === SB) {
+    // práctica del jefe secreto (solo disponible tras derrotarlo)
+    G.bo = undefined;
+    return sbSpawn();
+  }
   const i = G.bo ?? bossIdx(G.d),
     B = BD[i],
     b = spawn("boss", 480, 150);
@@ -61,6 +66,10 @@ function bossDie(e) {
     S.hv2 = 1;
     save();
     G.ban = ["Todo se ha vuelto un poco más difícil", 7];
+  }
+  if (e.sb && !G.arena) {
+    S.souls += 400;
+    save();
   }
   chk();
   flash("\u00a1" + e.nm + " derrotado!" + (nu.length ? " Carta nueva: " + nu.join(", ") : ""));

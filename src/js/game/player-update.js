@@ -16,7 +16,7 @@ function upP(dt) {
     iy = sg * ((K[KY.down] ? 1 : 0) - (K[KY.up] ? 1 : 0)),
     il = Math.hypot(ix, iy) || 1;
   P.face = Math.atan2(M.y - P.y, M.x - P.x);
-  P.g = M.r && P.w.s == "m";
+  P.g = !!((M.r || K[KY.util]) && P.br == "str" && P.w.s == "m" && !P.nov); // guardia/parry: clic derecho o C (rama de Fuerza)
   if (!P.g && P.pg0) P.pcd = Math.max(P.pcd, 0.45);
   P.pg0 = P.g;
   P.pcd -= dt;
@@ -45,6 +45,9 @@ function upP(dt) {
   P.dcd -= dt;
   P.fl -= dt;
   P.bt -= dt;
+  P.dr -= dt;
+  P.ovc -= dt;
+  P.ovr -= dt;
   P.rl -= dt;
   P.at -= dt;
   P.slow -= dt;
@@ -54,12 +57,15 @@ function upP(dt) {
   P.hp = Math.min(P.mhp, P.hp + 0.1 * U("rec") * dt);
   swingTick(dt);
   rangedTick(dt);
-  if (M.d && P.acd <= 0 && !P.dash && !G.ov) atk();
-  if (K[KY.q]) ab(0);
-  if (K[KY.e]) ab(1);
-  if (M.r && P.w.s != "m") ab(2);
-  if (K[KY.r]) classAction(dt);
-  if (P.cls == "g") for (let i = 0; i < 4; i++) if (K[KY["c" + (i + 1)]]) castCard(i);
+  if (M.d && P.acd <= 0 && !P.dash && !G.ov && !P.nov && !G.nocb) atk();
+  if (!P.nov && !G.nocb) {
+    if (K[KY.q]) ab(0);
+    if (K[KY.e]) ab(1);
+    if (M.r && P.br != "str") ab(2);
+    if (K[KY.r]) ab(3);
+    if (K[KY.util] && P.br != "str") util();
+    if (mageOn()) for (let i = 0; i < 4; i++) if (K[KY["c" + (i + 1)]]) castCard(i);
+  }
   const r = RM_;
   // Puertas: solo se cruzan con la sala limpia (r.cl). Arriba/abajo miden 2 tiles (80 px) y los lados 3 tiles (120 px).
   if (r.cl)

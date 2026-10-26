@@ -19,6 +19,7 @@ function safe(f, e) {
   }
 }
 function drawBoss(e) {
+  if (e.sb) return drawSB(e); // jefe secreto: dibujo propio (bosses/secret-boss.js)
   const B = BD[e.bi] || BD[0],
     r = e.r,
     c = e.col || B.c,

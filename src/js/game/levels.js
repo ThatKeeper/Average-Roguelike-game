@@ -112,6 +112,7 @@ function genLevel() {
     sr2.tp = "treasure";
     sr2.cl = 1;
   }
+  sqGen(R, mp, bi); // contenido de las profundidades 7-10
   G.R = R;
   G.seen = { 0: 1 };
   G.vis = {};
@@ -128,6 +129,9 @@ function enter(i, from) {
   PR = [];
   Z = [];
   TR = [];
+  FZ = [];
+  LT = [];
+  SBH = [];
   ZN = [];
   O = r.O || (r.O = []);
   const pos = [
@@ -144,6 +148,7 @@ function enter(i, from) {
     P.y = 300;
   }
   for (const k in r.nb) if (!G.R[r.nb[k]].sec) G.seen[r.nb[k]] = 1;
+  sqEnter(r, i);
   if (!r.cl && !r.st) {
     r.st = 1;
     wave(r);
@@ -206,7 +211,8 @@ function wave(r) {
   const d = G.d;
   if (r.tp == "boss" && !r.bs) {
     r.bs = 1;
-    spawnBoss();
+    if (d == 10 && G.sq && G.sq.placed) sbIntro();
+    else spawnBoss();
     return;
   }
   const n = Math.min(

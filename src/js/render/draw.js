@@ -24,6 +24,14 @@ function ammoBar() {
   x.restore();
 }
 function draw() {
+  if (G.st == "over" && G.dth) {
+    // escena de muerte; al terminar se muestran las estadísticas
+    if (drawDeath()) {
+      G.dth = null;
+      deathStats();
+    }
+    return;
+  }
   if (G.st != "play") {
     x.save();
     x.clearRect(0, 0, W, H);
@@ -32,8 +40,18 @@ function draw() {
     x.restore();
     return;
   }
-  drawWorld();
+  // zoom de cámara (escena del mercader)
+  const zs = G.zm ? sqZoom() : 1;
+  if (zs != 1 && G.zm) {
+    x.save();
+    x.translate(G.zm.tx, G.zm.ty);
+    x.scale(zs, zs);
+    x.translate(-G.zm.tx, -G.zm.ty);
+    drawWorld();
+    x.restore();
+  } else drawWorld();
   hud();
+  if (G.cs) drawCS();
   dbgHud();
 }
 // Dibuja la sala y todo lo que hay en ella (sin HUD). noPlayer: omite al jugador (transición de cámara).
@@ -52,6 +70,7 @@ function drawWorld(noPlayer) {
     r = RM_;
   drawRoomBase(r);
   drawDoors(r);
+  if (r.tp == "puzzle") sqDraw(r);
   x.textAlign = "center";
   const cx = 480,
     cy = 300;
@@ -91,6 +110,30 @@ function drawWorld(noPlayer) {
     x.fillStyle = g;
     x.fillRect(0, 0, W, H);
   }
+  drawActors(noPlayer);
+  dbgWorld();
+  x.restore();
+}
+// Transparencia junto al HUD: lo que se acerca a las barras (arriba a la izquierda) o al minimapa
+// (arriba a la derecha) se vuelve semitransparente para que no se pierda detrás de ellos.
+function hudFade(px, py, r) {
+  const R = [];
+  if (G.st == "play" || (G.hr && P && !P.nov)) R.push([0, 0, 262, 128]);
+  if (G.st == "play" && G.R && !bigmap) {
+    const fy = TOUCH ? 62 : 16;
+    R.push([W - 156 - 24, fy - 8, W, fy + 108 + 10]);
+  }
+  let a = 1;
+  for (const q of R) {
+    const dx = Math.max(q[0] - px, 0, px - q[2]),
+      dy = Math.max(q[1] - py, 0, py - q[3]),
+      d = Math.hypot(dx, dy) - r;
+    if (d < 56) a = Math.min(a, 0.25 + 0.75 * Math.max(0, d / 56));
+  }
+  return a;
+}
+// Zonas, enemigos, proyectiles, efectos y jugador (compartido por la mazmorra y la sala de clases).
+function drawActors(noPlayer) {
   for (const z of ZN) {
     x.globalAlpha = 0.22;
     x.fillStyle = EL[z.sp.a].c;
@@ -99,18 +142,9 @@ function drawWorld(noPlayer) {
     x.fill();
     x.globalAlpha = 1;
   }
-  for (const t of TR) {
-    x.strokeStyle = "#9fe8ff";
-    x.beginPath();
-    x.arc(t.x, t.y, 30, 0, 7);
-    x.stroke();
-  }
-  for (const a of AL) {
-    x.fillStyle = "#8fe";
-    x.beginPath();
-    x.arc(a.x, a.y, 8, 0, 7);
-    x.fill();
-  }
+  if (SBH.length) drawSBH();
+  for (const z of FZ) drawFZ(z);
+  for (const t of TR) drawTR(t);
   for (const z of Z) {
     x.strokeStyle = z.c;
     x.fillStyle = z.c;
@@ -123,7 +157,7 @@ function drawWorld(noPlayer) {
   }
   for (const e of E) {
     const T = ET[e.t];
-    x.globalAlpha = e.sp > 0 ? 0.3 : 1;
+    x.globalAlpha = (e.sp > 0 && !e.sb ? 0.3 : 1) * hudFade(e.x, e.y, e.r);
     if (e.t == "boss" || e.t == "decoy" || e.t == "orb") safe(drawBoss, e);
     else safe(drawEnemy, e);
     if (e.sh > 0) {
@@ -162,6 +196,10 @@ function drawWorld(noPlayer) {
     x.globalAlpha = 1;
   }
   for (const p of PR) {
+    if (p.dr) {
+      p.dr(p); // dibujo propio (astros del jefe secreto)
+      continue;
+    }
     if (p.spr && drawProj(p)) continue;
     x.fillStyle = p.c;
     x.beginPath();
@@ -232,7 +270,7 @@ function drawWorld(noPlayer) {
     x.globalAlpha = 1;
   }
   if (!noPlayer) {
-    x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
+    x.globalAlpha = (P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1) * hudFade(P.x, P.y, P.r);
     safe(drawP);
     ammoBar();
   }
@@ -242,7 +280,5 @@ function drawWorld(noPlayer) {
     x.font = "bold 14px Georgia";
     x.fillText(n.t, n.x, n.y);
   }
-  dbgWorld();
-  x.restore();
 }
 

@@ -2,6 +2,63 @@
 
 Formato basado en *Keep a Changelog*. Los cambios se comparan con la versión anterior, *Infinite Depths*.
 
+## [1.3.9]
+
+### Corregido
+- **Iconos de habilidades y barras del HUD que no cargaban** al abrir `index.html` de la raíz (modo sin build): faltaba el cargador del HUD (`hudLoad()` + rutas de `src/assets/hud`).
+- **Diálogo del mercader** salía a un lado y desplazaba la pantalla: el `index.html` de la raíz no enlazaba `secret.css`.
+- **Sala de pruebas inaccesible:** `hubFrame` solo gestionaba la sala de clases (`G.hr == 1`) y en la sala de pruebas devolvía al jugador a la sala de clases.
+- El arma en mano ya solo se muestra en la sala de pruebas y en la mazmorra; el personaje sin clase no muestra barras ni habilidades.
+
+### Añadido
+- Los enemigos y el jugador se vuelven semitransparentes al acercarse al HUD de vida (arriba a la izquierda) o al minimapa (arriba a la derecha).
+- Contador de oro con icono de moneda prerenderizado (`icons/coin.png`) y número que sube/baja animado. El piso actual se muestra con icono (`icons/stairs.png`) en el mapa grande; se quitó el indicador de arma y el texto de profundidad junto a las barras.
+- Barras de vida, maná y experiencia renovadas, con el estilo de la barra de jefes (estela de daño, destellos, pulso con poca vida, escudo).
+- Diálogo del mercader en cuadro de texto con retrato; cada frase repite la animación de entrada.
+- Animación de muerte (oscuridad, manos blancas, forcejeo y arrastre) y pantalla de estadísticas de la partida (todas las manos salen de la parte superior de la pantalla; clic o Enter para saltar la escena).
+- Menús de pausa y ajustes rediseñados al estilo del inventario (pestañas, deslizadores, interruptores, teclas); `css/windows.css`, `render/death.js`.
+
+## [1.5.0]
+
+### Corregido
+- Errores de CORS del manifiesto en la consola al abrir el juego desde un archivo local (file://): ahora solo se enlaza con http(s).
+- **Veredicto** (R del Guerrero): ahora usa el swing real del arma equipada (sprite, trayectoria y hitbox actuales) en lugar del cono antiguo.
+- Los golpes cuerpo a cuerpo se cancelaban al instante fuera de la mazmorra (el swing comprobaba solo el estado de partida).
+- **Sala de pruebas** separada de la sala de clases: solo allí se puede atacar y usar habilidades; en la sala de clases el combate está desactivado.
+- Sala de clases con más separación entre clases (nombres a un lado, sin solaparse) y trazos visibles también hacia las clases bloqueadas (discontinuos, con candado).
+- El suelo y las paredes con el tilemap del juego aparecen ahora también en el hub y en la sala de pruebas (antes solo en la sala de clases).
+- Un clic en el arco de la sala de clases del hub te lleva directamente, sin tener que acercarte.
+- Sin clase elegida el personaje recupera el aspecto original (círculo blanco); el diseño de cada clase solo se aplica al elegirla.
+- Iconos de habilidades redibujados a 32 px con suavizado y contorno, y un icono propio por elemento para las cartas de hechizo (antes todas usaban el mismo según su forma).
+- Arco de la estela del anillo y otros ajustes menores de dibujo.
+
+### Añadido
+- Debug: botón «Activar quest» para probar el contenido secreto (atajo de pruebas).
+- Contenido secreto en las profundidades. Los detalles se descubren jugando.
+
+## [1.4.0]
+
+### Añadido
+- **Tilemap y sprites del HUD** (`src/assets/hud`): marcos de casillas, barras de vida/maná/experiencia, paneles, tapas de tecla, huecos de equipo e iconos de 45 habilidades/pociones. Sustituyen al HUD dibujado con formas; los botones táctiles usan los mismos iconos. Se regeneran con `scripts/gen_hud_assets.py`.
+- **Sala de clases** a la derecha del hub (arco en la pared derecha, transición con la cámara): árbol ramificado por estadística (Fuerza, Destreza, Inteligencia) con un pedestal por clase que muestra su aspecto, requisitos de desbloqueo y la ficha completa de habilidades.
+- **6 clases nuevas (2 por rama)**, cada una con su arma inicial, aspecto propio y habilidades Q, E y R únicas:
+  - Fuerza: **Tanque** (Martillo) y **Asesino** (Dagas).
+  - Destreza: **Ballestero** (Ballesta) y **Disparador rúnico** (Arma rúnica).
+  - Inteligencia: **Mago de fuego y hielo** (Báculo ígneo; sus disparos alternan fuego y hielo) y **Alquimista** (Báculo venenoso; todo lo que toca queda envenenado).
+- Pedestales oscurecidos con cartel **PRÓXIMAMENTE** para las armas sin clase (Gran espada, Lanza, Hacha, Hachas dobles, Chakram, Báculo helado, de tormenta y de marea).
+- **Requisitos de desbloqueo** permanentes (profundidad, jefes distintos, enemigos derrotados, parries perfectos). Avisos al cumplirlos.
+- **Habilidad de rama (tecla C)**, siempre disponible: Fuerza = guardia/parry (también clic derecho), Destreza = reiniciar enfriamientos, Inteligencia = recargar maná.
+- Habilidad R única para **Guerrero** (Veredicto), **Cazador** (Lluvia de flechas) y **Mago** (Sobrecarga arcana).
+- Al elegir clase en la sala, el personaje la recibe al instante (arma, HUD y habilidades) y puedes probarla contra maniquíes en la zona de pruebas.
+- Si intentas descender sin clase, el botón **Elegir clase** te teletransporta con una animación a la sala de clases.
+
+### Cambiado
+- Las habilidades Q/E/R dependen de la **clase** y no del arma. El sistema de magia (cartas, grimorio y hechizos de Inteligencia) solo está activo mientras llevas un **arma mágica**; se recupera al volver a equiparla.
+- Pedestal de clases del hub sustituido por la sala de clases; la Forja de almas se movió al centro-izquierda.
+
+### Eliminado
+- Los **tomos de hechizo** (escudo, trampa, espíritu, rayo, cono) y la antigua acción de clase de la tecla R.
+
 ## [1.3.7]
 
 ### Añadido

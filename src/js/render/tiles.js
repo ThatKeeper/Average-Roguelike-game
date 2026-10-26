@@ -73,7 +73,8 @@ function roomGrid(r) {
     for (let i = 1; i < GW - 1; i++) {
       const q = rr();
       if (g[j][i] !== TILE.FLOOR || near.includes(i + "," + j)) continue;
-      if (q < 0.15) g[j][i] = 1 + Math.floor((q / 0.15) * 3); // decoración 1, 2 o 3
+      const dn = r.dens ?? 0.15; // densidad de decoración (las salas del hub usan menos para que los textos se lean)
+      if (q < dn) g[j][i] = 1 + Math.floor((q / dn) * 3); // decoración 1, 2 o 3
     }
   return g;
 }

@@ -37,6 +37,43 @@ dbgAdd("Jugador", "Enfriamientos a 8 s", () => {
 });
 dbgAdd("Jugador", "Velocidad del juego", () => (DBG.ts = { 1: 0.5, 0.5: 0.25, 0.25: 2, 2: 1 }[DBG.ts] || 1), { toggle: "ts" });
 
+// ---------------- Quest ----------------
+// Atajo para probar la misión secreta: mercader al nivel máximo, empieza en la profundidad 7
+// y al terminar ese piso baja directamente a la 10.
+dbgAdd("Quest", "Activar quest del jefe secreto", () => {
+  if (G.st != "play") {
+    const ci = chosenCls();
+    run(ci >= 0 ? ci : 0);
+  }
+  G.dbgQ = 1;
+  G.sqLamp = 0;
+  G.d = 7;
+  S.best = Math.max(S.best, 7);
+  genLevel();
+  enter(0, 4);
+  flash("Quest secreta: profundidad 7 · al terminarla bajas a la 10");
+});
+
+// ---------------- Clases ----------------
+dbgAdd("Clases", "Desbloquear todas las clases", () => {
+  CLS.forEach((c, i) => c.req.length && (S.cu[i] = 1));
+  save();
+  flash("Todas las clases desbloqueadas");
+});
+CLS.forEach((c, i) =>
+  dbgAdd("Clases", "Ser " + c.n, () => {
+    P.ci = i;
+    P.ck = c.k;
+    P.br = c.br;
+    P.nov = 0;
+    P.w = mk(c.w);
+    P.am = undefined;
+    P.rl = 0;
+    P.cd = new Array(10).fill(0);
+    ST();
+  }),
+);
+
 // ---------------- Armas ----------------
 WP.forEach((w, i) =>
   dbgAdd("Armas (equipar)", w.n, () => {
@@ -96,7 +133,7 @@ Object.keys(ET)
     }),
   );
 dbgAdd("Invocar enemigo", "Matar a todos", () => E.slice().forEach((e) => e.hp > 0 && hit(e, 1e9, "p", {})));
-BD.forEach((b, i) =>
+BD.slice(0, BDV()).forEach((b, i) =>
   dbgAdd("Invocar jefe", (FIN(i) ? "★ " : "") + b.n, () => {
     G.bo = i;
     spawnBoss();
