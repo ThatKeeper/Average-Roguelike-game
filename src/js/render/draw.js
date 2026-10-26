@@ -114,24 +114,6 @@ function drawWorld(noPlayer) {
   dbgWorld();
   x.restore();
 }
-// Transparencia junto al HUD: lo que se acerca a las barras (arriba a la izquierda) o al minimapa
-// (arriba a la derecha) se vuelve semitransparente para que no se pierda detrás de ellos.
-function hudFade(px, py, r) {
-  const R = [];
-  if (G.st == "play" || (G.hr && P && !P.nov)) R.push([0, 0, 262, 128]);
-  if (G.st == "play" && G.R && !bigmap) {
-    const fy = TOUCH ? 62 : 16;
-    R.push([W - 156 - 24, fy - 8, W, fy + 108 + 10]);
-  }
-  let a = 1;
-  for (const q of R) {
-    const dx = Math.max(q[0] - px, 0, px - q[2]),
-      dy = Math.max(q[1] - py, 0, py - q[3]),
-      d = Math.hypot(dx, dy) - r;
-    if (d < 56) a = Math.min(a, 0.25 + 0.75 * Math.max(0, d / 56));
-  }
-  return a;
-}
 // Zonas, enemigos, proyectiles, efectos y jugador (compartido por la mazmorra y la sala de clases).
 function drawActors(noPlayer) {
   for (const z of ZN) {
@@ -157,7 +139,7 @@ function drawActors(noPlayer) {
   }
   for (const e of E) {
     const T = ET[e.t];
-    x.globalAlpha = (e.sp > 0 && !e.sb ? 0.3 : 1) * hudFade(e.x, e.y, e.r);
+    x.globalAlpha = e.sp > 0 && !e.sb ? 0.3 : 1;
     if (e.t == "boss" || e.t == "decoy" || e.t == "orb") safe(drawBoss, e);
     else safe(drawEnemy, e);
     if (e.sh > 0) {
@@ -270,7 +252,7 @@ function drawActors(noPlayer) {
     x.globalAlpha = 1;
   }
   if (!noPlayer) {
-    x.globalAlpha = (P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1) * hudFade(P.x, P.y, P.r);
+    x.globalAlpha = P.inv > 0 && Math.floor(Date.now() / 60) % 2 ? 0.4 : 1;
     safe(drawP);
     ammoBar();
   }

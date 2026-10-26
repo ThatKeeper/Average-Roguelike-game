@@ -6,6 +6,31 @@
  * hudBars, hud
  * ====================================================================== */
 
+// Transparencia del HUD: cuando el jugador o un enemigo se acerca a las barras (arriba a la izquierda) o al
+// minimapa (arriba a la derecha), esa parte del HUD se vuelve semitransparente para dejar ver lo que hay detrás.
+const HFA = { l: 1, m: 1, t: 0 };
+function hudProx(q) {
+  let a = 1;
+  for (const o of [P].concat(E)) {
+    if (!o || o.hp <= 0) continue;
+    const r = o.r || 12,
+      dx = Math.max(q[0] - o.x, 0, o.x - q[2]),
+      dy = Math.max(q[1] - o.y, 0, o.y - q[3]),
+      d = Math.hypot(dx, dy) - r;
+    if (d < 60) a = Math.min(a, 0.22 + 0.78 * Math.max(0, d / 60));
+  }
+  return a;
+}
+function hudFadeUpdate() {
+  const n = performance.now();
+  if (n - HFA.t < 6) return; // una vez por fotograma
+  HFA.t = n;
+  const fy = TOUCH ? 62 : 16,
+    k = 0.2;
+  HFA.l += (hudProx([0, 0, 262, 128]) - HFA.l) * k;
+  HFA.m += ((G.R && !bigmap ? hudProx([W - 180, fy - 8, W, fy + 118]) : 1) - HFA.m) * k;
+}
+
 // ---- Barras de vida, maná y experiencia: mismo estilo que la barra de los jefes (boss-bar.js) ----
 // Marco oscuro redondeado con borde de color, barra de "daño reciente" que se queda atrás, degradado,
 // destello al recibir daño / curarse / subir de nivel y borde que pulsa cuando queda poca vida.
@@ -73,6 +98,7 @@ function hudBar(o) {
 }
 
 function hudBars() {
+  hudFadeUpdate();
   const S_ = HUDS,
     rh = cl(P.hp / P.mhp, 0, 1),
     rm = cl(P.mp / Math.max(1, P.mmp), 0, 1),
@@ -103,6 +129,7 @@ function hudBars() {
     bw = 184,
     low = rh < 0.3;
   x.save();
+  x.globalAlpha = HFA.l;
   // vida
   hudBar({
     bx, by: 12, bw, bh: 20, v: rh, tr: S_.h, c1: "#ff6a6a", c2: "#7a1018", edge: "#d9434e", alert: low, ticks: 1,
@@ -151,6 +178,7 @@ const EL_DMG = { fire: "fuego", ice: "hielo", poison: "veneno", corr: "corrupci�
 function hud() {
   hudBars();
   x.save();
+  x.globalAlpha = HFA.l;
   // oro (moneda prerenderizada) y puntos
   const gv = goldShown(),
     bp = HUDG.bump;
@@ -179,11 +207,17 @@ function hud() {
   {
     // estados del jugador: iconos que se oscurecen al agotarse
     const ps = statusList(P, P, STATUS_P);
+    x.save();
+    x.globalAlpha = HFA.l;
     drawStatusRow(ps, 12 + 9 + ((ps.length - 1) * 20) / 2, 116, 18);
+    x.restore();
   }
   hudSlots();
 
+  x.save();
+  x.globalAlpha = HFA.m;
   drawMap();
+  x.restore();
   const bs = E.find((e) => e.t == "boss");
   if (bs && !G.cs) drawBossBar(bs);
   if (G.intro && G.intro.t > 0) {

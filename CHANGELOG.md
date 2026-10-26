@@ -11,7 +11,7 @@ Formato basado en *Keep a Changelog*. Los cambios se comparan con la versión an
 - El arma en mano ya solo se muestra en la sala de pruebas y en la mazmorra; el personaje sin clase no muestra barras ni habilidades.
 
 ### Añadido
-- Los enemigos y el jugador se vuelven semitransparentes al acercarse al HUD de vida (arriba a la izquierda) o al minimapa (arriba a la derecha).
+- Las barras de vida/oro (arriba a la izquierda) y el minimapa (arriba a la derecha) se vuelven semitransparentes cuando el jugador o un enemigo se acerca, para ver lo que hay detrás.
 - Contador de oro con icono de moneda prerenderizado (`icons/coin.png`) y número que sube/baja animado. El piso actual se muestra con icono (`icons/stairs.png`) en el mapa grande; se quitó el indicador de arma y el texto de profundidad junto a las barras.
 - Barras de vida, maná y experiencia renovadas, con el estilo de la barra de jefes (estela de daño, destellos, pulso con poca vida, escudo).
 - Diálogo del mercader en cuadro de texto con retrato; cada frase repite la animación de entrada.
