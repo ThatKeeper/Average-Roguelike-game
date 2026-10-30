@@ -3,7 +3,7 @@
  * Magia elemental: 10 elementos (EL), combinaciones de hechizos (CB) y reglas de estados.
  *
  * Define:
- * ZN, EL, CB, mc
+ * ZN, EL, CB, mc, SPF
  * ====================================================================== */
 
 // ===== MAGIA ELEMENTAL: 10 elementos, combinaciones por tabla, grimorio =====
@@ -66,11 +66,13 @@ const EL = {
     n: "Hielo",
     c: "#9fe8ff",
     d: "Ralentiza; congela si est\u00e1 empapado.",
-    h: (e) => {
+    h: (e, s) => {
       if (e.st.wet > 0) {
         e.st.wet = 0;
         apply(e, { freeze: 1.2 });
-      } else apply(e, { slow: 2.5 });
+      } else if (s.tick && e.st.slow > 0) e.st.slow = Math.max(e.st.slow, 2.5); // en zonas, repetir el golpe solo renueva la ralentización (sin aturdir en bucle)
+      else apply(e, { slow: 2.5 });
+      if (e.st.stun > 0.3) e.frzU = Date.now() + e.st.stun * 1000; // bloque de hielo visible mientras dura el aturdimiento
     },
   },
   dark: {
@@ -98,110 +100,11 @@ const EL = {
     h: (e) => apply(e, { cor: 2 }),
   },
 };
-const CB = {
-  "fire+light": {
-    n: "Sobrecarga de plasma",
-    f: "nova",
-    m: 1.5,
-    r: 1.2,
-    cdm: 1.4,
-    cap: 1,
-    d: "Explosi\u00f3n el\u00e9ctrica: aturde (m\u00e1x. una vez cada 6 s) y quema brevemente.",
-    h: (e, s) => {
-      if (s.st) apply(e, { stun: 0.8 });
-      apply(e, { burn: 1.5 });
-    },
-  },
-  "light+water": {
-    n: "Conductividad",
-    m: 1.2,
-    d: "El agua potencia la descarga, que salta a 4 objetivos.",
-    h: (e, s) => chain(e, s.dmg * 0.5, 4),
-  },
-  "ice+water": {
-    n: "Prisi\u00f3n glacial",
-    f: "zone",
-    m: 0.8,
-    d: "Zona que congela (2 s) a los enemigos empapados.",
-    h: (e) => apply(e, { freeze: 2 }),
-  },
-  "corr+plant": {
-    n: "Putrefacci\u00f3n",
-    m: 1.1,
-    d: "Ra\u00edces (2.5 s) y 4 acumulaciones de corrupci\u00f3n.",
-    h: (e) => apply(e, { root: 2.5, cor: 4 }),
-  },
-  "fire+wind": {
-    n: "Tormenta \u00edgnea",
-    f: "zone",
-    r: 1.6,
-    m: 0.9,
-    d: "Zona persistente de llamas ampliada.",
-    h: (e) => apply(e, { burn: 3 }),
-  },
-  "light+rock": {
-    n: "Fractura conductora",
-    m: 1.1,
-    d: "Fractura la defensa; si ya estaba fracturado, la descarga salta a 3.",
-    h: (e, s) => {
-      const f = e.st.frac > 0;
-      apply(e, { frac: 6 });
-      if (f) chain(e, s.dmg * 0.6, 3);
-    },
-  },
-  "blood+dark": {
-    n: "Pacto carmes\u00ed",
-    m: 1.8,
-    rk: "Sacrifica el 15% de tu vida.",
-    d: "Maldice y desangra, robando vida.",
-    h: (e, s) => {
-      apply(e, { curse: 8, bleed: 2 });
-      P.hp = Math.min(P.mhp, P.hp + s.dmg * 0.05);
-    },
-  },
-  "ice+plant": {
-    n: "Jard\u00edn de espinas",
-    f: "zone",
-    m: 0.9,
-    d: "Zona de espinas heladas: ralentiza y enraiza.",
-    h: (e) => apply(e, { slow: 3, root: 1 }),
-  },
-  "corr+fire": {
-    n: "Incineraci\u00f3n impura",
-    f: "nova",
-    m: 1,
-    d: "Consume la corrupci\u00f3n del objetivo: +50% de da\u00f1o por acumulaci\u00f3n.",
-    h: (e, s) => {
-      const n = e.st.cor || 0;
-      if (n) {
-        e.st.cor = 0;
-        hit(e, s.dmg * 0.5 * n, "m", { el: "fire" });
-      }
-    },
-  },
-  "plant+water": {
-    n: "Crecimiento acelerado",
-    f: "zone",
-    m: 0.7,
-    d: "Zona de ra\u00edces que ralentiza y te regenera.",
-    h: (e) => {
-      apply(e, { root: 1.2, slow: 3 });
-      P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.01);
-    },
-  },
-  "fire+water": {
-    n: "Vapor",
-    m: 0.65,
-    d: "Se anulan parcialmente: menos da\u00f1o, pero ralentiza.",
-    h: (e) => apply(e, { slow: 2 }),
-  },
-  "fire+ice": {
-    n: "Choque t\u00e9rmico",
-    m: 0.7,
-    d: "Fractura al enemigo a costa de da\u00f1o.",
-    h: (e) => apply(e, { frac: 5 }),
-  },
-};
+const CB = {};
+// Fábrica de hechizos. o: m (daño), r (radio), cdm (enfriamiento), f (forma: bolt|nova|cone|zone), fx (estados), vs/vb (bonus contra un estado),
+// ch (cadena), sh (rompe aturdidos), cons (consume un estado), sp (contagia a cercanos), heal (% del daño), healM (% de vida máx.), mp (maná),
+// pull/push/slide (impulsos), cleanse (limpia tus ralentizaciones), cap (aturdimiento limitado a 1 vez/6 s), rk (riesgo),
+// bolt: pierce/bounce/spd/lob/hops/link/fz (zona que deja al acabar), pulses (ondas repetidas), ground (la nova se coloca en el punto señalado).
 const mc = (n, d, o) =>
   Object.assign(
     {
@@ -212,11 +115,16 @@ const mc = (n, d, o) =>
         if (o.fx) {
           const f = Object.assign({}, o.fx);
           if (o.cap && !s.st) delete f.stun;
+          if ((s.tick || s.a == "ice" || s.b == "ice") && f.slow && e.st.slow > 0) {
+            e.st.slow = Math.max(e.st.slow, f.slow); // golpes repetidos de una zona (o la ralentización extra de una combinación de hielo, que ya ralentizó con el elemento): renovar sin aturdir
+            delete f.slow;
+          }
           apply(e, f);
         }
         if (o.ch) chain(e, s.dmg * 0.5, o.ch);
         if (o.sh && e.st.stun > 0) {
           e.st.stun = 0;
+          e.frzU = 0;
           hit(e, s.dmg * o.sh, "m", { el: "ice" });
         }
         if (o.cons && e.st[o.cons] > 0) {
@@ -226,176 +134,123 @@ const mc = (n, d, o) =>
         }
         if (o.sp) for (const q of E) if (q != e && q.hp > 0 && dist(q, e) < 130) apply(q, o.sp);
         if (o.heal) P.hp = Math.min(P.mhp, P.hp + s.dmg * o.heal);
+        if (o.healM) P.hp = Math.min(P.mhp, P.hp + P.mhp * o.healM);
         if (o.mp) P.mp = Math.min(P.mmp, P.mp + o.mp);
+        if (o.cleanse) P.slow = 0;
+        if (e.t != "boss" && (o.pull || o.push || o.slide)) {
+          const c = s.cx === undefined ? e : { x: s.cx, y: s.cy },
+            a = Math.atan2(c.y - e.y, c.x - e.x) + (o.push ? Math.PI : 0) + (o.slide ? rnd(-3, 3) : 0),
+            f = o.pull || o.push || o.slide;
+          e.vx += Math.cos(a) * f;
+          e.vy += Math.sin(a) * f;
+        }
       },
     },
     o,
   );
+const SPF = { bolt: "Proyectil", nova: "Nova", cone: "Cono", zone: "Zona" };
+// ---- 10 hechizos comunes (un elemento) ----
 Object.assign(CB, {
-  "blood+fire": mc("Sangre ardiente", "Quema y desangra; recuperas vida.", {
-    fx: { burn: 3, bleed: 1 },
-    heal: 0.04,
-    m: 1.1,
+  fire: mc("Cometa", "Bola de fuego con larga cola que explota en una llamarada: quema y lanza brasas.", { f: "bolt", m: 1.1, spd: 540 }),
+  ice: mc("Lanza de escarcha", "Lanza helada: ralentiza y, si ya estaba ralentizado, lo encierra en un bloque de hielo.", { f: "bolt", m: 1.05, spd: 620 }),
+  light: mc("Rayo solar", "Haz instantáneo que atraviesa a todos los enemigos en línea; quema y puede aturdir.", { f: "bolt", m: 0.95, beam: 1, fx: { burn: 2 } }),
+  water: mc("Ola cristalina", "Chorro que empuja al impactar y deja al enemigo mojado.", { f: "bolt", m: 1, spd: 600, push: 240, pierce: 1 }),
+  plant: mc("Semilla brotante", "Semilla que al caer brota en zarzas que hieren, enraízan y ralentizan.", {
+    f: "bolt", m: 0.9, spd: 520, fz: { v: "vines", r: 58, dur: 3, m: 0.35, fx: { root: 1, slow: 2 }, el: "plant" },
   }),
-  "blood+ice": mc("Hemorrag\u00eda g\u00e9lida", "Ralentiza y desangra (2 acumulaciones).", {
-    fx: { slow: 3, bleed: 2 },
-    m: 0.9,
+  wind: mc("Corte cortante", "Hoja de aire que atraviesa y corta a varios enemigos y los empuja.", { f: "bolt", m: 0.95, spd: 660, pierce: 3 }),
+  rock: mc("Peñasco rodante", "Peñasco que rueda y rebota aplastando lo que encuentra; aturde (máx. 1 vez/6 s).", {
+    f: "bolt", m: 1.15, spd: 400, pierce: 2, bounce: 1, fx: { stun: 0.5 }, cap: 1,
   }),
-  "blood+light": mc("Sangre el\u00e9ctrica", "Descarga en cadena (3) que desangra.", {
-    fx: { bleed: 1 },
-    ch: 3,
-    sp: { bleed: 1 },
+  dark: mc("Eco sombrío", "Esfera de sombra: al impactar abre un agujero que atrae y maldice con tentáculos.", {
+    f: "bolt", m: 1, spd: 500, fz: { v: "hole", r: 60, dur: 2.2, m: 0.3, fx: { curse: 5 }, pull: 90, el: "dark" },
   }),
-  "blood+plant": mc("Savia carmes\u00ed", "Veneno y ra\u00edz; te cura un 5% del da\u00f1o.", {
-    fx: { poison: 4, bleed: 1, root: 1 },
-    heal: 0.05,
-    m: 0.9,
+  blood: mc("Pulso hemático", "Un corazón late sobre ti y lanza dos ondas rojas: hieren y la sangre vuelve a ti.", { f: "nova", m: 1.05, r: 1.1, pulses: 2 }),
+  corr: mc("Charco de ácido", "Charco burbujeante que disuelve al enemigo y su armadura (acumula corrupción).", { f: "zone", m: 1 }),
+});
+// ---- 45 combinaciones (clave = elementos en orden alfabético) ----
+Object.assign(CB, {
+  "fire+ice": mc("Choque térmico", "Abanico mitad fuego, mitad hielo: el contraste agrieta (+20% de daño recibido).", { f: "cone", m: 0.85, fx: { frac: 5 } }),
+  "fire+light": mc("Sol naciente", "Un sol estalla en rayos por el suelo: daño radiante que ciega (−25% de daño enemigo).", { f: "nova", m: 1.1, r: 1.1, fx: { curse: 4 } }),
+  "fire+water": mc("Géiser hirviente", "Chorros de agua hirviendo: dañan, empujan y ciegan.", { f: "zone", m: 0.75, fx: { slow: 2, curse: 3 }, push: 130 }),
+  "fire+plant": mc("Incendio forestal", "Árboles que arden uno tras otro: quema y veneno; +60% contra enraizados.", {
+    f: "zone", r: 1.2, m: 0.8, vs: "root", vb: 0.6, fx: { burn: 3, poison: 3 },
   }),
-  "blood+rock": mc("Sangre petrificada", "Fractura y desangra.", {
-    fx: { frac: 6, bleed: 2 },
-    m: 1.1,
+  "fire+wind": mc("Tornado de fuego", "Torbellino de llamas ampliado: empuja a los enemigos y aviva las llamas.", { f: "zone", r: 1.6, m: 0.9, fx: { burn: 3 }, push: 170 }),
+  "fire+rock": mc("Meteoro", "Un meteoro cae sobre el punto señalado: onda de choque, fractura y aturde (máx. 1 vez/6 s).", {
+    f: "bolt", m: 1.7, r: 0.85, cdm: 1.3, lob: 1, fx: { burn: 3, frac: 6, stun: 0.8 }, cap: 1,
   }),
-  "blood+water": mc("Sangr\u00eda", "Empapa y desangra: +50% si ya sangraba.", {
-    vs: "bleed",
-    fx: { wet: 5, bleed: 2 },
+  "dark+fire": mc("Llamas fantasma", "Almas en llamas que salen a tu alrededor: queman, maldicen; +50% contra malditos.", {
+    f: "nova", m: 1, vs: "curse", fx: { burn: 4, curse: 6 },
   }),
-  "blood+wind": mc("Remolino carmes\u00ed", "Contagia la hemorragia a enemigos cercanos.", {
-    f: "nova",
-    r: 1.3,
-    fx: { bleed: 1 },
-    sp: { bleed: 1 },
+  "blood+fire": mc("Volcán carmesí", "Un volcán de lava de sangre: quema, desangra y te cura un poco.", { f: "zone", m: 0.85, heal: 0.04, fx: { burn: 3, bleed: 1 } }),
+  "corr+fire": mc("Escoria corrosiva", "Oleada de escoria ácida: consume la corrupción en daño (+30% por acumulación) y quema.", {
+    f: "cone", m: 1, cons: "cor", fx: { burn: 2 },
   }),
-  "blood+corr": mc("Sangre corrupta", "Consume las hemorragias en da\u00f1o y corrompe.", {
-    cons: "bleedN",
-    fx: { cor: 2 },
-    m: 0.9,
+  "ice+light": mc("Prisma ártico", "Un prisma parte la luz en rayos: ralentizan y ciegan.", { f: "nova", m: 1, r: 1.1, fx: { slow: 2, curse: 4 } }),
+  "ice+water": mc("Pista de hielo", "El charco se congela: congela a los empapados y los demás patinan sin control.", { f: "zone", m: 0.7, fx: { slow: 3 }, slide: 230 }),
+  "ice+plant": mc("Enredadera escarchada", "Semilla helada que brota en zarzas heladas: ralentiza y enraíza.", {
+    f: "bolt", m: 0.95, spd: 520, fx: { slow: 3, root: 1 }, fz: { v: "vines", r: 60, dur: 3, m: 0.35, fx: { slow: 3, root: 1 }, el: "plant" },
   }),
-  "corr+dark": mc("Ruina", "Corrupci\u00f3n y maldici\u00f3n; +50% si ya est\u00e1 corrupto.", {
-    vs: "cor",
-    fx: { cor: 3, curse: 6 },
-    m: 1.1,
+  "ice+wind": mc("Ventisca", "Nieve y esquirlas en abanico: ralentizan y ciegan; +80% contra empapados.", {
+    f: "cone", r: 1.3, m: 0.9, vs: "wet", vb: 0.8, fx: { slow: 3, curse: 3 },
   }),
-  "corr+ice": mc("Congelaci\u00f3n necr\u00f3tica", "Ralentiza y corrompe.", {
-    fx: { slow: 3, cor: 2 },
+  "ice+rock": mc("Estalactitas", "Carámbanos gigantes caen y se clavan: fracturan y aturdan (máx. 1 vez/6 s).", {
+    f: "zone", m: 0.9, fx: { frac: 5, slow: 2, stun: 0.6 }, cap: 1,
   }),
-  "corr+light": mc(
-    "Cortocircuito corrupto",
-    "Consume la corrupci\u00f3n en da\u00f1o y aturde (m\u00e1x. 1 vez/6 s).",
-    { cons: "cor", fx: { stun: 0.6 }, cap: 1 },
-  ),
-  "corr+rock": mc("Petrificaci\u00f3n corrupta", "Fractura y corrompe.", {
-    fx: { frac: 6, cor: 3 },
-    m: 1.1,
+  "dark+ice": mc("Silencio gélido", "Tres ondas de frío negro: ralentizan, maldicen, silencian y drenan maná.", {
+    f: "nova", m: 0.9, fx: { slow: 3, curse: 6, stun: 0.6 }, cap: 1, mp: 3,
   }),
-  "corr+water": mc("Charca t\u00f3xica", "Zona que empapa, envenena y corrompe.", {
-    f: "zone",
-    fx: { wet: 5, cor: 1, poison: 3 },
-    m: 0.9,
+  "blood+ice": mc("Colmillos carmesí", "Colmillos de hielo rojo brotan en abanico: desangran (2) y ralentizan.", { f: "cone", m: 0.95, fx: { slow: 3, bleed: 2 } }),
+  "corr+ice": mc("Deshielo ácido", "El hielo se derrite en un charco ácido: ralentiza y corroe.", { f: "zone", m: 0.85, fx: { slow: 2, cor: 2 } }),
+  "light+water": mc("Arcoíris cristalino", "Un arco de siete colores: daña, empapa y limpia tus ralentizaciones.", { f: "zone", m: 0.6, cleanse: 1, heal: 0.03 }),
+  "light+plant": mc("Prado luminoso", "Haces de sol hacen brotar un prado: daña a los enemigos y te cura.", { f: "zone", m: 0.6, healM: 0.01 }),
+  "light+wind": mc("Aurora veloz", "Cinta de luz veloz que atraviesa a varios enemigos y puede aturdir.", {
+    f: "bolt", m: 1, spd: 780, pierce: 4, fx: { stun: 0.4 }, cap: 1,
   }),
-  "corr+wind": mc("Plaga voladora", "La corrupci\u00f3n salta a enemigos cercanos.", {
-    r: 1.3,
-    fx: { cor: 2 },
-    sp: { cor: 1 },
+  "light+rock": mc("Cristal solar", "Onda de cristales brillantes: fractura y aturde a su paso (máx. 1 vez/6 s).", {
+    f: "nova", m: 1, r: 1.2, fx: { frac: 6, stun: 0.5 }, cap: 1,
   }),
-  "dark+fire": mc("Llama negra", "Quema y maldice; +50% si ya estaba maldito.", {
-    vs: "curse",
-    fx: { burn: 4, curse: 6 },
-    m: 1.1,
+  "dark+light": mc("Eclipse", "Luz y sombra alternadas: +80% contra malditos y aturde brevemente (máx. 1 vez/6 s).", {
+    f: "zone", m: 0.7, vs: "curse", vb: 0.8, fx: { curse: 3, stun: 0.5 }, cap: 1,
   }),
-  "dark+ice": mc("Escarcha del vac\u00edo", "Ralentiza, maldice y drena man\u00e1.", {
-    fx: { slow: 3, curse: 6 },
-    mp: 3,
+  "blood+light": mc("Rayos carmesí", "Cinco rayos rojizos en abanico: desangran y te curan parte del daño.", { f: "cone", m: 1, heal: 0.06, fx: { bleed: 1 } }),
+  "corr+light": mc("Loto purificador", "Una flor de luz y ácido: corroe las defensas y consume la corrupción.", { f: "nova", m: 0.9, cons: "cor", fx: { cor: 3 } }),
+  "plant+water": mc("Brote de pantano", "Charco con raíces: enraíza, ralentiza y te regenera.", { f: "zone", m: 0.6, healM: 0.01, fx: { root: 1.2, slow: 3 } }),
+  "water+wind": mc("Tromba", "Ráfaga con lluvia: empuja a los enemigos, los empapa y apaga fuegos.", { f: "cone", r: 1.5, m: 0.85, push: 230 }),
+  "rock+water": mc("Aluvión", "Piedras y agua caen sobre el área: empapan, ralentizan, fracturan y aturden (máx. 1 vez/6 s).", {
+    f: "zone", m: 0.85, fx: { slow: 3, frac: 4, stun: 0.5 }, cap: 1,
   }),
-  "dark+light": mc("Eclipse", "+80% contra malditos; aturde brevemente (m\u00e1x. 1 vez/6 s).", {
-    vs: "curse",
-    vb: 0.8,
-    fx: { curse: 3, stun: 0.5 },
-    cap: 1,
+  "dark+water": mc("Abismo", "Agujero de agua oscura en el punto señalado: agrupa a los enemigos, los maldice y drena maná.", {
+    f: "nova", ground: 1, r: 1.25, m: 0.8, pull: 520, fx: { curse: 6, wet: 4 }, mp: 2,
   }),
-  "dark+plant": mc("Ra\u00edces del abismo", "Ra\u00edces (2 s), veneno y maldici\u00f3n.", {
-    fx: { root: 2, curse: 6, poison: 3 },
+  "blood+water": mc("Marea roja", "Olas carmesí: empapan, desangran (+50% si ya sangraba) y te curan.", {
+    f: "zone", m: 0.85, vs: "bleed", fx: { wet: 5, bleed: 2 }, heal: 0.04,
   }),
-  "dark+rock": mc("L\u00e1pida maldita", "Fractura y maldice.", {
-    fx: { frac: 6, curse: 8 },
-    m: 1.1,
+  "corr+water": mc("Lluvia ácida", "Nube de lluvia ácida: empapa y corroe la armadura de quien se queda dentro.", { f: "zone", m: 0.8, fx: { wet: 5, cor: 2 } }),
+  "plant+wind": mc("Tornado de hojas", "Torbellino de hojas cortantes: atrapa, envenena y atrae a los enemigos.", { f: "zone", r: 1.3, m: 0.8, fx: { poison: 3 }, pull: 140 }),
+  "plant+rock": mc("Raíces pétreas", "Estacas de raíz y roca en abanico: enraízan (3 s), fracturan y aturden.", { f: "cone", m: 1, fx: { root: 3, frac: 6, stun: 0.4 }, cap: 1 }),
+  "dark+plant": mc("Flor nocturna", "Una flor oscura suelta esporas: enraíza, envenena y maldice.", { f: "nova", m: 0.9, fx: { root: 2, curse: 6, poison: 3 } }),
+  "blood+plant": mc("Parásito carmesí", "Una enredadera se aferra al objetivo y drena su vida hacia ti durante 3 s.", {
+    f: "bolt", m: 0.9, spd: 520, fx: { poison: 2, bleed: 1 }, link: { t: 3, tk: 0.5, m: 0.22, heal: 0.6 },
   }),
-  "dark+water": mc("Marea negra", "Zona que empapa y maldice, drenando man\u00e1.", {
-    f: "zone",
-    fx: { wet: 5, curse: 4 },
-    mp: 2,
-    m: 0.9,
+  "corr+plant": mc("Hongos tóxicos", "Hongos que brotan y estallan en esporas ácidas: corrompen y envenenan.", { f: "zone", m: 0.85, fx: { cor: 3, poison: 3 } }),
+  "rock+wind": mc("Tormenta de arena", "Arena y piedras a gran velocidad: ralentizan, fracturan y ciegan.", { f: "cone", r: 1.3, m: 0.8, fx: { slow: 3, frac: 5, curse: 3 } }),
+  "dark+wind": mc("Grito del vacío", "Ondas de choque que empujan a todos y los silencian: maldice y contagia la maldición.", {
+    f: "nova", r: 1.3, m: 0.85, push: 260, fx: { curse: 5 }, sp: { curse: 5 },
   }),
-  "dark+wind": mc("Vendaval umbr\u00edo", "Extiende la maldici\u00f3n a los enemigos cercanos.", {
-    f: "nova",
-    r: 1.3,
-    fx: { curse: 5 },
-    sp: { curse: 5 },
+  "blood+wind": mc("Lluvia de cuchillas", "Cuchillas de aire carmesí caen y hacen sangrar; contagian la hemorragia.", { f: "zone", m: 0.8, fx: { bleed: 1 }, sp: { bleed: 1 } }),
+  "corr+wind": mc("Nube corrosiva", "Nube tóxica que crece al avanzar y se queda al impactar, corroyendo todo lo que toca.", {
+    f: "bolt", m: 0.8, spd: 340, pierce: 3, fx: { cor: 2 }, fz: { v: "cloud", r: 72, dur: 3.2, m: 0.28, fx: { cor: 1 } },
   }),
-  "fire+plant": mc("Incendio forestal", "Zona ardiente; +60% contra enra\u00edzados.", {
-    f: "zone",
-    vs: "root",
-    vb: 0.6,
-    fx: { burn: 3, poison: 3 },
+  "dark+rock": mc("Obelisco umbrío", "Monolitos oscuros brotan del suelo: fracturan y maldicen a quien está cerca.", { f: "zone", m: 0.85, fx: { frac: 6, curse: 8 } }),
+  "blood+rock": mc("Fisura carmesí", "El suelo se abre y estalla en chorros de sangre: fractura y desangra (2).", { f: "nova", m: 1, fx: { frac: 6, bleed: 2 } }),
+  "corr+rock": mc("Fango corrosivo", "Oleada de lodo ácido: fractura, corroe y ralentiza.", { f: "cone", m: 0.9, fx: { frac: 6, cor: 3, slow: 2 } }),
+  "blood+dark": mc("Ritual de sangre", "Estrella ritual: maldice, desangra y te cura. Sacrifica el 15% de tu vida.", {
+    f: "zone", m: 1.8, rk: "Sacrifica el 15% de tu vida.", heal: 0.05, fx: { curse: 8, bleed: 2 },
   }),
-  "fire+rock": mc("Magma", "Quema y fractura; +60% contra fracturados.", {
-    vs: "frac",
-    vb: 0.6,
-    fx: { burn: 3, frac: 6 },
-  }),
-  "ice+light": mc("Escarcha conductiva", "Cadena (2); rompe congelados con +120% de da\u00f1o.", {
-    ch: 2,
-    sh: 1.2,
-    fx: { slow: 2 },
-  }),
-  "ice+rock": mc("Rompehielos", "Fractura; destroza a los congelados (+150%).", {
-    sh: 1.5,
-    fx: { frac: 6, slow: 3 },
-  }),
-  "ice+wind": mc("Ventisca", "Zona amplia de ralentizaci\u00f3n; +80% si est\u00e1n empapados.", {
-    f: "zone",
-    r: 1.4,
-    vs: "wet",
-    vb: 0.8,
-    fx: { slow: 3 },
-    m: 0.8,
-  }),
-  "light+plant": mc("Descarga vegetal", "Cadena (3) con veneno y ra\u00edz.", {
-    ch: 3,
-    fx: { poison: 3, root: 1 },
-  }),
-  "light+wind": mc("Tormenta el\u00e9ctrica", "Cadena (3) en \u00e1rea ampliada.", {
-    ch: 3,
-    r: 1.3,
-    fx: { stun: 0.4 },
-    cap: 1,
-  }),
-  "plant+rock": mc("Ra\u00edces p\u00e9treas", "Ra\u00edces (3 s) y fractura.", {
-    fx: { root: 3, frac: 6 },
-  }),
-  "plant+wind": mc("Polen venenoso", "Zona que envenena y contagia el veneno.", {
-    f: "zone",
-    r: 1.3,
-    fx: { poison: 4 },
-    sp: { poison: 3 },
-    m: 0.8,
-  }),
-  "rock+water": mc("Lodo", "Zona que empapa, ralentiza y fractura.", {
-    f: "zone",
-    fx: { wet: 5, slow: 3, frac: 4 },
-    m: 0.8,
-  }),
-  "rock+wind": mc("Tormenta de arena", "Zona que ralentiza y fractura.", {
-    f: "zone",
-    r: 1.3,
-    fx: { slow: 3, frac: 5 },
-    m: 0.8,
-  }),
-  "water+wind": mc("Tromba", "Gran nova que empapa a todos.", {
-    f: "nova",
-    r: 1.5,
-    fx: { wet: 5 },
-    sp: { wet: 4 },
-    m: 0.8,
+  "corr+dark": mc("Plaga umbría", "Enjambre de murciélagos: corroen y maldicen; +50% contra corruptos.", { f: "cone", m: 1.1, vs: "cor", fx: { cor: 3, curse: 6 } }),
+  "blood+corr": mc("Contagio carmesí", "Una esfera infecta a un enemigo y el contagio salta hasta 3 veces: sangrado y corrupción.", {
+    f: "bolt", m: 0.9, spd: 480, fx: { bleed: 2, cor: 2 }, hops: 3,
   }),
 });
-

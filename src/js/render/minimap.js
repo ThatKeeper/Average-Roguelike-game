@@ -20,6 +20,7 @@ const MAPC = {
     start: "#888",
     combat: "#667",
     event: "#e66",
+    puzzle: "#b9f",
   },
   MAP_MARK = ["boss", "elite", "treasure", "shrine", "shop", "event"],
   MAP_NAME = { boss: "Jefe", elite: "Élite", treasure: "Tesoro", shrine: "Santuario", shop: "Mercader", event: "Suceso" };
@@ -172,7 +173,17 @@ function drawMap() {
   x.textAlign = "center";
   x.fillStyle = "#fff";
   x.font = "bold 18px Georgia";
-  x.fillText(`${G.bi[0]} · Profundidad ${G.d}`, W / 2, fy - 22);
+  {
+    // piso actual con su icono (ya no se muestra junto a las barras)
+    const el = EBI[(G.d - 1) % 8],
+      t = `${G.bi[0]} · Profundidad ${G.d}${el ? " · daño de " + EL_DMG[el] : ""}`,
+      tw = x.measureText(t).width;
+    if (hIcon("stairs", W / 2 - tw / 2 - 16, fy - 28, 28)) {
+      x.textAlign = "left";
+      x.fillText(t, W / 2 - tw / 2 + 4, fy - 22);
+      x.textAlign = "center";
+    } else x.fillText(t, W / 2, fy - 22);
+  }
   // leyenda
   const items = [["Completada", "#f1eff7"], ["Sin visitar", "#667"]].concat(MAP_MARK.map((t) => [MAP_NAME[t], MAPC[t]]));
   x.font = "12px Georgia";

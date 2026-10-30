@@ -34,6 +34,19 @@ function upPR(dt) {
       p.vx = Math.cos(q) * s;
       p.vy = Math.sin(q) * s;
     }
+    if (p.hm && p.f == "p") {
+      // runas buscadoras: giran hacia el enemigo vivo más cercano
+      let b = null,
+        bd = 520;
+      for (const q of E) if (q.hp > 0 && q.sp <= 0 && q.t != "decoy" && !p.h.has(q) && dist(p, q) < bd) ((bd = dist(p, q)), (b = q));
+      if (b) {
+        const q0 = Math.atan2(p.vy, p.vx),
+          q = q0 + cl(nrm(ang(p, b) - q0), -p.hm * dt, p.hm * dt),
+          s2 = Math.hypot(p.vx, p.vy);
+        p.vx = Math.cos(q) * s2;
+        p.vy = Math.sin(q) * s2;
+      }
+    }
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.l -= dt;
@@ -57,18 +70,24 @@ function upPR(dt) {
       } else p.l = 0;
     }
     for (const b of RM_.obs)
-      if (!b.pit && p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h) {
-        if (p.ex) area(p.x, p.y, p.ex, p.d * 0.8, p.t, { fx: p.fx });
+      if (!b.pit && !p.lob && p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h) {
+        if (p.ex && !p.xd) area(p.x, p.y, p.ex, p.d * 0.8, p.t, { fx: p.fx });
+        p.xd = 1;
         p.l = 0;
       }
     if (p.f == "p") {
-      if (p.l <= 0) continue;
+      if (p.l <= 0 || p.lob) continue;
       for (const e of E) {
         if (e.sp > 0 || e.hp <= 0 || p.h.has(e) || dist(p, e) > e.r + p.r) continue;
         p.h.add(e);
-        if (p.sf) spHit(e, p.sf, p.x, p.y);
-        else hit(e, p.d, p.t, { kb: 60, a: Math.atan2(p.vy, p.vx), fx: p.fx, ch: p.ch });
-        if (p.ex) area(p.x, p.y, p.ex, p.d * 0.8, p.t, { fx: p.fx });
+        if (p.sf) {
+          spHit(e, p.sf, p.x, p.y);
+          spImpact(p, e);
+        } else hit(e, p.d, p.t, { kb: 60, a: Math.atan2(p.vy, p.vx), fx: p.fx, ch: p.ch });
+        if (p.ex) {
+          area(p.x, p.y, p.ex, p.d * 0.8, p.t, { fx: p.fx });
+          p.xd = 1;
+        }
         if (p.ch) chain(e, p.d * 0.6, p.ch);
         if (p.pc-- <= 0) {
           p.l = 0;
@@ -76,18 +95,27 @@ function upPR(dt) {
         }
       }
     } else if (dist(p, P) < P.r + p.r) {
-      if (P.g && P.gt < 0.22 && !(P.pcd > 0) && !p.rf) parryProj(p);
+      if (P.g && P.gt < 0.22 + tv("pw") && !(P.pcd > 0) && !p.rf) parryProj(p);
       else {
         hurtP(p.d);
         p.l = 0;
       }
     }
   }
+  // proyectiles que estallan al acabar su recorrido (frasco corrosivo)
+  for (const p of PR) if (p.eol && p.l <= 0 && !p.xd && p.ex) ((p.xd = 1), area(p.x, p.y, p.ex, p.d * 0.8, p.t, { fx: p.fx }));
+  for (const p of PR) if (p.sf && p.l <= 0 && !p.sfe) ((p.sfe = 1), spEnd(p)); // fin de un proyectil de hechizo: cráter, zarzas, nube...
   PR = PR.filter((p) => p.l > 0);
 }
 function upMisc(dt) {
   if (G.train) trainTick(dt);
+  if (G.st == "play") {
+    if (SBH.length) sbhTick(dt);
+    if (BHZ.length) bzTick(dt);
+    sqTick(dt);
+  }
   if (G.intro) G.intro.t -= dt;
+  if (G.finWait > 0 && (G.finWait -= dt) <= 0) finStart();
   if (G.ban) G.ban[1] -= dt;
   const fm = LOW ? 120 : 250;
   if (FX.length > fm) FX.splice(0, FX.length - fm);

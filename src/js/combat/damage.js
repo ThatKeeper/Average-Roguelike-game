@@ -21,7 +21,8 @@ const wd = (k = 1) =>
   k *
   P.dm *
   P.edm *
-  (P.bt > 0 ? 1.35 : 1);
+  (P.bt > 0 ? 1.35 : 1) *
+  (P.pbt > 0 ? 1 + tv("pcDm") : 1);
 // Maná de los hechizos: el coste base se multiplica por la raíz cuadrada del crecimiento de daño del personaje
 // (nivel × atributo principal × multiplicadores de daño), respecto al inicio de la partida (nivel 1, atributo 7).
 // Así crece más despacio que el daño (mejorar sigue compensando), el coste nunca baja de su valor base
@@ -29,7 +30,7 @@ const wd = (k = 1) =>
 const MP_G0 = 1 + 0.045 * 7,
   mpK = () => {
     const g = (1 + 0.06 * (P.lv - 1)) * (1 + 0.045 * P.a[P.w.sc]) * P.dm * P.edm;
-    return Math.min(4, Math.max(1, Math.sqrt(g / MP_G0)));
+    return Math.min(4, Math.max(1, Math.sqrt(g / MP_G0))) * (P.ovc > 0 ? 0.4 : 1); // Sobrecarga arcana: −60 % de coste
   },
   spMp = (base) => base * mpK();
 // Vida enemiga = (1+0.22(d-1)) * (1+0.35*floor((d-1)/4)) * (1+0.025*max(0,d-8))  (suave al inicio, tramos cada 4 niveles y empuje extra desde d>8)
@@ -65,8 +66,8 @@ function apply(e, f) {
   if (!f) return;
   if (e.t == "boss") f = Object.assign({}, f, { stun: 0, freeze: 0, root: 0 });
   if (f.bleed) {
-    e.st.bleedN = Math.min(8 + (P.bl || 0) + (P.tal.bleed || 0), (e.st.bleedN || 0) + f.bleed);
-    e.st.bleed = 5;
+    e.st.bleedN = Math.min(8 + (P.bl || 0) + tv("bleedN"), (e.st.bleedN || 0) + f.bleed);
+    e.st.bleed = 5 + tv("bleedD");
     e.bd = Math.max(e.bd || 0, wd(0.3));
   }
   if (f.wet) {
@@ -98,7 +99,7 @@ function apply(e, f) {
   if (f.stun) e.st.stun = Math.max(e.st.stun || 0, f.stun);
 }
 function hit(e, b, t, o = {}) {
-  if (e.hp <= 0 || e.sp > 0) return;
+  if (e.hp <= 0 || e.sp > 0 || e.invl) return; // invl: invulnerable del todo (jefe secreto)
   const cr = Math.random() < P.cc;
   let d = Math.max(
     1,
@@ -131,15 +132,25 @@ function hit(e, b, t, o = {}) {
     e.st.bleedN = Math.ceil(n / 2);
     e.hp -= d * 0.25 * n;
   }
-  if (!o.nl)
-    P.hp = Math.min(P.mhp, P.hp + Math.min(d * Math.min(0.06, P.ls + P.els), P.mhp * 0.03));
+  if (cr && tv("bleedC")) apply(e, { bleed: 1 }); // Corazón sangrante (Asesino)
+  if (!o.nl) {
+    // Robo de vida. El Asesino (dagas muy rápidas + Danza mortal) lo tiene limitado: ratio máx. 3 %, 1 % de vida máx. por golpe
+    // y como mucho el 3 % de la vida máx. de golpe/segundo (P.lsa se vacía en upP).
+    const as = P.ck == "assa";
+    let hl = Math.min(d * Math.min(as ? 0.03 : 0.06, P.ls + P.els), P.mhp * (as ? 0.01 : 0.03));
+    if (as) {
+      hl = Math.min(hl, Math.max(0, P.mhp * 0.03 - (P.lsa || 0)));
+      P.lsa = (P.lsa || 0) + hl;
+    }
+    P.hp = Math.min(P.mhp, P.hp + hl);
+  }
   if (o.kb && e.t != "boss") {
     e.vx += Math.cos(o.a) * o.kb;
     e.vy += Math.sin(o.a) * o.kb;
   }
   apply(e, o.fx);
   if (P.bn) apply(e, { burn: 2 });
-  if (P.pzn) apply(e, { poison: 3 });
+  if (P.pzn || P.ck == "alch") apply(e, { poison: 3 }); // el Alquimista envenena todo lo que toca
   if (P.fz) apply(e, { slow: 1.5 });
   if (o.stun) apply(e, { stun: o.stun });
   nm(e.x, e.y - e.r, d, cr ? "#ffd34a" : "#fff");
@@ -174,7 +185,7 @@ function chain(e, d, n) {
 }
 function kill(e) {
   e.dead = 1;
-  if (G.train) {
+  if (G.train || G.sbx) {
     FX.push({ k: "dead", x: e.x, y: e.y, r: e.r, c: "#a86", t: 0.5, m: 0.5 });
     return;
   }
