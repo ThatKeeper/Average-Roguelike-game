@@ -3,8 +3,15 @@
  * Capa de menús (ov): cerrar, mensajes, menú antiguo y pausa.
  *
  * Define:
- * hide, flash, legacy, pause
+ * DRAGLOCK, hide, flash, legacy, pause
  * ====================================================================== */
+
+// Candado de arrastre táctil: mientras un elemento se arrastra con el dedo (tras una pulsación larga o un gesto horizontal) se bloquea el
+// desplazamiento de la ventana. Fuera de eso las ventanas se desplazan con el dedo también sobre los elementos arrastrables
+// (antes tenían touch-action:none y en móvil no se podía bajar por el inventario, el grimorio ni las tiendas).
+let DRAGLOCK = 0;
+addEventListener("touchmove", (e) => DRAGLOCK && e.cancelable && e.preventDefault(), { passive: false });
+
 
 function hide() {
   ov.style.display = "none";
@@ -169,6 +176,7 @@ function legacy() {
   );
 }
 function pause() {
+  if (G.fin) return; // durante el final animado no hay pausa
   if (G.pz) {
     hide();
     return;

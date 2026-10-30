@@ -19,6 +19,8 @@
  *      marcador `/*__WORLD_ASSETS__*\/ {}` (módulo js/render/tiles.js).
  *   7. Inserta el tilemap y los iconos del HUD de src/assets/hud/ (data-URI) en lugar del
  *      marcador `/*__HUD_ASSETS__*\/ {}` (módulo js/render/hud-assets.js).
+ *   8. Inserta los 55 iconos de hechizo de src/assets/spells/ (data-URI) en lugar del
+ *      marcador `/*__SPELL_ICONS__*\/ {}` (módulo js/render/spell-icons.js).
  * ====================================================================== */
 
 "use strict";
@@ -76,6 +78,16 @@ function loadHudAssets() {
   return out;
 }
 
+/** Devuelve { "fire": data-URI, "fire_ice": ... } con los 55 iconos de hechizo de src/assets/spells. */
+function loadSpellIcons() {
+  const dir = path.join(SRC, "assets", "spells"),
+    out = {};
+  if (!fs.existsSync(dir)) return out;
+  for (const f of fs.readdirSync(dir).sort())
+    if (f.endsWith(".png")) out[f.replace(/\.png$/, "")] = "data:image/png;base64," + fs.readFileSync(path.join(dir, f)).toString("base64");
+  return out;
+}
+
 /** Copia recursivamente src/public a dist (si existe). */
 function copyDir(from, to) {
   if (!fs.existsSync(from)) return;
@@ -92,6 +104,7 @@ function build() {
   const sprites = loadSprites();
   const world = loadWorldAssets();
   const hudA = loadHudAssets();
+  const spi = loadSpellIcons();
 
   const scripts = modules
     .map((m) => {
@@ -101,6 +114,7 @@ function build() {
       code = code.replace("/*__WEAPON_SPRITES__*/ {}", () => JSON.stringify(sprites, null, 2));
       code = code.replace("/*__WORLD_ASSETS__*/ {}", () => JSON.stringify(world));
       code = code.replace("/*__HUD_ASSETS__*/ {}", () => JSON.stringify(hudA));
+      code = code.replace("/*__SPELL_ICONS__*/ {}", () => JSON.stringify(spi));
       return "// ---- src/" + m + " ----\n" + code;
     })
     .join("");
@@ -114,7 +128,7 @@ function build() {
   copyDir(path.join(SRC, "public"), DIST);
 
   const kb = (Buffer.byteLength(html) / 1024).toFixed(1);
-  console.log(`dist/index.html listo (${kb} KB, ${modules.length} módulos, ${Object.keys(sprites).length} sprites, ${world.ts.length} tilesets, ${world.d2.length + world.d3.length} hojas de puertas, ${Object.keys(hudA.icons).length} iconos de HUD)`);
+  console.log(`dist/index.html listo (${kb} KB, ${modules.length} módulos, ${Object.keys(sprites).length} sprites, ${world.ts.length} tilesets, ${world.d2.length + world.d3.length} hojas de puertas, ${Object.keys(hudA.icons).length} iconos de HUD, ${Object.keys(spi).length} iconos de hechizo)`);
 }
 
 build();

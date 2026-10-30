@@ -46,6 +46,9 @@ function upP(dt) {
   P.fl -= dt;
   P.bt -= dt;
   P.dr -= dt;
+  P.pbt -= dt;
+  if (P.lsa > 0) P.lsa = Math.max(0, P.lsa - P.mhp * 0.03 * dt);
+  if (P.sh > 0 && (P.sht -= dt) <= 0) P.sh = 0; // la sobrevida (escudo) del Bastión caduca a los 3 s
   P.ovc -= dt;
   P.ovr -= dt;
   P.rl -= dt;

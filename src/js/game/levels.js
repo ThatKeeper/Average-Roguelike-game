@@ -132,6 +132,7 @@ function enter(i, from) {
   FZ = [];
   LT = [];
   SBH = [];
+  BHZ = [];
   ZN = [];
   O = r.O || (r.O = []);
   const pos = [

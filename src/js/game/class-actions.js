@@ -66,12 +66,12 @@ function skWarn(t) {
  */
 const SKL = {
   war: [
-    { n: "Remolino", ic: "whirl", cd: 6, d: "Giras con el arma: daño en área a tu alrededor.", f: () => area(P.x, P.y, 115, wd(1.8), "p", { c: "#f93" }) },
+    { n: "Remolino", ic: "whirl", cd: 6, d: "Giras con el arma: daño en área a tu alrededor.", f: () => area(P.x, P.y, 115 * (1 + tv("whR")), wd(1.8), "p", { c: "#f93" }) },
     {
       n: "Salto con impacto", ic: "leap", cd: 8, d: "Saltas hacia delante, invulnerable, y aturdes al caer.",
       f: () => {
         const a = P.face;
-        P.dash = { t: 0.25, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, inv: 1, end: () => area(P.x, P.y, 90, wd(2.2), "p", { stun: 1, c: "#fc6" }) };
+        P.dash = { t: 0.25, vx: Math.cos(a) * 620 * (1 + tv("leapD")), vy: Math.sin(a) * 620 * (1 + tv("leapD")), inv: 1, end: () => area(P.x, P.y, 90 * (1 + tv("leapR")), wd(2.2), "p", { stun: 1 + tv("leapS"), c: "#fc6" }) };
       },
     },
     { n: "Guardia", ic: "guard", g: 1, d: "Mantén clic derecho (o C): reduce el daño. Los primeros 0,22 s son parry perfecto." },
@@ -85,11 +85,11 @@ const SKL = {
           arc: 1.15,
           ver: {
             hit: (e) => {
-              const low = e.hp < e.mhp * 0.35 && e.t != "boss";
+              const low = e.hp < e.mhp * (0.35 + tv("verEx")) && e.t != "boss";
               hit(e, wd(3.2) * (low ? 2 : 1), "p", { a: ang(P, e), kb: 150 });
               if (e.hp <= 0) {
-                P.cd[0] = Math.max(0, P.cd[0] - 3);
-                P.cd[1] = Math.max(0, P.cd[1] - 3);
+                P.cd[0] = Math.max(0, P.cd[0] - 3 - tv("verCut"));
+                P.cd[1] = Math.max(0, P.cd[1] - 3 - tv("verCut"));
               }
             },
           },
@@ -101,18 +101,18 @@ const SKL = {
     },
   ],
   hun: [
-    { n: "Andanada", ic: "volley", cd: 6, d: "Cinco flechas en abanico.", f: () => { for (let i = -2; i <= 2; i++) shoot(P.face + i * 0.13, P.w.sp || 640, wd(0.7), "p", { c: "#fff", spr: projFor(false) }); } },
-    { n: "Flecha explosiva", ic: "bomb", cd: 7, d: "Una flecha que estalla en área al impactar.", f: () => shoot(P.face, 560, wd(1.5), "p", { ex: 95, c: "#fa4", r: 7, spr: projFor(true) }) },
+    { n: "Andanada", ic: "volley", cd: 6, d: "Cinco flechas en abanico.", f: () => { for (let n = 5 + tv("volN"), i = 0; i < n; i++) shoot(P.face + (i - (n - 1) / 2) * 0.13, P.w.sp || 640, wd(0.7), "p", { c: "#fff", spr: projFor(false) }); } },
+    { n: "Flecha explosiva", ic: "bomb", cd: 7, d: "Una flecha que estalla en área al impactar.", f: () => shoot(P.face, 560, wd(1.5 * (1 + tv("exDm"))), "p", { ex: 95 * (1 + tv("exR")), c: "#fa4", r: 7, spr: projFor(true) }) },
     {
       n: "Flecha venenosa", ic: "venom", cd: 5, d: "Flecha perforante que envenena (clic derecho).",
-      f: () => shoot(P.face, 600, wd(1.2), "p", { pierce: 3, fx: { poison: 5 }, c: "#6e4", r: 6, spr: projFor(false), gl: "#6e4" }),
+      f: () => shoot(P.face, 600, wd(1.2), "p", { pierce: 3, fx: { poison: 5 + tv("venD") }, c: "#6e4", r: 6, spr: projFor(false), gl: "#6e4" }),
     },
     {
       n: "Lluvia de flechas", ic: "rain", cd: 16, d: "Una tormenta de flechas cae durante 3 s sobre la zona señalada.",
       f: () => {
         const p = aimPt(340);
         FZ.push({
-          k: "rain", x: p.x, y: p.y, r: 120, t: 3.2, m: 3.2, tk: 0, iv: 0.2, c: "#cfe8b0",
+          k: "rain", x: p.x, y: p.y, r: 120 * (1 + tv("rainR")), t: 3.2 + tv("rainD"), m: 3.2 + tv("rainD"), tk: 0, iv: 0.2, c: "#cfe8b0",
           f: (z) => {
             for (const e of foes(z.r, z)) hit(e, wd(0.5), "p", { a: ang(z, e), kb: 20 });
             for (let i = 0; i < 3; i++) {
@@ -127,14 +127,14 @@ const SKL = {
     },
   ],
   mag: [
-    { n: "Bola de fuego", ic: "fireball", cd: 4, mp: 22, d: "Proyectil que explota y quema.", f: () => shoot(P.face, 450, wd(2), "m", { ex: 100, fx: { burn: 3 }, c: "#f60", r: 9, spr: "magia_ignea" }) },
-    { n: "Nova de hielo", ic: "frostnova", cd: 8, mp: 25, d: "Onda helada a tu alrededor: ralentiza y aturde un instante.", f: () => area(P.x, P.y, 150, wd(0.8), "m", { fx: { slow: 3 }, c: "#9fe8ff", stun: 0.5 }) },
-    { n: "Rayo en cadena", ic: "chain", cd: 2.5, mp: 18, d: "Rayo rápido que salta entre 4 enemigos (clic derecho).", f: () => shoot(P.face, 1000, wd(1.1), "m", { ch: 4, c: "#fff27a", spr: "magia_tormenta" }) },
+    { n: "Bola de fuego", ic: "fireball", cd: 4, mp: 22, d: "Proyectil que explota y quema.", f: () => shoot(P.face, 450, wd(2), "m", { ex: 100 * (1 + tv("fbR")), fx: { burn: 3 }, c: "#f60", r: 9, spr: "magia_ignea" }) },
+    { n: "Nova de hielo", ic: "frostnova", cd: 8, mp: 25, d: "Onda helada a tu alrededor: ralentiza y aturde un instante.", f: () => area(P.x, P.y, 150, wd(0.8), "m", { fx: { slow: 3 }, c: "#9fe8ff", stun: 0.5 + tv("novS") }) },
+    { n: "Rayo en cadena", ic: "chain", cd: 2.5, mp: 18, d: "Rayo rápido que salta entre 4 enemigos (clic derecho).", f: () => shoot(P.face, 1000, wd(1.1), "m", { ch: 4 + tv("chN"), c: "#fff27a", spr: "magia_tormenta" }) },
     {
       n: "Sobrecarga arcana", ic: "overload", cd: 22, d: "Durante 6 s: +35 % de daño y los hechizos cuestan un 60 % menos de maná.",
       f: () => {
-        P.bt = 6;
-        P.ovc = 6;
+        P.bt = 6 + tv("ovD");
+        P.ovc = 6 + tv("ovD");
         FX.push({ k: "ring", x: P.x, y: P.y, r: 70, t: 0.4, m: 0.4, c: "#c8a0ff" });
         flash("¡Sobrecarga arcana!");
       },
@@ -144,16 +144,17 @@ const SKL = {
     {
       n: "Onda sísmica", ic: "quake", cd: 7, d: "Cinco golpes de tierra en línea hacia delante: daño y aturdimiento breve.",
       f: () =>
-        lineImpacts(5, 70, 58, 0.07, (px, py) => {
-          area(px, py, 56, wd(1.3), "p", { stun: 0.5, c: "#d9a066" });
+        lineImpacts(5 + tv("qakeN"), 70, 58, 0.07, (px, py) => {
+          area(px, py, 56 * (1 + tv("qakeR")), wd(1.3), "p", { stun: 0.5 + tv("qakeS"), c: "#d9a066" });
           burst(px, py, "#b98", 5);
         }),
     },
     {
-      n: "Bastión", ic: "bulwark", cd: 12, d: "4 s de −55 % de daño recibido y un escudo.",
+      n: "Bastión", ic: "bulwark", cd: 16, d: "4 s de −55 % de daño recibido y un escudo de sobrevida que solo dura 3 s.",
       f: () => {
-        P.dr = 4;
-        P.sh = Math.max(P.sh || 0, 25 + P.a.vit * 5);
+        P.dr = 4 + tv("bulD");
+        P.sh = Math.max(P.sh || 0, (25 + P.a.vit * 5) * (1 + tv("bulSh")));
+        P.sht = 3 + tv("bulD"); // la sobrevida se pierde a los 3 s, la hayas gastado o no
         FX.push({ k: "ring", x: P.x, y: P.y, r: 60, t: 0.35, m: 0.35, c: "#cfd8ea" });
         flash("¡Bastión!");
       },
@@ -163,9 +164,9 @@ const SKL = {
       n: "Golpe del coloso", ic: "colossus", cd: 20, d: "Tras 0,6 s de preparación (con −90 % de daño), un impacto devastador en área que aturde 1,6 s.",
       f: () => {
         P.dr = Math.max(P.dr || 0, 0.9);
-        FX.push({ k: "ring", x: P.x, y: P.y, r: 200, t: 0.6, m: 0.6, c: "#ffd34a" });
-        skLater(0.6, () => {
-          area(P.x, P.y, 200, wd(4.2), "p", { stun: 1.6, c: "#ffcf70" });
+        FX.push({ k: "ring", x: P.x, y: P.y, r: 200 * (1 + tv("colR")), t: 0.6 - tv("colP"), m: 0.6 - tv("colP"), c: "#ffd34a" });
+        skLater(0.6 - tv("colP"), () => {
+          area(P.x, P.y, 200 * (1 + tv("colR")), wd(4.2), "p", { stun: 1.6 + tv("colS"), c: "#ffcf70" });
           FX.push({ k: "ring", x: P.x, y: P.y, r: 120, t: 0.3, m: 0.3, c: "#fff" });
           burst(P.x, P.y, "#ffcf70", 8, 220);
           shake = Math.max(shake, 12);
@@ -181,8 +182,8 @@ const SKL = {
         const a = P.face,
           x0 = P.x,
           y0 = P.y,
-          x1 = cl(x0 + Math.cos(a) * 210, RB.x0 + P.r, RB.x1 - P.r),
-          y1 = cl(y0 + Math.sin(a) * 210, RB.y0 + P.r, RB.y1 - P.r),
+          x1 = cl(x0 + Math.cos(a) * 210 * (1 + tv("stepL")), RB.x0 + P.r, RB.x1 - P.r),
+          y1 = cl(y0 + Math.sin(a) * 210 * (1 + tv("stepL")), RB.y0 + P.r, RB.y1 - P.r),
           sx = x1 - x0,
           sy = y1 - y0,
           L2 = sx * sx + sy * sy || 1;
@@ -193,13 +194,13 @@ const SKL = {
           }
         for (let i = 0; i < 6; i++) FX.push({ k: "p", x: x0 + (sx * i) / 6, y: y0 + (sy * i) / 6, vx: rnd(-30, 30), vy: rnd(-30, 30), t: 0.35, m: 0.35, c: "#8a6cff" });
         P.dash = { t: 0.12, vx: sx / 0.12, vy: sy / 0.12, inv: 1 };
-        P.inv = 0.3;
+        P.inv = 0.3 + tv("stepI");
       },
     },
     {
       n: "Lluvia de dagas", ic: "daggers", cd: 9, d: "Siete cuchillos en abanico: perforan un enemigo y provocan hemorragia.",
       f: () => {
-        for (let i = -3; i <= 3; i++) shoot(P.face + i * 0.16, 780, wd(0.62), "p", { spr: "daga_lanzada", pierce: 1, fx: { bleed: 1 }, c: "#cbf", r: 5, l: 0.65 });
+        for (let n = 7 + tv("dagN"), i = 0; i < n; i++) shoot(P.face + (i - (n - 1) / 2) * 0.16, 780, wd(0.62), "p", { spr: "daga_lanzada", pierce: 1, fx: { bleed: 1 }, c: "#cbf", r: 5, l: 0.65 });
       },
     },
     { n: "Guardia", ic: "guard", g: 1, d: "Mantén clic derecho (o C): reduce el daño. Los primeros 0,22 s son parry perfecto." },
@@ -207,10 +208,10 @@ const SKL = {
       n: "Danza mortal", ic: "dance", cd: 18, d: "1,6 s de torbellino de hojas a tu alrededor, invulnerable: daño y hemorragia continuos.",
       f: () => {
         FZ.push({
-          k: "dance", x: P.x, y: P.y, r: 92, t: 1.6, m: 1.6, tk: 0, iv: 0.12, fl: 1, c: "#e0405a",
-          f: () => {
+          k: "dance", x: P.x, y: P.y, r: 92 * (1 + tv("danR")), t: 1.6 + tv("danD"), m: 1.6 + tv("danD"), tk: 0, iv: 0.12, fl: 1, c: "#e0405a",
+          f: (z) => {
             P.inv = Math.max(P.inv, 0.16);
-            for (const e of foes(92, P)) hit(e, wd(0.5), "p", { a: ang(P, e), kb: 40, fx: { bleed: 1 } });
+            for (const e of foes(z.r, P)) hit(e, wd(0.5), "p", { a: ang(P, e), kb: 40, fx: { bleed: 1 } });
           },
         });
         flash("¡Danza mortal!");
@@ -220,18 +221,18 @@ const SKL = {
   xbow: [
     {
       n: "Virote perforante", ic: "pierce", cd: 5, d: "Un virote enorme que atraviesa a todos los enemigos de la línea.",
-      f: () => shoot(P.face, 1500, wd(3.2), "p", { pierce: 9, spr: "virote_cargado", r: 7, c: "#fff", l: 0.9, gl: "#ffb060" }),
+      f: () => shoot(P.face, 1500, wd(3.2 * (1 + tv("boltDm"))), "p", { pierce: 9, spr: "virote_cargado", r: 7, c: "#fff", l: 0.9, gl: "#ffb060" }),
     },
     {
       n: "Trampa de púas", ic: "spiketrap", cd: 9, d: "Coloca una trampa (máx. 3): al pisarla inmoviliza 2,2 s y daña en área.",
       f: () => {
         const p = aimPt(260),
           sp = TR.filter((t) => t.k == "spike");
-        if (sp.length >= 3) TR.splice(TR.indexOf(sp[0]), 1);
+        if (sp.length >= 3 + tv("trapN")) TR.splice(TR.indexOf(sp[0]), 1);
         TR.push({
           k: "spike", x: p.x, y: p.y, t: 25, arm: 0.5, r: 34, c: "#cde",
           f: (t) => {
-            area(t.x, t.y, 95, wd(1.9), "p", { fx: { root: 2.2 }, stun: 0.3, c: "#cde" });
+            area(t.x, t.y, 95 * (1 + tv("trapR")), wd(1.9), "p", { fx: { root: 2.2 + tv("trapS") }, stun: 0.3, c: "#cde" });
             burst(t.x, t.y, "#cde", 6);
           },
         });
@@ -244,9 +245,9 @@ const SKL = {
         if (P.w.mag) P.am = P.w.mag;
         P.rl = 0;
         flash("¡Fuego de asedio!");
-        for (let i = 0; i < 6; i++)
+        for (let i = 0; i < 6 + tv("sieN"); i++)
           skLater(i * 0.1, () => {
-            shoot(P.face + rnd(-0.06, 0.06), 1150, wd(1.1), "p", { pierce: 2, spr: "virote", l: 0.9 });
+            shoot(P.face + rnd(-0.06, 0.06), 1150, wd(1.1), "p", { pierce: 2 + tv("sieP"), spr: "virote", l: 0.9 });
             rangedKick();
             snd(140, 0.07, "square");
           });
@@ -257,7 +258,7 @@ const SKL = {
     {
       n: "Runas buscadoras", ic: "homing", cd: 6, d: "Cuatro runas que persiguen al enemigo más cercano.",
       f: () => {
-        for (let i = 0; i < 4; i++) shoot(P.face + (i - 1.5) * 0.3, 540, wd(0.8), "p", { spr: "magia_runica", r: 6, l: 2.2, hm: 7, c: "#7ff", gl: "#7ff" });
+        for (let n = 4 + tv("runeN"), i = 0; i < n; i++) shoot(P.face + (i - (n - 1) / 2) * 0.3, 540, wd(0.8 * (1 + tv("runeDm"))), "p", { spr: "magia_runica", r: 6, l: 2.2, hm: 7, c: "#7ff", gl: "#7ff" });
       },
     },
     {
@@ -265,11 +266,11 @@ const SKL = {
       f: () => {
         const p = aimPt(300);
         FZ.push({
-          k: "seal", x: p.x, y: p.y, r: 105, t: 5, m: 5, tk: 0, iv: 0.5, c: "#8ff4ff",
+          k: "seal", x: p.x, y: p.y, r: 105 * (1 + tv("sealR")), t: 5 + tv("sealD"), m: 5 + tv("sealD"), tk: 0, iv: 0.5, c: "#8ff4ff",
           f: (z) => {
             for (const e of foes(z.r, z)) {
               hit(e, wd(0.42), "p", { a: ang(z, e) });
-              if (!(e.st.slow > 0) && e.hp > 0) apply(e, { slow: 0.8 });
+              if (!(e.st.slow > 0) && e.hp > 0) apply(e, { slow: 0.8 + tv("sealSl") });
             }
           },
         });
@@ -279,7 +280,7 @@ const SKL = {
     {
       n: "Sobrecarga rúnica", ic: "runeover", cd: 20, d: "6 s: disparas mucho más rápido, en tres direcciones y sin recargar.",
       f: () => {
-        P.ovr = 6;
+        P.ovr = 6 + tv("ovrD");
         P.rl = 0;
         FX.push({ k: "ring", x: P.x, y: P.y, r: 70, t: 0.4, m: 0.4, c: "#8ff4ff" });
         flash("¡Sobrecarga rúnica!");
@@ -290,16 +291,16 @@ const SKL = {
     {
       n: "Llamarada", ic: "flare", cd: 5, mp: 24, d: "Cono de fuego: daño fuerte y quemadura.",
       f: () => {
-        FX.push({ k: "arc", x: P.x, y: P.y, a: P.face, r: 175, w: 1.5, t: 0.28, m: 0.28 });
-        for (const e of E) if (e.hp > 0 && e.sp <= 0 && inCone(e, 175, 0.75)) hit(e, wd(1.8), "m", { el: "fire", a: ang(P, e), kb: 140, fx: { burn: 3 } });
+        FX.push({ k: "arc", x: P.x, y: P.y, a: P.face, r: 175 * (1 + tv("flR")), w: 1.5, t: 0.28, m: 0.28 });
+        for (const e of E) if (e.hp > 0 && e.sp <= 0 && inCone(e, 175 * (1 + tv("flR")), 0.75)) hit(e, wd(1.8), "m", { el: "fire", a: ang(P, e), kb: 140, fx: { burn: 3 + tv("flD") } });
         burst(P.x + Math.cos(P.face) * 60, P.y + Math.sin(P.face) * 60, "#ff9a3a", 8, 160);
       },
     },
     {
       n: "Glaciar", ic: "glacier", cd: 9, mp: 26, d: "Una hilera de picos de hielo hacia delante que congela a lo que toca.",
       f: () =>
-        lineImpacts(6, 60, 52, 0.06, (px, py) => {
-          area(px, py, 52, wd(0.85), "m", { fx: { freeze: 1 }, c: "#9fe8ff" });
+        lineImpacts(6 + tv("glN"), 60, 52, 0.06, (px, py) => {
+          area(px, py, 52 * (1 + tv("glR")), wd(0.85), "m", { fx: { freeze: 1 + tv("glF") }, c: "#9fe8ff" });
           burst(px, py, "#cff4ff", 4);
         }),
     },
@@ -307,31 +308,33 @@ const SKL = {
     {
       n: "Choque térmico", ic: "shock", cd: 16, mp: 38, d: "Detona el contraste: lo quemado y lo helado sufre un daño enorme. Si es ambas cosas, se hace añicos.",
       f: () => {
-        const T = foes(300);
+        const R = 1 + tv("shkR"),
+          K = 1 + tv("shkDm"),
+          T = foes(300 * R);
         if (!T.length) {
           skWarn("No hay enemigos a tu alcance");
           return false;
         }
-        FX.push({ k: "ring", x: P.x, y: P.y, r: 300, t: 0.35, m: 0.35, c: "#ffd7a0" });
-        FX.push({ k: "ring", x: P.x, y: P.y, r: 200, t: 0.3, m: 0.3, c: "#9fe8ff" });
+        FX.push({ k: "ring", x: P.x, y: P.y, r: 300 * R, t: 0.35, m: 0.35, c: "#ffd7a0" });
+        FX.push({ k: "ring", x: P.x, y: P.y, r: 200 * R, t: 0.3, m: 0.3, c: "#9fe8ff" });
         for (const e of T) {
           const hot = e.st.burn > 0,
             cold = e.st.slow > 0 || e.st.stun > 0,
             a = ang(P, e);
           if (hot && cold) {
             e.st.burn = e.st.slow = e.st.stun = 0;
-            hit(e, wd(5.5), "m", { a, kb: 160, fx: { frac: 4 } });
+            hit(e, wd(5.5 * K), "m", { a, kb: 160, fx: { frac: 4 } });
             burst(e.x, e.y, "#fff", 6, 200);
           } else if (hot) {
             e.st.burn = 0;
-            hit(e, wd(2.2), "m", { a, kb: 100 });
+            hit(e, wd(2.2 * K), "m", { a, kb: 100 });
             if (e.hp > 0) apply(e, { slow: 2.5 });
           } else if (cold) {
             e.st.slow = e.st.stun = 0;
-            hit(e, wd(2.2), "m", { a, kb: 100 });
+            hit(e, wd(2.2 * K), "m", { a, kb: 100 });
             if (e.hp > 0) apply(e, { burn: 3 });
           } else {
-            hit(e, wd(0.8), "m", { a });
+            hit(e, wd(0.8 * K), "m", { a });
             if (e.hp > 0) {
               apply(e, { burn: 3 });
               apply(e, { slow: 2.5 });
@@ -348,7 +351,7 @@ const SKL = {
       n: "Frasco corrosivo", ic: "flask", cd: 5, mp: 14, d: "Lanzas un frasco al punto señalado: explota, envenena y corroe.",
       f: () => {
         const d = cl(dist(P, M), 90, 400);
-        shoot(P.face, 520, wd(1), "m", { ex: 95, fx: { poison: 5, cor: 2 }, spr: "frasco", r: 7, l: d / 520, c: "#7e4", eol: 1, gl: "#7e4" });
+        shoot(P.face, 520, wd(1), "m", { ex: 95 * (1 + tv("flaskR")), fx: { poison: 5 + tv("flaskD"), cor: 2 }, spr: "frasco", r: 7, l: d / 520, c: "#7e4", eol: 1, gl: "#7e4" });
       },
     },
     {
@@ -356,9 +359,9 @@ const SKL = {
       f: () => {
         const p = aimPt(320);
         FZ.push({
-          k: "cloud", x: p.x, y: p.y, r: 115, t: 6, m: 6, tk: 0, iv: 0.5, c: "#7ec850",
+          k: "cloud", x: p.x, y: p.y, r: 115 * (1 + tv("cloudR")), t: 6 + tv("cloudD"), m: 6 + tv("cloudD"), tk: 0, iv: 0.5, c: "#7ec850",
           f: (z) => {
-            for (const e of foes(z.r, z)) hit(e, wd(0.3), "m", { fx: { poison: 3 } });
+            for (const e of foes(z.r, z)) hit(e, wd(0.3 * (1 + tv("cloudDm"))), "m", { fx: { poison: 3 } });
           },
         });
       },
@@ -367,16 +370,16 @@ const SKL = {
     {
       n: "Pandemia", ic: "plague", cd: 18, mp: 34, d: "Todos los enemigos envenenados estallan, contagian a los que tienen cerca y te curan un poco.",
       f: () => {
-        const inf = E.filter((e) => e.hp > 0 && e.sp <= 0 && e.st.poison > 0 && dist(P, e) < 520).slice(0, 8);
+        const inf = E.filter((e) => e.hp > 0 && e.sp <= 0 && e.st.poison > 0 && dist(P, e) < 520).slice(0, 8 + tv("plN"));
         if (!inf.length) {
           skWarn("No hay enemigos envenenados");
           return false;
         }
         for (const e of inf) {
-          area(e.x, e.y, 90, wd(0.9), "m", { fx: { poison: 6, cor: 2 }, c: "#7e4" });
+          area(e.x, e.y, 90 * (1 + tv("plR")), wd(0.9), "m", { fx: { poison: 6, cor: 2 }, c: "#7e4" });
           burst(e.x, e.y, "#7e4", 5);
         }
-        P.hp = Math.min(P.mhp, P.hp + P.mhp * Math.min(0.15, 0.025 * inf.length));
+        P.hp = Math.min(P.mhp, P.hp + P.mhp * Math.min(0.15 + tv("plC"), (0.025 + tv("plH")) * inf.length));
         flash("¡Pandemia!");
       },
     },
@@ -416,11 +419,11 @@ function ab(i) {
   const A = skOf(P.ck, i);
   if (!A || !A.f || P.cd[i] > 0 || P.dash || P.nov) return;
   if (P.br == "int" && !mageOn()) return skWarn("Necesitas un arma mágica para usar la magia");
-  const mcost = A.mp ? spMp(A.mp) : 0; // el coste de maná escala con el daño (ver mpK)
+  const mcost = A.mp ? spMp(A.mp) * (1 - tv("mpc")) : 0; // el coste de maná escala con el daño (ver mpK)
   if (mcost && P.mp < mcost) return;
   if (A.f() === false) return;
   P.mp -= mcost;
-  P.cd[i] = A.cd * (1 - 0.01 * U("cdr"));
+  P.cd[i] = Math.max(1, A.cd - tv("cd" + i)) * (1 - 0.01 * U("cdr")); // mejoras de clase: −s de enfriamiento
   if (P.w.s != "m") rangedKick();
   snd(300, 0.15, "triangle");
 }

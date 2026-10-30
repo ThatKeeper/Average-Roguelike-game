@@ -61,7 +61,7 @@ onkeydown = (e) => {
     return;
   }
   if (G.st == "menu" && G.cfg && e.code == "Escape" && G.ov) return cfgClose();
-  if (G.st != "play" || trnBusy()) return;
+  if (G.st != "play" || trnBusy() || G.fin) return; // durante el final animado solo se puede mover
   if (e.code == "Escape") pause();
   if (e.code == KY.map) bigmap ^= 1;
   if (e.code == KY.inv) inv();

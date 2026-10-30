@@ -11,6 +11,7 @@ function parryFx() {
   cnt("pf");
   chk();
   P.pcd = 0.9;
+  if (tv("pcDm")) P.pbt = 4; // Contragolpe (Guerrero)
   P.inv = 0.25;
   G.hs = 0.07;
   FX.push(
@@ -57,13 +58,13 @@ function hurtP(d, src) {
   const be = EBI[(G.d - 1) % 8];
   if (be && P.res[be]) d *= 1 - P.res[be];
   if (P.g) {
-    if (P.gt < 0.22 && src && !(P.pcd > 0)) {
+    if (P.gt < 0.22 + tv("pw") && src && !(P.pcd > 0)) {
       parryFx();
       apply(src, { stun: 1.2 });
       if (src.hp > 0) hit(src, (src.dmg || d) * 2, "p", { nl: 1 });
       return;
     }
-    d *= P.gr ? 0.2 : 0.35;
+    d *= (P.gr ? 0.2 : 0.35) - tv("gdr");
   }
   if (P.sh > 0) {
     const a = Math.min(P.sh, d);
@@ -80,9 +81,9 @@ function hurtP(d, src) {
   snd(110, 0.12, "sawtooth", 0.06);
   if (P.hp <= 0) die();
 }
-function die(q) {
+function die(q, fin) {
   if (G.st != "play") return;
-  if (!q && U("rev") && !G.revd && !G.arena) {
+  if (!q && !fin && U("rev") && !G.revd && !G.arena) {
     G.revd = 1;
     P.hp = P.mhp * 0.5;
     P.inv = 2.5;
@@ -103,6 +104,8 @@ function die(q) {
   const t = Math.max(0, Math.floor((Date.now() - (G.t0 || Date.now())) / 1000));
   G.dst = {
     q,
+    fin: fin ? 1 : 0,
+    hard: G.endHard ? 1 : 0,
     arena: G.arena,
     depth: G.d,
     lv: P.lv,
@@ -116,7 +119,7 @@ function die(q) {
     time: `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`,
   };
   hide();
-  if (q) deathStats(); // al abandonar no hay escena de muerte
+  if (q || fin) deathStats(); // al abandonar (o tras el final animado) no hay escena de muerte
   else dthStart();
 }
 function dodge() {
@@ -126,7 +129,7 @@ function dodge() {
   let a = ix || iy ? Math.atan2(iy, ix) : P.face;
   P.dash = { t: 0.17, vx: Math.cos(a) * 540, vy: Math.sin(a) * 540, inv: 1 };
   P.inv = 0.3;
-  P.dcd = (0.8 * (1 - 0.1 * (P.tal.refl || 0))) / (1 + 0.01 * P.a.agi);
+  P.dcd = (0.8 * (1 - tv("dcd"))) / (1 + 0.01 * P.a.agi);
   snd(400, 0.1, "triangle");
   FX.push({ k: "ring", x: P.x, y: P.y, r: 18, t: 0.2, m: 0.2, c: "#9cf" });
 }
@@ -169,17 +172,17 @@ function atk() {
   } else if (w.s == "r") {
     if (P.rl > 0) return;
     if (w.mag && !(P.ovr > 0) && (P.am = (P.am ?? w.mag) - 1) <= 0) {
-      P.rl = w.rt || 1.6;
+      P.rl = (w.rt || 1.6) * (1 - tv("rl"));
       P.am = w.mag;
       flash("Recargando...");
     }
     const art = RANGED_ART[w.n],
       o = {
-        pierce: w.pierce,
+        pierce: (w.pierce || 0) + tv("pier"),
         bounce: w.bounce,
         ret: w.ret,
         sp: w.spread,
-        fx: w.fx ? { poison: 3 } : null,
+        fx: w.fx ? { poison: 3 + tv("rpoi") } : null,
         c: w.ret ? "#ccc" : "#fff",
         spr: art && art.proj,
       };

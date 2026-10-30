@@ -1,5 +1,7 @@
 /* Ventanas del juego (pausa, ajustes, estadísticas de la partida): mismo aspecto que el inventario */
-.uw { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: 100%; max-width: 860px; box-sizing: border-box; padding: 14px 16px; border: 2px solid #3a3150; border-radius: 14px; background: linear-gradient(#1b1726, #110e19); box-shadow: 0 8px 30px #000a, inset 0 0 24px #c9a24a11; text-align: left; animation: uwIn .28s ease-out both; max-height: 100%; overflow: auto; }
+.uw { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: 100%; max-width: 860px; box-sizing: border-box; padding: 14px 16px; border: 2px solid #3a3150; border-radius: 14px; background: linear-gradient(#1b1726, #110e19); box-shadow: 0 8px 30px #000a, inset 0 0 24px #c9a24a11; text-align: left; animation: uwIn .28s ease-out both; max-height: 100%; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+/* Los hijos no se encogen: antes las secciones (overflow:hidden) se comprimían dentro de la ventana, recortaban sus filas y la ventana nunca llegaba a desbordar, así que en móvil no se podía bajar */
+.uw > * { flex-shrink: 0; }
 @keyframes uwIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 .uw-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .uw-top h2 { font-size: clamp(17px, 3vw, 24px); letter-spacing: .06em; }
@@ -9,7 +11,7 @@
 .uw-tabs button { padding: 6px 14px; font-size: 13px; border-radius: 999px; border-color: #3a3150; background: #14111d; color: #b8b0c8; transition: all .15s; }
 .uw-tabs button:hover { border-color: #c9a24a; color: #fff; }
 .uw-tabs button.on { background: #4a3d60; border-color: #ffd54a; color: #ffd54a; box-shadow: 0 0 10px #ffd54a33; }
-.uw-body { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.uw-body { display: flex; flex-direction: column; gap: 8px; }
 .uw-sec { display: flex; flex-direction: column; border: 1px solid #3a3150; border-radius: 10px; background: #100d18; overflow: hidden; }
 .uw-sec > h3 { margin: 0; padding: 6px 12px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #c9a24a; background: #1a1624; border-bottom: 1px solid #3a3150; }
 .uw-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 9px 12px; border-bottom: 1px solid #ffffff0d; transition: background .12s; }
@@ -80,3 +82,34 @@
 .ds-n { font-size: 12px; color: #8d85a0; max-width: none; }
 @media (max-width: 560px) { .ds-g { grid-template-columns: repeat(2, 1fr); } .uw-row { flex-wrap: wrap; } }
 .ps-char canvas { background: transparent; }
+
+/* Árbol de mejoras de clase (tecla T) */
+.uw.tt { max-width: 980px; border-color: var(--tc, #3a3150); }
+.tt-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tt-col { display: flex; flex-direction: column; align-items: stretch; gap: 0; min-width: 0; }
+.tt-bh { display: flex; align-items: center; gap: 8px; padding: 6px 10px; margin-bottom: 8px; border: 1px solid #3a3150; border-radius: 10px; background: #1a1624; color: #f4efe6; }
+.tt-bh b { flex: 1; font-weight: normal; font-size: clamp(12px, 1.8vw, 14px); letter-spacing: .06em; text-transform: uppercase; color: var(--tc, #c9a24a); }
+.tt-bh small { color: #8d85a0; font-size: 11px; }
+.tt-node { display: grid; grid-template-columns: 34px 1fr; grid-template-areas: "ic tx" "ic rk"; gap: 2px 10px; align-items: center; padding: 8px 10px; text-align: left; border: 2px solid #3a3150; border-radius: 12px; background: #14111d; color: #d8d0e6; transition: all .15s; }
+.tt-node:hover:not(.lock) { border-color: #c9a24a; background: #1c1728; }
+.tt-node.can { border-color: #ffd54a; box-shadow: 0 0 10px #ffd54a33; }
+.tt-node.part { border-color: #8f7a3a; }
+.tt-node.full { border-color: var(--tc, #ffd54a); background: linear-gradient(#241d33, #17121f); }
+.tt-node.lock { opacity: .45; cursor: default; }
+.tt-ic { grid-area: ic; font-size: 26px; text-align: center; }
+.tt-tx { grid-area: tx; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tt-tx b { font-weight: normal; font-size: clamp(12px, 1.8vw, 14px); color: #f4efe6; }
+.tt-tx small { font-size: 11px; color: #a79fba; line-height: 1.3; }
+.tt-rk { grid-area: rk; font-size: 12px; letter-spacing: .15em; color: #ffd54a; }
+.tt-link { width: 3px; height: 12px; margin: 0 auto; background: #3a3150; border-radius: 2px; }
+.tt-link.on { background: var(--tc, #ffd54a); box-shadow: 0 0 6px var(--tc, #ffd54a); }
+@media (max-width: 720px) { .tt-cols { grid-template-columns: 1fr; } }
+
+/* Móvil en horizontal: ventanas más compactas y con margen inferior para llegar al último botón */
+@media (max-height: 470px) {
+  .uw { padding: 10px 12px; gap: 8px; }
+  .uw-top h2 { font-size: 16px; }
+  .uw.ds h1 { font-size: 22px; }
+  .ds-g { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .ds-t { padding: 6px 4px; }
+}

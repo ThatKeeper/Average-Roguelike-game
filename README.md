@@ -49,7 +49,7 @@ El entrenamiento y la arena **no dan** experiencia, botín, oro, logros ni progr
 | Habilidades de clase | `Q`, `E`, `R` (únicas de cada clase) |
 | Habilidad de rama | `C` (parry / reiniciar enfriamientos / recargar maná) |
 | Interactuar | `F` |
-| Inventario / Mapa / Talentos | `I` / `M` / `T` |
+| Inventario / Mapa / Mejoras de clase | `I` / `M` / `T` |
 | Cartas de hechizo (Mago) | `B` y `1`–`4` |
 | Pausa | `Esc` |
 
@@ -93,6 +93,13 @@ Tres ramas por estadística; cada base tiene dos clases avanzadas que se desbloq
 
 ### Robo de vida
 Fuentes reducidas, con tope de **6 %** del daño por golpe y máximo **3 % de la vida máxima** por golpe. El daño periódico (veneno, quemadura, hemorragia) y el daño devuelto por parry no curan. La regeneración (forja) es independiente.
+
+**Asesino:** el robo de vida está más limitado: tope de **3 %** del daño por golpe, máximo **1 % de la vida máxima** por golpe y como mucho **3 % de la vida máxima por segundo** (así la Danza mortal y las dagas rápidas ya no lo mantienen inmortal).
+
+### Mejoras de clase (tecla T)
+Los talentos generales se han sustituido por un **árbol de mejoras exclusivo de cada clase**: 3 ramas de 3 mejoras (81 en total, ninguna repetida). Cada nivel da 1 punto; una mejora se desbloquea al completar los rangos de la anterior de su rama, y los puntos no dan para todo el árbol (16-18 por clase), así que hay que elegir qué rama profundizar. Los efectos son pequeños (más radio o duración de una habilidad concreta, menos maná o enfriamiento, +1 proyectil, etc.) y solo afectan a la clase que los aprende.
+
+**Martillo (Tanque):** daño ×2,0 (antes ×2,5) y 1,2 s entre golpes (antes 0,95 s).
 
 ### Estados
 Los jefes **ignoran** aturdimiento, congelación y enraizamiento. Enemigos normales y élites siguen sufriéndolos (reducido en élites).

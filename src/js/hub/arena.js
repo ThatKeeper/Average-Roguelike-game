@@ -16,7 +16,7 @@ function arenaMenu() {
       r: FIN(i) ? 3 : 1,
       d: BDS[i],
       stx: "Profundidad " + bossDepth(i),
-      dis: S.best < bossDepth(i),
+      dis: S.best < bossDepth(i) && !S.bosses[i], // también se puede practicar un jefe ya derrotado
       nc: 1,
       f: () => arena(i),
     })).concat([{ t: "Volver", nc: 1, f: menu }]),

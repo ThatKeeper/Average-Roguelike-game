@@ -40,6 +40,10 @@ function draw() {
     x.restore();
     return;
   }
+  if (G.fin) {
+    drawFinale(); // final del piso 10: negro, zoom, manos y Parca
+    return;
+  }
   // zoom de cámara (escena del mercader)
   const zs = G.zm ? sqZoom() : 1;
   if (zs != 1 && G.zm) {
@@ -117,14 +121,14 @@ function drawWorld(noPlayer) {
 // Zonas, enemigos, proyectiles, efectos y jugador (compartido por la mazmorra y la sala de clases).
 function drawActors(noPlayer) {
   for (const z of ZN) {
-    x.globalAlpha = 0.22;
-    x.fillStyle = EL[z.sp.a].c;
-    x.beginPath();
-    x.arc(z.x, z.y, z.r, 0, 7);
-    x.fill();
-    x.globalAlpha = 1;
+    // zonas, ondas (nova/cono) y vínculos de los hechizos, cada uno con su diseño (render/spell-fx-*.js)
+    if (z.zk == "wave") safe(drawSpellWave, z);
+    else if (z.zk == "link") safe(drawSpellLink, z);
+    else safe(drawSpellZone, z);
   }
+  x.globalAlpha = 1;
   if (SBH.length) drawSBH();
+  if (BHZ.length) bzDraw();
   for (const z of FZ) drawFZ(z);
   for (const t of TR) drawTR(t);
   for (const z of Z) {
@@ -142,6 +146,7 @@ function drawActors(noPlayer) {
     x.globalAlpha = e.sp > 0 && !e.sb ? 0.3 : 1;
     if (e.t == "boss" || e.t == "decoy" || e.t == "orb") safe(drawBoss, e);
     else safe(drawEnemy, e);
+    if (e.frzU > Date.now() && e.st.stun > 0) safe(drawIceBlock, e);
     if (e.sh > 0) {
       x.strokeStyle = "#4fa";
       x.beginPath();
@@ -238,6 +243,8 @@ function drawActors(noPlayer) {
       x.fillStyle = g;
       const bw = 8 + 24 * a;
       x.fillRect(f.x - bw / 2, f.y - 190, bw, 190);
+    } else if (f.k == "sfx") {
+      safe(drawSpellFx, f);
     } else if (f.k == "line") {
       x.strokeStyle = "#fff27a";
       x.lineWidth = 3;

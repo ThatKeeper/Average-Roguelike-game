@@ -88,8 +88,40 @@ const BD = [
   { n: "Cronos, el Reloj Roto", c: "#8cf", r: 32, hp: 2 },
   { n: "El Vac\u00edo", c: "#556", r: 36, hp: 2.2 },
 ];
-const FIN = (i) => (i > 6 && i < 12) || i >= 34,
-  bossDepth = (i) => (i < 7 ? i + 1 : i < 12 ? (i - 6) * 10 : i < 34 ? i - 9 : (i - 28) * 10);
+const FIN = (i) => (i > 6 && i < 12) || i >= 34;
+
+// ===== BIOMAS: cada jefe pertenece a un bioma (índice de BI) y solo aparece en él =====
+// Los jefes normales rotan dentro de su bioma (según la semilla de la partida y las veces que se vuelve a pasar por él);
+// los jefes finales (profundidades 10, 20, 30...) caen siempre en los biomas impares: 1, 3, 5 y 7.
+const BIO_N = [
+    [0, 12, 24, 15], // Catacumbas: Valdris, Karg, Eriks, Seraphine
+    [17, 21, 26], // Criptas malditas: Tamsin, Zhul, Voss
+    [1, 14, 16], // Minas abandonadas: Gorgrim, Bruk, Orlo
+    [4, 13, 25, 27, 18], // Bosque subterráneo: Veyra, Ilmara, Lyssa, Thorn, Grendal
+    [2, 3, 6, 31], // Ruinas arcanas: Sylra, Mirax, Zeth, Quill
+    [20, 19, 30], // Cavernas de lava: Pyrrus, Aska, Brann
+    [28, 32, 22], // Abismos helados: Cael, Ymir Menor, Morwen
+    [5, 23, 29, 33], // Dimensión corrupta: Nyx, Dagon, Nuru, Sable
+  ],
+  BIO_F = {
+    1: [7, 40, 34, 9, 10], // Soberano de Huesos, Mordrake, Aeon, Noctis, Cronos
+    3: [41, 36], // Abyssia, Tiamat
+    5: [8, 39, 37, 42], // Fulgor, Solaris, Omega, Ragnarok
+    7: [11, 38, 43, 35], // El Vacío, Nyarl, Eterna, Kharon
+  },
+  bossBiome = (i) => {
+    for (let b = 0; b < 8; b++) if (BIO_N[b].includes(i) || (BIO_F[b] && BIO_F[b].includes(i))) return b;
+    return -1;
+  },
+  // Primera profundidad en la que puede aparecer el jefe i (sirve para desbloquear la arena y el bestiario)
+  bossDepth = (i) => {
+    const b = bossBiome(i);
+    if (b < 0) return (i - 28) * 10;
+    if (FIN(i)) return 10 * (b + 1) / 2 + 40 * BIO_F[b].indexOf(i);
+    let q = b + 1,
+      j = BIO_N[b].indexOf(i);
+    for (; ; q += 8) if (q % 10 && j-- <= 0) return q;
+  };
 function bossIdx(d) {
   if (!G.bq) {
     const r = rngS(G.seed + 77),
@@ -97,12 +129,16 @@ function bossIdx(d) {
         a
           .map((v) => [r(), v])
           .sort((p, q) => p[0] - q[0])
-          .map((p) => p[1]),
-      rg = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-    G.bq = { n: sh([...rg(0, 6), ...rg(12, 33)]), f: sh([...rg(7, 11), ...rg(34, 43)]) };
+          .map((p) => p[1]);
+    G.bq = { n: BIO_N.map(sh), f: {} };
+    for (const b in BIO_F) G.bq.f[b] = sh(BIO_F[b]);
   }
-  return d % 10 == 0
-    ? G.bq.f[(d / 10 - 1) % G.bq.f.length]
-    : G.bq.n[(d - 1 - ((d / 10) | 0)) % G.bq.n.length];
+  const b = (d - 1) % 8;
+  if (d % 10 == 0) {
+    const L = G.bq.f[b] || G.bq.f[1];
+    return L[(Math.floor(d / 10 - 1) / 4 | 0) % L.length];
+  }
+  let k = 0;
+  for (let q = b + 1; q < d; q += 8) if (q % 10) k++;
+  return G.bq.n[b][k % G.bq.n[b].length];
 }
-

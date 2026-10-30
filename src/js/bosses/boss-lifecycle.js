@@ -60,12 +60,18 @@ function bossDie(e) {
       c: BD[e.bi].c,
     });
   G.dk = 0;
+  BHZ = [];
+  RM_.obs = RM_.obs.filter((b) => !b.ice); // pilares de hielo de Ymir
   P.invc = 0;
   if (!G.arena && G.d >= 10 && !S.hard) {
+    // Primera vez que se completa el piso 10 (fuera del modo difícil): la expedición termina con el final animado
+    // (render/finale.js), que es además la entrada al modo difícil.
     S.hard = 1;
     S.hv2 = 1;
+    S.best = Math.max(S.best, G.d);
+    G.endHard = 1;
+    G.finWait = 2.6; // pausa para ver caer al jefe antes de que todo se oscurezca
     save();
-    G.ban = ["Todo se ha vuelto un poco más difícil", 7];
   }
   if (e.sb && !G.arena) {
     S.souls += 400;

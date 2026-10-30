@@ -2,7 +2,28 @@
 
 Formato basado en *Keep a Changelog*. Los cambios se comparan con la versión anterior, *Infinite Depths*.
 
+## [Sin publicar]
+
+### Cambiado
+- **Manos de la animación de muerte** rediseñadas: ya no son un círculo con dedos, sino manos pálidas y huesudas con palma anatómica, cuatro dedos y pulgar de tres falanges (nudillos, pliegues y uñas) y antebrazo fino que se pierde en la oscuridad (`render/death.js`, `drawHand`).
+- **Bendición del santuario (+10 % de daño)**: solo se puede acumular **3 veces por partida** (el altar muestra el contador y, al llegar al máximo, la opción queda desactivada).
+- **Bastión (Tanque)**: la sobrevida (escudo) ahora **dura 3 s** y después se pierde; el enfriamiento sube de 12 s a **16 s**.
+- **Jefes hechos a mano.** Se eliminan los kits de ataques compartidos (`AT2`, `KIT`, `SIG`, `xat`): cada uno de los 32 jefes nuevos (índices 12-43) tiene su propia mecánica, ataques, ventana de vulnerabilidad y dibujo (`bosses/boss-roster-*.js`). Los 12 originales conservan su comportamiento y reciben un ataque extra exclusivo cada uno (`boss-roster-orig.js`).
+- **Jefes por bioma**: cada jefe pertenece a un bioma (`BIO_N` / `BIO_F` en `boss-core.js`) y solo aparece en él; dentro del bioma rotan según la semilla. Los jefes finales (pisos 10, 20, 30...) salen en los biomas impares. El desbloqueo de la arena/bestiario usa la primera profundidad en la que puede aparecer cada jefe (y también se puede practicar uno ya derrotado).
+- Nuevo sistema de peligros de jefe con forma (`BHZ`): rayos, anillos, conos, charcos, telarañas y barras giratorias o perseguidoras.
+
+### Añadido
+- **Debug**: nuevos grupos en el panel (`debug/debug-features.js`):
+  - *Pisos y modo*: viaje rápido a los pisos 1-40, piso −1 / +1, ir a la sala del jefe, atajo «piso 10 · jefe a 1 PV» para probar el final e interruptor de **modo difícil**.
+  - *Cinemáticas*: lanzar el final de la Parca, saltarlo (+10 s o hasta el golpe), ver sus estadísticas, la escena de muerte, la presentación del jefe secreto, la ventana de victoria y la transición de cubos; botón para cancelar cualquier cinemática en curso.
+- **Final del piso 10** (solo la primera vez, fuera del modo difícil, y es la entrada a este): al caer el jefe todo se oscurece dejando solo al protagonista, la HUD desaparece y la cámara hace zoom. Se puede caminar, pero despacio. Unas manos se asoman por el borde superior, primero agarrándose y luego acercándose a rastras, mientras una **Parca** (sprite pixel art propio) camina hacia él. Cuando lo alcanza, un guadañazo le quita el 100 % de la vida y las manos se lo llevan; después aparece la pantalla de estadísticas (`render/finale.js`).
+
 ## [1.3.9]
+
+### Cambiado
+- **Talentos rehechos como árbol de mejoras de clase** (`game/talents.js`, tecla T): se eliminan los 7 talentos generales. Cada una de las 9 clases tiene 3 ramas × 3 mejoras (81 únicas) que se desbloquean en cadena y se compran con 1 punto por nivel; efectos pequeños y propios de las habilidades de la clase (área, duración, enfriamiento, coste de maná, nº de proyectiles, parry, hemorragia...). Nueva ventana con ramas, rangos y mejoras bloqueadas (`css/windows.css`, `.tt-*`). Los modificadores se suman en `P.tm` (`tmCalc`, `tv()`).
+- **Asesino:** robo de vida nerfeado (tope 3 % del daño, 1 % de la vida máx. por golpe y 3 % de la vida máx. por segundo; antes 6 %, 3 % por golpe y sin límite por segundo).
+- **Martillo:** daño ×2,5 → ×2,0 y tiempo entre golpes 0,95 s → 1,2 s.
 
 ### Corregido
 - **Iconos de habilidades y barras del HUD que no cargaban** al abrir `index.html` de la raíz (modo sin build): faltaba el cargador del HUD (`hudLoad()` + rutas de `src/assets/hud`).

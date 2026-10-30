@@ -10,10 +10,8 @@
 
 const SB = BD.length; // índice del jefe secreto en BD / BO / BDS (siempre el último)
 BD.push({ n: "Heliarca, Soberano de los Astros", c: "#ffd86a", r: 34, hp: 3.4, sh: 0 });
-BO.push({ up: (e, dt, c) => sbUp(e, dt, c) });
-BDS.push(
-  "Un astro despierto que ejecuta a quien se interpone. Ataques: Astros errantes, Embestida prismática, Danza del sol y Anillo estelar. Al llegar a la mitad de su vida se vuelve invulnerable y desata el Reloj de arena de espadas de luz y las Líneas del alba.",
-);
+BO[SB] = { up: (e, dt, c) => sbUp(e, dt, c) };
+BDS[SB] = "Un astro despierto que ejecuta a quien se interpone. Ataques: Astros errantes, Embestida prismática, Danza del sol y Anillo estelar. Al llegar a la mitad de su vida se vuelve invulnerable y desata el Reloj de arena de espadas de luz y las Líneas del alba.";
 // Cuántos jefes "existen" de cara al jugador: el secreto solo cuenta una vez derrotado
 const BDV = () => BD.length - (S.bosses && S.bosses[SB] ? 0 : 1);
 const sbBarThr = (e) => (e.sb ? [0.5] : BOSS_THR);

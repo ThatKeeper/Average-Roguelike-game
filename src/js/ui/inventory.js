@@ -185,18 +185,33 @@ function invClick(r, e) {
 function invWire(el, r) {
   el._ref = r;
   el.oncontextmenu = (e) => e.preventDefault();
-  el.style.touchAction = "none";
+  el.style.touchAction = "pan-y"; // el desplazamiento vertical sigue funcionando sobre las casillas; arrastrar = gesto horizontal o pulsación larga
   el.onpointerdown = (e) => {
     if (e.button > 0) return;
     e.preventDefault();
     el.setPointerCapture && el.setPointerCapture(e.pointerId);
-    DRG = { r, el, sx: e.clientX, sy: e.clientY, on: 0, ghost: null, id: e.pointerId };
+    DRAGLOCK = 0;
+    DRG = { r, el, sx: e.clientX, sy: e.clientY, on: 0, ghost: null, id: e.pointerId, touch: e.pointerType != "mouse", hold: 0, scroll: 0 };
+    if (DRG.touch) {
+      const d = DRG;
+      d.tm = setTimeout(() => {
+        if (DRG === d && !d.on && !d.scroll) {
+          d.hold = 1;
+          DRAGLOCK = 1;
+          if (navigator.vibrate) navigator.vibrate(8);
+        }
+      }, 170);
+    }
   };
   el.onpointermove = (e) => {
     if (!DRG || DRG.el !== el || e.pointerId !== DRG.id) return;
     const it = refIt(r);
-    if (!DRG.on && it && Math.hypot(e.clientX - DRG.sx, e.clientY - DRG.sy) > 7) {
+    const mx = e.clientX - DRG.sx,
+      my = e.clientY - DRG.sy;
+    if (DRG.touch && !DRG.on && !DRG.hold && Math.hypot(mx, my) > 9 && Math.abs(my) > Math.abs(mx) * 1.1) DRG.scroll = 1; // gesto vertical: es un desplazamiento
+    if (!DRG.on && !DRG.scroll && it && Math.hypot(mx, my) > 7) {
       DRG.on = 1;
+      DRAGLOCK = 1;
       el.classList.add("drag");
       const g = document.createElement("div");
       g.className = "sl ghost";
@@ -222,6 +237,8 @@ function invWire(el, r) {
   const end = (e, cancel) => {
     if (!DRG || DRG.el !== el || e.pointerId !== DRG.id) return;
     const d = DRG;
+    clearTimeout(d.tm);
+    DRAGLOCK = 0;
     el.classList.remove("drag");
     if (d.on && !cancel) {
       d.ghost.style.display = "none";
@@ -232,7 +249,7 @@ function invWire(el, r) {
       else invAfter();
     } else {
       invCloseDrag();
-      if (!cancel && !d.on) invClick(r, e);
+      if (!cancel && !d.on && !d.scroll) invClick(r, e);
     }
   };
   el.onpointerup = (e) => end(e, 0);

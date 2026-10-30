@@ -5,11 +5,12 @@
  * de estadísticas de la partida.
  *
  * Define:
- * DTH_END, dthStart, drawHand, drawDeath, deathStats
+ * DTH_END, dthStart, dthHandBody, dthHandSprite, drawHand, drawDeath, deathStats
  * ====================================================================== */
 
 const DTH_END = 7.2; // segundos hasta mostrar las estadísticas
 const dthEase = (p) => p * p * (3 - 2 * p);
+let DTH_VIG = null; // textura de la viñeta (caché)
 
 function dthStart() {
   const hands = [],
@@ -30,55 +31,168 @@ function dthStart() {
   snd(55, 2.2, "sine", 0.07);
 }
 
-// Una mano blanca con antebrazo. (hx,hy) = muñeca/palma · ang = hacia dónde apunta · grip 0..1 = cuánto cierra los dedos
+// Una mano pálida y huesuda con antebrazo. (hx,hy) = muñeca/palma · ang = hacia dónde apunta · grip 0..1 = cuánto cierra los dedos
+// Dedos finos de tres falanges (con nudillos y uña), palma con forma de mano, pulgar oponible y antebrazo estrecho que se pierde en la oscuridad.
+// RENDIMIENTO: la palma y los dedos se pintan una sola vez por tamaño y apretón (sprite en caché) y cada fotograma solo se estampan;
+// antes se redibujaban ~60 trazados y un degradado por mano y fotograma (46 manos), lo que causaba el lag de la pantalla de muerte.
+function dthHandBody(g2, sz, grip) {
+  g2.lineCap = g2.lineJoin = "round";
+  const SK = "#e8e6ee", SH = "#b9b6c6", ED = "#6f6c80", NA = "#d4d0dc",
+    wx = -sz * 0.46;
+  // dedo de 3 falanges: base (bx,by), ángulo a0, longitudes, curvatura total (rad) repartida 25/35/40 %, anchura base→punta
+  const finger = (bx, by, a0, len, curl, w0, w1) => {
+    const ls = [len * 0.42, len * 0.32, len * 0.26],
+      cs = [curl * 0.25, curl * 0.35, curl * 0.4],
+      pts = [[bx, by]],
+      ws = [w0, w0 * 0.88, w0 * 0.74, w1];
+    let a = a0,
+      px = bx,
+      py = by;
+    for (let i = 0; i < 3; i++) {
+      a += cs[i];
+      px += Math.cos(a) * ls[i];
+      py += Math.sin(a) * ls[i];
+      pts.push([px, py]);
+    }
+    const seg = (i, grow) => {
+      const [x0, y0] = pts[i],
+        [x1, y1] = pts[i + 1],
+        n = Math.atan2(y1 - y0, x1 - x0) + Math.PI / 2,
+        r0 = ws[i] / 2 + grow,
+        r1 = ws[i + 1] / 2 + grow,
+        c = Math.cos(n),
+        sn = Math.sin(n);
+      g2.beginPath();
+      g2.moveTo(x0 + c * r0, y0 + sn * r0);
+      g2.lineTo(x1 + c * r1, y1 + sn * r1);
+      g2.lineTo(x1 - c * r1, y1 - sn * r1);
+      g2.lineTo(x0 - c * r0, y0 - sn * r0);
+      g2.closePath();
+      g2.fill();
+      g2.beginPath();
+      g2.arc(x1, y1, r1, 0, 7);
+      g2.fill();
+    };
+    g2.fillStyle = ED; // contorno
+    for (let i = 0; i < 3; i++) seg(i, 1);
+    g2.fillStyle = SK; // carne
+    for (let i = 0; i < 3; i++) seg(i, 0);
+    g2.strokeStyle = SH; // pliegues de los nudillos
+    g2.lineWidth = Math.max(1, w0 * 0.12);
+    for (let i = 1; i < 3; i++) {
+      const [jx, jy] = pts[i],
+        n = Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]) + Math.PI / 2,
+        r = ws[i] * 0.4;
+      g2.beginPath();
+      g2.moveTo(jx + Math.cos(n) * r, jy + Math.sin(n) * r);
+      g2.lineTo(jx - Math.cos(n) * r, jy - Math.sin(n) * r);
+      g2.stroke();
+    }
+    const [tx, ty] = pts[3]; // uña
+    g2.fillStyle = NA;
+    g2.beginPath();
+    g2.ellipse(tx, ty, ws[3] * 0.55, ws[3] * 0.38, a, 0, 7);
+    g2.fill();
+  };
+  // palma: muñeca estrecha → nudillos anchos, con el abultamiento del pulgar en el lado +y
+  const pw = sz * 0.34;
+  g2.beginPath();
+  g2.moveTo(wx, -sz * 0.12);
+  g2.quadraticCurveTo(-sz * 0.12, -pw * 1.02, sz * 0.36, -pw);
+  g2.lineTo(sz * 0.4, -pw * 0.2);
+  g2.lineTo(sz * 0.4, pw * 0.85);
+  g2.quadraticCurveTo(sz * 0.02, pw * 1.35, wx, sz * 0.12);
+  g2.closePath();
+  g2.fillStyle = SK;
+  g2.fill();
+  g2.strokeStyle = ED;
+  g2.lineWidth = 1.6;
+  g2.stroke();
+  g2.strokeStyle = SH; // tendones del dorso
+  g2.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const by = (i - 1.5) * sz * 0.2;
+    g2.beginPath();
+    g2.moveTo(sz * 0.36, by);
+    g2.lineTo(wx * 0.5, by * 0.35);
+    g2.stroke();
+  }
+  // dedos: se abren al acercarse y se curvan hacia el centro al agarrar (meñique más corto, corazón más largo)
+  const fl = [0.78, 0.98, 1, 0.9];
+  for (let i = 0; i < 4; i++) {
+    const by = (i - 1.5) * sz * 0.2,
+      side = by < 0 ? 1 : -1,
+      spread = (1 - grip) * 0.2 * (i - 1.5),
+      curl = side * (0.18 + grip * 1.15) * (1 + Math.abs(i - 1.5) * 0.12);
+    finger(sz * 0.37, by, spread, sz * 0.78 * fl[i], curl, sz * 0.105, sz * 0.07);
+    g2.fillStyle = SH; // nudillo
+    g2.beginPath();
+    g2.arc(sz * 0.38, by, sz * 0.05, 0, 7);
+    g2.fill();
+  }
+  finger(sz * 0.0, sz * 0.3, 0.75 - grip * 0.45, sz * 0.56, -0.25 - grip * 0.6, sz * 0.12, sz * 0.08); // pulgar
+}
+const DTH_HC = {}; // sprites de mano en caché: "tamaño|apretón" -> { cv, ox, oy }
+function dthHandSprite(sz, grip) {
+  const szq = Math.max(3, Math.round(sz / 3) * 3),
+    gq = Math.round(grip * 6),
+    key = szq + "|" + gq;
+  let s = DTH_HC[key];
+  if (!s) {
+    const pad = 2,
+      ox = Math.ceil(szq * 0.7) + pad,
+      w = Math.ceil(szq * 2.4) + pad * 2,
+      h = Math.ceil(szq * 2.6) + pad * 2,
+      cv3 = document.createElement("canvas");
+    cv3.width = w;
+    cv3.height = h;
+    const c = cv3.getContext("2d");
+    c.translate(ox, h / 2);
+    dthHandBody(c, szq, gq / 6);
+    s = DTH_HC[key] = { cv: cv3, ox, oy: h / 2, sz: szq };
+  }
+  return s;
+}
+let DTH_ARMG = null; // degradado del antebrazo en espacio unitario (se crea una vez)
 function drawHand(hx, hy, ang, sz, grip, alpha, L) {
   x.save();
   x.globalAlpha = alpha;
   x.translate(hx, hy);
   x.rotate(ang);
-  const g = x.createLinearGradient(-sz * 0.4, 0, -sz * 0.4 - L, 0);
-  g.addColorStop(0, "#eeeef4");
-  g.addColorStop(1, "#eeeef466");
-  x.fillStyle = g; // antebrazo que se pierde en la oscuridad
+  // antebrazo: estrecho, con degradado hacia la oscuridad (polígono unitario escalado: x·L, y·sz)
+  if (!DTH_ARMG) {
+    DTH_ARMG = x.createLinearGradient(0, 0, -1, 0);
+    DTH_ARMG.addColorStop(0, "#e8e6ee");
+    DTH_ARMG.addColorStop(0.6, "#e8e6eecc");
+    DTH_ARMG.addColorStop(1, "#e8e6ee00");
+  }
+  x.save();
+  x.translate(-sz * 0.46, 0);
+  x.scale(L, sz);
+  x.fillStyle = DTH_ARMG;
   x.beginPath();
-  x.moveTo(-sz * 0.4, -sz * 0.3);
-  x.lineTo(-sz * 0.4 - L, -sz * 0.2);
-  x.lineTo(-sz * 0.4 - L, sz * 0.2);
-  x.lineTo(-sz * 0.4, sz * 0.3);
+  x.moveTo(0, -0.12);
+  x.lineTo(-0.35, -0.105);
+  x.lineTo(-1, -0.14);
+  x.lineTo(-1, 0.14);
+  x.lineTo(-0.35, 0.105);
+  x.lineTo(0, 0.12);
   x.closePath();
   x.fill();
-  x.lineCap = x.lineJoin = "round";
-  const finger = (bx, by, a0, len, curl, w) => {
-    const a1 = a0 + curl,
-      mx = bx + Math.cos(a0) * len,
-      my = by + Math.sin(a0) * len,
-      ex = mx + Math.cos(a1) * len * 0.8,
-      ey = my + Math.sin(a1) * len * 0.8;
-    for (const [c, lw] of [["#8a8a99", w + 2.5], ["#f4f4fa", w]]) {
-      x.strokeStyle = c;
-      x.lineWidth = lw;
-      x.beginPath();
-      x.moveTo(bx, by);
-      x.lineTo(mx, my);
-      x.lineTo(ex, ey);
-      x.stroke();
-    }
-  };
-  // dedos (se abren al acercarse y se cierran al agarrar)
-  for (let i = 0; i < 4; i++) {
-    const by = (i - 1.5) * sz * 0.22,
-      spread = (1 - grip) * 0.32 * (i - 1.5),
-      curl = (by < 0 ? 1 : -1) * (0.35 + grip * 1.05);
-    finger(sz * 0.38, by, spread, sz * 0.42, curl, sz * 0.17);
-  }
-  finger(sz * 0.05, sz * 0.36, 0.7 - grip * 0.4, sz * 0.34, -0.5 - grip * 0.5, sz * 0.18); // pulgar
-  x.fillStyle = "#f4f4fa"; // palma
-  x.strokeStyle = "#8a8a99";
-  x.lineWidth = 2;
+  x.strokeStyle = "#6f6c8099"; // contorno de los bordes largos (separa los antebrazos que se superponen)
+  x.lineWidth = 1 / sz;
   x.beginPath();
-  x.ellipse(0, 0, sz * 0.5, sz * 0.42, 0, 0, 7);
-  x.fill();
+  x.moveTo(0, -0.12);
+  x.lineTo(-0.35, -0.105);
+  x.lineTo(-0.6, -0.125);
+  x.moveTo(0, 0.12);
+  x.lineTo(-0.35, 0.105);
+  x.lineTo(-0.6, 0.125);
   x.stroke();
+  x.restore();
+  const sp = dthHandSprite(sz, grip),
+    k = sz / sp.sz;
+  x.drawImage(sp.cv, -sp.ox * k, -sp.oy * k, sp.cv.width * k, sp.cv.height * k);
   x.restore();
 }
 
@@ -88,7 +202,7 @@ function drawDeath() {
     now = performance.now();
   D.t += Math.min(0.1, (now - D.last) / 1000);
   D.last = now;
-  if ((M.d || K.Enter) && D.t > 1.4 && D.t < DTH_END - 1.1) {
+  if ((M.d || K.Enter || tapped()) && D.t > 1.4 && D.t < DTH_END - 1.1) {
     D.t = DTH_END - 1.1; // saltar: va directo al final de la escena
     M.d = 0;
   }
@@ -104,17 +218,37 @@ function drawDeath() {
     gr = hands => hands.filter((h) => h.g > 0.3).length;
   x.save();
   x.setTransform(1, 0, 0, 1, 0, 0);
-  drawWorld(true);
-  // oscuridad: velo general + círculo de luz que se cierra sobre él
+  // El mundo no cambia durante la escena: se dibuja una vez y se guarda como imagen (antes se redibujaba entero en cada fotograma).
+  if (!D.bg) {
+    drawWorld(true);
+    D.bg = document.createElement("canvas");
+    D.bg.width = cv.width;
+    D.bg.height = cv.height;
+    D.bg.getContext("2d").drawImage(cv, 0, 0);
+  } else x.drawImage(D.bg, 0, 0);
+  // oscuridad: velo general + círculo de luz que se cierra sobre él (textura radial en caché, escalada)
   x.globalAlpha = 1;
   x.fillStyle = `rgba(0,0,0,${0.5 * dark})`;
   x.fillRect(0, 0, W, H);
-  const r0 = 520 - 400 * dark,
-    vg = x.createRadialGradient(px, py, r0 * 0.25, px, py, r0);
-  vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, `rgba(0,0,0,${0.97 * dark})`);
-  x.fillStyle = vg;
-  x.fillRect(0, 0, W, H);
+  const r0 = 520 - 400 * dark;
+  if (!DTH_VIG) {
+    DTH_VIG = document.createElement("canvas");
+    DTH_VIG.width = DTH_VIG.height = 256;
+    const c = DTH_VIG.getContext("2d"),
+      vg = c.createRadialGradient(128, 128, 32, 128, 128, 128);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(1, "rgba(0,0,0,1)");
+    c.fillStyle = vg;
+    c.fillRect(0, 0, 256, 256);
+  }
+  x.globalAlpha = 0.97 * dark;
+  x.drawImage(DTH_VIG, px - r0, py - r0, r0 * 2, r0 * 2);
+  x.fillStyle = "#000";
+  x.fillRect(0, 0, W, Math.max(0, py - r0));
+  x.fillRect(0, Math.min(H, py + r0), W, H);
+  x.fillRect(0, Math.max(0, py - r0), Math.max(0, px - r0), Math.min(H, py + r0) - Math.max(0, py - r0));
+  x.fillRect(Math.min(W, px + r0), Math.max(0, py - r0), W, Math.min(H, py + r0) - Math.max(0, py - r0));
+  x.globalAlpha = 1;
   // protagonista: sacudiéndose y encogiéndose al final
   const sx = P.x,
     sy = P.y,
@@ -177,10 +311,10 @@ function deathStats() {
       ["💎", D.relics, "Reliquias"],
       ["🏆", D.best, "Mejor profundidad"],
     ],
-    extra = (G.nu && G.nu.length ? `<div class="dx">🃏 Cartas nuevas: ${G.nu.join(", ")}</div>` : "") + (G.ncl && G.ncl.length ? `<div class="dx">🔓 Clases desbloqueadas: ${G.ncl.join(", ")}</div>` : "");
+    extra = (G.nu && G.nu.length ? `<div class="dx">🃏 Cartas nuevas: ${G.nu.join(", ")}</div>` : "") + (G.ncl && G.ncl.length ? `<div class="dx">🔓 Clases desbloqueadas: ${G.ncl.join(", ")}</div>` : "") + (D.hard ? `<div class="dx">☠ Todo se ha vuelto un poco más difícil: modo difícil desbloqueado</div>` : "");
   ov.style.display = "flex";
   G.ov = 1;
-  ov.innerHTML = `<div class="uw ds"><div class="ds-h"><h1>${q ? "EXPEDICIÓN ABANDONADA" : "HAS CAÍDO"}</h1><div class="ds-s">${D.cls} · ${D.weapon}${D.arena ? " · sin recompensas" : ""}</div></div><div class="ds-g">${tiles
+  ov.innerHTML = `<div class="uw ds"><div class="ds-h"><h1>${D.fin ? "LA OSCURIDAD TE RECLAMA" : q ? "EXPEDICIÓN ABANDONADA" : "HAS CAÍDO"}</h1><div class="ds-s">${D.cls} · ${D.weapon}${D.arena ? " · sin recompensas" : ""}</div></div><div class="ds-g">${tiles
     .map((t, i) => `<div class="ds-t" style="animation-delay:${0.08 * i}s"><i>${t[0]}</i><b>${t[1]}</b><span>${t[2]}</span></div>`)
     .join("")}</div>${extra}<p class="ds-n">Pierdes tu equipo y reliquias. Conviertes ${D.souls} de oro en almas (total ${S.souls}).</p></div>`;
   const b = document.createElement("button");

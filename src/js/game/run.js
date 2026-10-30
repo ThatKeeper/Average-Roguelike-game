@@ -60,6 +60,8 @@ function mkPlayer(ci) {
     ovr: 0,
     pol: 0,
     wt: 0,
+    pbt: 0, // contragolpe (mejora del Guerrero): segundos de bonus tras un parry perfecto
+    lsa: 0, // robo de vida del Asesino curado en el último instante (limitador)
     keys: {}, // objetos clave de la partida
   };
   bagInit();
@@ -76,6 +78,7 @@ function run(ci) {
   FZ = [];
   LT = [];
   SBH = [];
+  BHZ = [];
   ZN = [];
   K = {};
   M.d = M.r = 0;
@@ -92,6 +95,7 @@ function run(ci) {
 }
 function ST() {
   const a = P.a;
+  P.tm = tmCalc(); // modificadores de las mejoras de clase (game/talents.js)
   P.mhp = 60 + a.vit * 10 + P.bhp;
   P.mmp = 30 + a.int * 6 + P.bmp;
   P.spd = 185 * (1 + 0.015 * a.agi + P.bsp + 0.01 * U("spd"));
@@ -120,12 +124,12 @@ function ST() {
     for (const k in q)
       if (k.startsWith("r_")) P.res[k.slice(2)] = Math.min(0.6, (P.res[k.slice(2)] || 0) + q[k]);
   }
-  const T = P.tal;
-  P.arm += 6 * (T.skin || 0);
-  P.cc = Math.min(0.85, P.cc + 0.04 * (T.hunt || 0));
-  P.els += 0.01 * (T.thirst || 0);
-  P.mmp += 20 * (T.will || 0);
-  P.mr += 1.5 * (T.will || 0);
+  // mejoras de clase que modifican estadísticas (el resto las leen las propias habilidades, ver tv())
+  P.arm += tv("arm");
+  P.cc = Math.min(0.85, P.cc + tv("cc"));
+  P.mmp += tv("mmp");
+  P.mr += tv("mr");
+  P.as += tv("as");
   // bonificaciones pasivas de la clase (ver CLS en data/classes.js)
   const B = (CLS[P.ci] || CLS_NONE).bon;
   if (B.hp) P.mhp *= 1 + B.hp;

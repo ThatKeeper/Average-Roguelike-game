@@ -59,6 +59,9 @@ function drawBoss(e) {
     x.fillStyle = "#a4f";
     C(r, 1);
     x.stroke();
+  } else if (BXD[e.bi]) {
+    if (e.gh > 0) x.globalAlpha *= 0.3;
+    BXD[e.bi](e, r, t, a, c, F);
   } else
     switch (e.bi > 11 ? 100 + BD[e.bi].sh : e.bi) {
       case 0:
@@ -247,7 +250,7 @@ function drawBoss(e) {
           x.stroke();
         }
     }
-  if (e.bi > 11) {
+  if (e.bi > 11 && !BXD[e.bi]) {
     const nq = ((e.bi - 12) % 5) + 1;
     x.fillStyle = BD[e.bi].c;
     for (let q = 0; q < nq; q++) {
@@ -257,7 +260,7 @@ function drawBoss(e) {
       x.fill();
     }
   }
-  if (e.bi > 11 && FIN(e.bi)) {
+  if (e.bi > 11 && FIN(e.bi) && !BXD[e.bi]) {
     x.strokeStyle = "#fff";
     x.lineWidth = 2;
     x.beginPath();

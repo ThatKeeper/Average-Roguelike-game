@@ -22,31 +22,39 @@ function rr(px, py, w, h, r) {
 let HT = null;
 // o: ico (id de icono) · em/it (emoji u objeto) · pc (pieza del tilemap) · off · sel · empty · cd/cdm · nomp · key · mp · tip · rdy
 function slot(px, py, s, o) {
-  const hov = M.x >= px && M.x <= px + s && M.y >= py && M.y <= py + s,
+  const w = o.w || s, // o.w: casilla ancha (pareja de hechizos fundida)
+    hov = M.x >= px && M.x <= px + w && M.y >= py && M.y <= py + s,
     fr = o.sel ? "slot_sel" : o.off ? "slot_off" : o.empty ? "slot_empty" : o.eq ? "slot_equip" : o.rdy ? "slot_ready" : "slot";
   x.save();
-  if (!hNine(fr, px, py, s, s, 2, 5)) {
-    rr(px, py, s, s, 7);
+  if (!hNine(fr, px, py, w, s, 2, 5)) {
+    rr(px, py, w, s, 7);
     x.fillStyle = "#161120dd";
     x.fill();
     x.strokeStyle = o.sel ? "#fff" : o.col || "#6a5d80";
     x.stroke();
   }
   const isz = Math.round(s * 0.78);
-  if (o.ico) hIcon(o.ico, px + s / 2, py + s / 2, isz, o.off);
+  if (o.sico) {
+    // icono del hechizo (96 px); la pareja fundida muestra la combinación y, pequeños a los lados, sus dos elementos
+    if (o.w) {
+      spIcon(o.ea, px + 13, py + s / 2, 18);
+      spIcon(o.eb, px + w - 13, py + s / 2, 18);
+    }
+    spIcon(o.sico, px + w / 2, py + s / 2, o.w ? s * 0.9 : isz, o.off);
+  } else if (o.ico) hIcon(o.ico, px + w / 2, py + s / 2, isz, o.off);
   else if (o.pc) hPiece(o.pc, px + s / 2, py + s / 2, Math.max(1, Math.floor((s - 6) / 16)), 1);
   else if (o.em && !(o.it && drawItemIcon(o.it, px + s / 2, py + s / 2, s * 0.78)))
     spr(o.em, px + s / 2, py + s / 2 + 1, s * 0.6);
   if (o.cd > 0) {
     x.fillStyle = "#000b";
-    x.fillRect(px + 3, py + 3, s - 6, (s - 6) * cl(o.cd / (o.cdm || 1), 0, 1));
+    x.fillRect(px + 3, py + 3, w - 6, (s - 6) * cl(o.cd / (o.cdm || 1), 0, 1));
     x.fillStyle = "#fff";
     x.font = "bold 13px Georgia";
     x.textAlign = "center";
-    x.fillText(o.cd.toFixed(o.cd < 10 ? 1 : 0), px + s / 2, py + s / 2 + 5);
+    x.fillText(o.cd.toFixed(o.cd < 10 ? 1 : 0), px + w / 2, py + s / 2 + 5);
   } else if (o.nomp) {
     x.fillStyle = "#2a4cc088";
-    x.fillRect(px + 3, py + 3, s - 6, s - 6);
+    x.fillRect(px + 3, py + 3, w - 6, s - 6);
   }
   if (o.key) hKey(o.key, px - 2, py - 5, o.off);
   if (o.mp) {
@@ -55,8 +63,8 @@ function slot(px, py, s, o) {
     x.textAlign = "right";
     x.strokeStyle = "#000";
     x.lineWidth = 3;
-    x.strokeText(o.mp, px + s - 4, py + s - 4);
-    x.fillText(o.mp, px + s - 4, py + s - 4);
+    x.strokeText(o.mp, px + w - 4, py + s - 4);
+    x.fillText(o.mp, px + w - 4, py + s - 4);
   }
   x.restore();
   if (hov && o.tip) HT = o.tip;
@@ -148,31 +156,52 @@ function hudSlots() {
   });
   px += s + g * 2;
   if (mg)
-    for (let i = 0; i < 4; i++) {
-      const k = S.cards.slots[i],
-        c = k && CARDS[k];
-      if (!c) {
+    for (let p = 0; p < 2; p++) {
+      const st = pairState(p),
+        one = (k, i) => {
+          if (!k) {
+            slot(px, y, s, { empty: 1, key: KL(KY["c" + (i + 1)]), tip: ["Casilla de hechizo vacía", "Pulsa B para arrastrar un elemento"] });
+            px += s + g;
+            return;
+          }
+          const sp = build(k),
+            cdv = P.cd[4 + i];
+          slot(px, y, s, {
+            sico: k,
+            key: KL(KY["c" + (i + 1)]),
+            col: EL[k].c,
+            cd: cdv,
+            cdm: sp.cd,
+            nomp: P.mp < sp.cost,
+            rdy: !(cdv > 0) && P.mp >= sp.cost,
+            mp: Math.ceil(sp.cost),
+            tip: [sp.name, `Coste ${Math.ceil(sp.cost)} · Enfr. ${sp.cd.toFixed(1)}s · Daño ${Math.round(sp.dmg)}`],
+          });
+          px += s + g;
+        };
+      if (st.fused) {
+        // pareja fundida: una sola casilla ancha con la combinación (se lanza con cualquiera de sus dos teclas)
+        const sp = build(st.k),
+          cdv = P.cd[4 + 2 * p];
         slot(px, y, s, {
-          empty: 1,
-          key: KL(KY["c" + (i + 1)]),
-          tip: ["Espacio de carta vacío", "Pulsa B para equipar una carta"],
-        });
-      } else {
-        const sp = build(c.a, c.b, c.f),
-          IC = "el_" + c.a; // un icono por elemento (fuego, agua, planta, luz, viento, roca, hielo, oscuridad, sangre, corrosión)
-        slot(px, y, s, {
-          ico: IC,
-          key: KL(KY["c" + (i + 1)]),
-          col: EL[c.a].c,
-          cd: P["cd"][4 + i],
+          w: 2 * s + g,
+          sico: st.k,
+          ea: st.a,
+          eb: st.b,
+          key: KL(KY["c" + (2 * p + 1)]) + "+" + KL(KY["c" + (2 * p + 2)]),
+          col: "#ffd54a",
+          cd: cdv,
           cdm: sp.cd,
           nomp: P.mp < sp.cost,
-          rdy: !(P.cd[4 + i] > 0) && P.mp >= sp.cost,
+          rdy: !(cdv > 0) && P.mp >= sp.cost,
           mp: Math.ceil(sp.cost),
-          tip: [c.n, `Coste ${Math.ceil(sp.cost)} · Enfr. ${sp.cd.toFixed(1)}s · Daño ${Math.round(sp.dmg)}`],
+          tip: [sp.name + " (" + EL[st.a].n + " + " + EL[st.b].n + ")", `Coste ${Math.ceil(sp.cost)} · Enfr. ${sp.cd.toFixed(1)}s · Daño ${Math.round(sp.dmg)}`],
         });
+        px += 2 * (s + g);
+      } else {
+        one(S.cards.slots[2 * p], 2 * p);
+        one(S.cards.slots[2 * p + 1], 2 * p + 1);
       }
-      px += s + g;
     }
   if (TOUCH) return;
   // equipo visible a la derecha

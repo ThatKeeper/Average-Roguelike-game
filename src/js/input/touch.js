@@ -83,10 +83,12 @@ const TCDEF = {
 };
 const tcMage = () => mageOn();
 // el botón de clic derecho solo existe si la clase tiene habilidad ahí (o es guardia); la rama de Fuerza usa ese botón también para C
+// ¿La pareja p (casillas 1+2 o 3+4) del grimorio está fundida en una combinación? (entonces solo se muestra un botón, más grande)
+const tcFused = (p) => typeof pairState == "function" && !TC.edit && tcMage() && pairState(p).fused;
 const tcVisible = (id) => {
   if (TC.edit) return true;
   if (G.st == "hub" && !G.sbx && /^(q|e|r|skill|util|c\d|book)$/.test(id)) return false;
-  if (/^c\d$|^book$/.test(id)) return tcMage();
+  if (/^c\d$|^book$/.test(id)) return tcMage() && !(id == "c2" && tcFused(0)) && !(id == "c4" && tcFused(1));
   if (!P || P.nov) return !/^(q|e|r|skill|util)$/.test(id) || G.st != "hub";
   if (id == "skill") return P.br == "str" || !!skOf(P.ck, 2);
   if (id == "util") return P.br != "str";
@@ -452,6 +454,14 @@ function tcLayout(editing) {
     const pos = tcDefaults(vw, vh, sz),
       src = editing || TC.edit ? Object.assign({}, S.tl || {}, TC.ed) : S.tl || {};
     for (const id in src) if (pos[id] && src[id]) pos[id] = [src[id][0] * vw, src[id][1] * vh];
+    // pareja de hechizos fundida: un único botón más grande, entre los dos botones de la pareja
+    for (let p = 0; p < 2; p++)
+      if (tcFused(p)) {
+        const a = "c" + (2 * p + 1),
+          b = "c" + (2 * p + 2);
+        pos[a] = [(pos[a][0] + pos[b][0]) / 2, (pos[a][1] + pos[b][1]) / 2];
+        sz[a] = Math.round(sz[a] * 1.3);
+      }
     // en el editor se deja colocar libremente (los solapes se marcan en rojo); en juego se resuelven
     const ok = TC.edit ? true : tcResolve(pos, sz, ids, vw, vh);
     if (ok || tries == 7 || TC.edit) {
@@ -493,7 +503,7 @@ function tcLayout(editing) {
 // ---------- iconos dinámicos (según clase, arma, tomo y cartas) ----------
 function tcIcons(force) {
   if (!TC.box) return;
-  const sig = [P ? P.ck : "", P ? P.w.n : "", P && P.nov, S.cards && JSON.stringify(S.cards.slots), TC.size.atk].join("|");
+  const sig = [P ? P.ck : "", P ? P.w.n : "", P && P.nov, S.cards && JSON.stringify(S.cards.slots), tcPairSig(), TC.size.atk].join("|");
   if (!force && sig == TC.isig) return;
   TC.isig = sig;
   const col = P && !P.nov ? BRN[P.br].c : "#c9a24a",
@@ -524,22 +534,15 @@ function tcIcons(force) {
   set("book", "book", "#a9f", 1);
   for (let i = 0; i < 4; i++) {
     const kk = S.cards && S.cards.slots[i],
-      c = kk && typeof CARDS != "undefined" && CARDS[kk];
-    let ic = "card",
-      cc = "#777",
-      svg = 1;
-    if (c)
-      try {
-        ic = "el_" + c.a;
-        cc = EL[c.a].c;
-        svg = 0;
-      } catch (e) {}
-    const el = TC.els["c" + (i + 1)];
-    if (el) {
-      el.querySelector(".ic").innerHTML = (svg ? tcSvg(ic) : im(ic)) + `<i class="num">${i + 1}</i>`;
-      el.style.setProperty("--c", cc);
-      el.title = TCDEF["c" + (i + 1)].n;
-    }
+      pr = typeof pairState == "function" && S.cards ? pairState(i >> 1) : null,
+      fz = pr && pr.fused,
+      key = fz ? (i & 1 ? null : pr.k) : kk,
+      el = TC.els["c" + (i + 1)];
+    if (!el || (fz && i & 1)) continue;
+    const sp = (kk0, big) => `<img src="${spIconURL(kk0)}" alt="" style="width:100%;height:100%;image-rendering:pixelated">`;
+    el.querySelector(".ic").innerHTML = (key ? sp(key) : tcSvg("card")) + `<i class="num">${fz ? i + 1 + "+" + (i + 2) : i + 1}</i>`;
+    el.style.setProperty("--c", fz ? "#ffd54a" : kk ? EL[kk].c : "#777");
+    el.title = TCDEF["c" + (i + 1)].n;
   }
   // arma equipada dentro del joystick de ataque
   if (TC.els.aknob) {
@@ -559,10 +562,11 @@ function tcApply() {
   TC.rev++;
   tcLayout();
 }
+const tcPairSig = () => (typeof pairState == "function" && S.cards ? [0, 1].map((p) => (pairState(p).fused ? pairState(p).k : "")).join(",") : "");
 function tcSync() {
   if (!TOUCH) return;
   if (!TC.box) buildTouch();
-  const sig = innerWidth + "x" + innerHeight + "|" + tcMage() + "|" + (P ? P.ck + P.nov : "") + "|" + (G.sbx ? 1 : 0) + "|" + G.st + "|" + TC.rev + "|" + (TC.edit ? 1 : 0) + "|" + (S.dpad ? 1 : 0);
+  const sig = innerWidth + "x" + innerHeight + "|" + tcMage() + "|" + tcPairSig() + "|" + (P ? P.ck + P.nov : "") + "|" + (G.sbx ? 1 : 0) + "|" + G.st + "|" + TC.rev + "|" + (TC.edit ? 1 : 0) + "|" + (S.dpad ? 1 : 0);
   if (sig != TC.sig) {
     TC.sig = sig;
     tcLayout();
@@ -570,7 +574,9 @@ function tcSync() {
   tcIcons();
   if (G.ov && !TC.wasOv) tcReset();
   TC.wasOv = G.ov ? 1 : 0;
-  TC.box.style.display = G.st == "play" || G.st == "hub" || ROT || TC.edit ? "block" : "none";
+  // Con un menú abierto (pausa, ajustes, inventario, pantalla de muerte...) los controles táctiles se ocultan: si no, quedaban
+  // encima del menú, tapaban sus botones y bloqueaban el desplazamiento táctil.
+  TC.box.style.display = ROT || TC.edit || ((G.st == "play" || G.st == "hub") && !G.ov) ? "block" : "none";
   tcCooldowns();
 }
 /** Muestra los segundos de enfriamiento restantes sobre cada botón de habilidad. */
