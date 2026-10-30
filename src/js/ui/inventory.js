@@ -80,10 +80,9 @@ const DOLL_W = 128,
   DOLL_H = 160;
 function drawDoll(cv2) {
   const c = cv2.getContext("2d"),
-    c0 = curCls(),
-    s = { str: "m", dex: "r", int: "g" }[P.br] || "m",
-    col = c0.col,
-    dk = c0.dk,
+    s = P.w.s,
+    col = { m: "#d8b36a", r: "#7fd08a", g: "#8aa8ff" }[s],
+    dk = { m: "#6b5530", r: "#3c6a44", g: "#3a4a8a" }[s],
     k = 3.6; // escala respecto al tamaño dentro del juego
   c.clearRect(0, 0, DOLL_W, DOLL_H);
   c.save();
@@ -93,7 +92,7 @@ function drawDoll(cv2) {
   c.beginPath();
   c.ellipse(0, 11, 12, 4.5, 0, 0, 7); // sombra, igual que en drawP
   c.fill();
-  drawHeroBody(c, s, 0, P.r, 0, col, dk, P.ck); // mirando a la derecha, quieto
+  drawHeroBody(c, s, 0, P.r, 0, col, dk); // mirando a la derecha, quieto
   c.restore();
 }
 
@@ -185,33 +184,18 @@ function invClick(r, e) {
 function invWire(el, r) {
   el._ref = r;
   el.oncontextmenu = (e) => e.preventDefault();
-  el.style.touchAction = "pan-y"; // el desplazamiento vertical sigue funcionando sobre las casillas; arrastrar = gesto horizontal o pulsación larga
+  el.style.touchAction = "none";
   el.onpointerdown = (e) => {
     if (e.button > 0) return;
     e.preventDefault();
     el.setPointerCapture && el.setPointerCapture(e.pointerId);
-    DRAGLOCK = 0;
-    DRG = { r, el, sx: e.clientX, sy: e.clientY, on: 0, ghost: null, id: e.pointerId, touch: e.pointerType != "mouse", hold: 0, scroll: 0 };
-    if (DRG.touch) {
-      const d = DRG;
-      d.tm = setTimeout(() => {
-        if (DRG === d && !d.on && !d.scroll) {
-          d.hold = 1;
-          DRAGLOCK = 1;
-          if (navigator.vibrate) navigator.vibrate(8);
-        }
-      }, 170);
-    }
+    DRG = { r, el, sx: e.clientX, sy: e.clientY, on: 0, ghost: null, id: e.pointerId };
   };
   el.onpointermove = (e) => {
     if (!DRG || DRG.el !== el || e.pointerId !== DRG.id) return;
     const it = refIt(r);
-    const mx = e.clientX - DRG.sx,
-      my = e.clientY - DRG.sy;
-    if (DRG.touch && !DRG.on && !DRG.hold && Math.hypot(mx, my) > 9 && Math.abs(my) > Math.abs(mx) * 1.1) DRG.scroll = 1; // gesto vertical: es un desplazamiento
-    if (!DRG.on && !DRG.scroll && it && Math.hypot(mx, my) > 7) {
+    if (!DRG.on && it && Math.hypot(e.clientX - DRG.sx, e.clientY - DRG.sy) > 7) {
       DRG.on = 1;
-      DRAGLOCK = 1;
       el.classList.add("drag");
       const g = document.createElement("div");
       g.className = "sl ghost";
@@ -237,8 +221,6 @@ function invWire(el, r) {
   const end = (e, cancel) => {
     if (!DRG || DRG.el !== el || e.pointerId !== DRG.id) return;
     const d = DRG;
-    clearTimeout(d.tm);
-    DRAGLOCK = 0;
     el.classList.remove("drag");
     if (d.on && !cancel) {
       d.ghost.style.display = "none";
@@ -249,7 +231,7 @@ function invWire(el, r) {
       else invAfter();
     } else {
       invCloseDrag();
-      if (!cancel && !d.on && !d.scroll) invClick(r, e);
+      if (!cancel && !d.on) invClick(r, e);
     }
   };
   el.onpointerup = (e) => end(e, 0);
@@ -339,17 +321,6 @@ function inv(f) {
   invWire(tr, { k: "t" });
   bar.appendChild(tr);
   bx.appendChild(bar);
-  // objetos clave de la partida (no ocupan mochila)
-  const kys = Object.keys(P.keys || {}).filter((k) => P.keys[k] && KEYI[k]);
-  if (kys.length) {
-    const kb = E_("div", "iv-keys", "<b>Objetos clave</b>");
-    kys.forEach((k) => {
-      const sp = E_("span", "kk", `<i>${KEYI[k].i}</i>${KEYI[k].n}`);
-      sp.title = KEYI[k].d;
-      kb.appendChild(sp);
-    });
-    bx.appendChild(kb);
-  }
   bx.appendChild(
     E_(
       "small",

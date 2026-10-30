@@ -3,7 +3,7 @@
  * Ventanas de tarjetas: menús, subida de nivel, cofres y botín.
  *
  * Define:
- * ATI, ATN, ATD, show, lootRa, lootWeapon, lootGear, lootRelic, loot2
+ * ATI, ATN, ATD, TD, show, lootRa, lootTome, lootWeapon, lootGear, lootRelic, loot2
  * ====================================================================== */
 
 // ===== VENTANAS DE TARJETAS (menús, nivel, cofres, mercader, santuarios, sucesos) =====
@@ -24,6 +24,13 @@ const ATI = { str: "💪", dex: "🎯", int: "📘", vit: "❤️", agi: "👟",
     agi: "Velocidad de movimiento y de ataque.",
     luk: "Crítico y botín.",
   };
+const TD = {
+  shield: "Absorbe daño (15 maná).",
+  trap: "Trampa que congela al pisarla.",
+  summon: "Espíritu aliado que dispara.",
+  beam: "Rayo continuo (mantener R).",
+  cone: "Cono de fuego con quemadura.",
+};
 function show(h, btns, keep) {
   ov.style.display = "flex";
   ov.innerHTML = h;
@@ -99,6 +106,20 @@ const lootRa = () => {
   const q = Math.random() + G.d * 0.03 + P.a.luk * 0.01;
   return Math.min(rcap(), q > 1.1 ? 3 : q > 0.85 ? 2 : q > 0.55 ? 1 : 0);
 };
+function lootTome(ra) {
+  const k = pick(Object.keys(TM));
+  return {
+    i: "📖",
+    n: "Tomo: " + TM[k],
+    tp: "Tomo mágico",
+    r: ra,
+    d: TD[k],
+    stx: "Se lanza con R",
+    f: () => {
+      P.tm = k;
+    },
+  };
+}
 function lootWeapon(ra) {
   const w = mk((Math.random() * WP.length) | 0, ra);
   return {
@@ -144,7 +165,7 @@ function lootRelic(R, r) {
 }
 function loot2(n) {
   const ra = lootRa(),
-    o = [lootWeapon(ra), lootGear()],
+    o = [Math.random() < 0.3 ? lootTome(ra) : lootWeapon(ra), lootGear()],
     ix = [...RL.keys()].sort(() => Math.random() - 0.5);
   for (let i = 0; i < n - 2; i++) o.push(lootRelic(RL[ix[i]], Math.min(rcap(), 1 + (i & 1))));
   return o;

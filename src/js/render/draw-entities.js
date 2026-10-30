@@ -227,10 +227,9 @@ function drawEnemy(e) {
  * Cuerpo del héroe (capa, círculo, adorno de clase y ojo) centrado en el origen del contexto `c`.
  * Lo usa drawP() en el juego y el muñeco del inventario, para que ambos se vean idénticos.
  *  s: estilo de arma (m/r/g) · a: ángulo de mirada · r: radio · mv: 0..1 (largo de la capa)
- *  col / dk: color principal y oscuro de la clase · ck: clave de clase (aspecto propio) · fl: parpadeo de daño.
+ *  col / dk: color principal y oscuro de la clase.
  */
-function drawHeroBody(c, s, a, r, mv, col, dk, ck, fl) {
-  if (ck && drawClassBody(c, ck, a, r, mv, fl)) return; // clases con aspecto propio (class-look.js)
+function drawHeroBody(c, s, a, r, mv, col, dk) {
   c.fillStyle = dk;
   c.beginPath();
   c.moveTo(-Math.cos(a) * 6, -Math.sin(a) * 6 - 8);
@@ -285,60 +284,27 @@ function drawHeroBody(c, s, a, r, mv, col, dk, ck, fl) {
 }
 function drawP() {
   drawStatusRow(statusList(P, P, STATUS_P), P.x, P.y - P.r - 14, 12);
-  const c0 = curCls(),
-    s = { str: "m", dex: "r", int: "g" }[P.br] || "m",
+  const s = P.w.s,
     a = P.face,
     mv = Math.min(1, Math.hypot(P.vx, P.vy) / P.spd),
     bob = Math.sin(Date.now() / 85) * 2.2 * mv,
-    col = P.fl > 0 ? "#fff" : c0.col,
-    dk = c0.dk;
+    col = P.fl > 0 ? "#fff" : { m: "#d8b36a", r: "#7fd08a", g: "#8aa8ff" }[s],
+    dk = { m: "#6b5530", r: "#3c6a44", g: "#3a4a8a" }[s];
   x.save();
   x.fillStyle = "#0006";
   x.beginPath();
   x.ellipse(P.x, P.y + 11, 12, 4.5, 0, 0, 7);
   x.fill();
   x.translate(P.x, P.y + bob);
-  if (P.nov) {
-    // aprendiz sin clase: el aspecto original (círculo blanco) hasta que elijas una
-    x.fillStyle = "#e8e8ee";
-    x.strokeStyle = "#000";
-    x.lineWidth = 2;
-    x.beginPath();
-    x.arc(0, 0, P.r, 0, 7);
-    x.fill();
-    x.stroke();
-  } else {
-    drawHeroBody(x, s, a, P.r, mv, col, dk, P.ck, P.fl > 0);
-    // el arma solo se ve en la sala de pruebas (G.hr 2) y en la mazmorra; en la sala de clases el personaje va con las manos vacías
-    if (G.st != "hub" || G.hr == 2) {
-      if (P.w.s == "m") drawHeldMelee();
-      else if (RANGED_ART[P.w.n]) drawHeldRanged();
-    }
-  }
+  drawHeroBody(x, s, a, P.r, mv, col, dk);
+  if (s == "m") drawHeldMelee();
+  else if (RANGED_ART[P.w.n]) drawHeldRanged();
   if (P.g) {
     x.strokeStyle = P.gt < 0.22 && !(P.pcd > 0) ? "#fff" : P.pcd > 0 ? "#667" : "#8cf";
     x.lineWidth = 4;
     x.beginPath();
     x.arc(0, 0, P.r + 5, a - 1, a + 1);
     x.stroke();
-  }
-  if (P.dr > 0) {
-    x.strokeStyle = "#cfd8ea";
-    x.globalAlpha = 0.6 + 0.3 * Math.sin(Date.now() / 90);
-    x.lineWidth = 5;
-    x.beginPath();
-    x.arc(0, 0, P.r + 9, 0, 7);
-    x.stroke();
-    x.globalAlpha = 1;
-  }
-  if (P.ovc > 0 || P.ovr > 0) {
-    x.strokeStyle = P.ovr > 0 ? "#8ff4ff" : "#c8a0ff";
-    x.lineWidth = 2;
-    x.setLineDash([4, 4]);
-    x.beginPath();
-    x.arc(0, 0, P.r + 13, Date.now() / 300, Date.now() / 300 + 6.283);
-    x.stroke();
-    x.setLineDash([]);
   }
   if (P.sh > 0) {
     x.strokeStyle = "#6cf";

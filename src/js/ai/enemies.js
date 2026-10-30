@@ -265,7 +265,7 @@ function upE(dt) {
           guard(e, dt);
           schd(e, dt);
           BO[e.bi].up(e, dt, cx);
-          if (e.bi < 12 && ORX[e.bi]) ORX[e.bi](e, dt, cx); // ataque propio extra de cada jefe original (boss-roster-orig.js)
+          if (e.bi < 12) xat(e, dt, cx);
           break;
         }
       }

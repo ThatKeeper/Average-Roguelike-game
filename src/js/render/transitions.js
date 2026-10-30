@@ -9,7 +9,7 @@
  * Mientras una transición bloquea el juego (trnBusy) la simulación queda en pausa.
  *
  * Define:
- * XTR, trnCubes, trnSlide, trnHubSlide, trnTick, trnBusy, trnFull, trnOverlay
+ * XTR, trnCubes, trnSlide, trnTick, trnBusy, trnFull, trnOverlay
  * ====================================================================== */
 
 let XTR = null;
@@ -45,19 +45,6 @@ function trnSlide(k, to, from) {
   const B = snapCanvas();
   XTR = { k: "slide", dir: +k, t: 0, A, B, p0, p1: { x: P.x, y: P.y } };
   P.vx = P.vy = 0;
-}
-
-// Desliza la cámara entre las dos salas del hub (hub ↔ sala de clases). sw() cambia el estado; p0/p1 = recorrido del personaje.
-function trnHubSlide(k, sw, p0, p1) {
-  if (XTR) return;
-  G.hr ? crDraw(true) : hubDraw(true);
-  const A = snapCanvas();
-  sw();
-  G.hr ? crDraw(true) : hubDraw(true);
-  const B = snapCanvas();
-  XTR = { k: "slide", dir: +k, t: 0, A, B, p0, p1, hub: 1 };
-  if (P) P.vx = P.vy = 0;
-  K = {};
 }
 
 function trnTick(dt) {
@@ -117,11 +104,6 @@ function trnFull() {
     x.clearRect(0, 0, W, H);
     x.drawImage(T.A, -cx, -cy);
     x.drawImage(T.B, vx - cx, vy - cy);
-    if (T.hub) {
-      drawHubHero(T.p0.x + (T.p1.x + vx - T.p0.x) * e - cx, T.p0.y + (T.p1.y + vy - T.p0.y) * e - cy);
-      x.restore();
-      return true;
-    }
     // el jugador recorre el trayecto entre ambas puertas mientras la cámara avanza
     const sx = P.x,
       sy = P.y;

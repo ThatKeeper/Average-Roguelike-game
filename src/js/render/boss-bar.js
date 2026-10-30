@@ -13,7 +13,6 @@ const ROMAN = ["I", "II", "III"];
 /** Fase actual del jefe: 0, 1 o 2. */
 function bossPhase(e) {
   const r = e.hp / e.mhp;
-  if (e.sb) return r < 0.5 ? 1 : 0; // el jefe secreto tiene dos fases
   return r < BOSS_THR[1] ? 2 : r < BOSS_THR[0] ? 1 : 0;
 }
 
@@ -80,7 +79,7 @@ function drawBossBar(bs) {
     x.fillRect(bx, by, bw, bh);
   }
   // marcas de los umbrales de fase: brillan hasta que se cruzan
-  sbBarThr(bs).forEach((t, i) => {
+  BOSS_THR.forEach((t, i) => {
     const mx = bx + bw * t,
       done = ratio < t;
     x.strokeStyle = done ? "#fff3" : "#fff";

@@ -15,7 +15,6 @@ const KD = {
     q: "KeyQ",
     e: "KeyE",
     r: "KeyR",
-    util: "KeyC",
     dodge: "Space",
     inv: "KeyI",
     map: "KeyM",
@@ -48,20 +47,11 @@ onkeydown = (e) => {
     return;
   }
   if (G.st == "hub") {
-    if (e.code == KY.use && !G.ov && !trnBusy()) hubUse();
+    if (e.code == KY.use && !G.ov) hubUse();
     else if (e.code == "Escape" && G.ov) hide();
-    else if (G.sbx && P && !trnBusy()) {
-      // sala de clases: se puede esquivar y abrir las cartas para probar la clase
-      if (e.code == KY.book) book();
-      if (e.code == KY.dodge) {
-        e.preventDefault();
-        if (!G.ov) dodge();
-      }
-    }
     return;
   }
-  if (G.st == "menu" && G.cfg && e.code == "Escape" && G.ov) return cfgClose();
-  if (G.st != "play" || trnBusy() || G.fin) return; // durante el final animado solo se puede mover
+  if (G.st != "play" || trnBusy()) return;
   if (e.code == "Escape") pause();
   if (e.code == KY.map) bigmap ^= 1;
   if (e.code == KY.inv) inv();

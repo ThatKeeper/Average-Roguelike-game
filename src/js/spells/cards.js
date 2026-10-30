@@ -1,10 +1,10 @@
 /* ======================================================================
  * src/js/spells/cards.js
- * Cartas de hechizo: niveles, requisitos, desbloqueos, normalización del guardado y equipamiento.
+ * Cartas de hechizo (Mago): niveles, requisitos, desbloqueos, normalización del guardado y equipamiento.
  *
  * Define:
- * ETIER, STARTERS, EREQ, FN, tsum, CARDS, CORDER, EORDER, reqOK, reqTxt, checkUnlocks
- * normS, pairKey, pairState, castUnits, unitAt, equipCard, unequipCard, cardsChanged, toggleSplit, castCard
+ * ETIER, EFORM, STARTERS, EREQ, FN, tsum, CARDS, CORDER, reqOK, reqTxt, checkUnlocks
+ * normS, equipCard, unequipCard, castCard
  * ====================================================================== */
 
 // ===== CARTAS DE HECHIZO (solo Mago), PROGRESO PERMANENTE Y HUD =====
@@ -22,30 +22,39 @@ const ETIER = {
     blood: 3,
     corr: 3,
   },
-  STARTERS = ["fire", "ice", "light"],
-  FN = SPF;
+  EFORM = {
+    fire: "bolt",
+    ice: "nova",
+    light: "bolt",
+    water: "zone",
+    plant: "zone",
+    wind: "cone",
+    rock: "bolt",
+    dark: "cone",
+    blood: "bolt",
+    corr: "zone",
+  },
+  STARTERS = ["fire", "ice", "light"];
 const EREQ = {
-  water: [["depth", 2]],
-  plant: [["depth", 3]],
-  wind: [["depth", 4]],
-  rock: [["boss", 0]],
-  dark: [["boss", 2]],
-  blood: [["boss", 4]],
-  corr: [["boss", 6]],
-};
+    water: [["depth", 2]],
+    plant: [["depth", 3]],
+    wind: [["depth", 4]],
+    rock: [["boss", 0]],
+    dark: [["boss", 2]],
+    blood: [["boss", 4]],
+    corr: [["boss", 6]],
+  },
+  FN = { bolt: "Proyectil", nova: "Nova", cone: "Cono", zone: "Zona" };
 const tsum = (k) => k.split("+").reduce((s, z) => s + ETIER[z], 0),
   CARDS = {},
-  CORDER = [], // los 55 hechizos: primero los 10 comunes y luego las 45 combinaciones
-  EORDER = []; // solo los 10 comunes (los únicos que se arrastran a las casillas)
+  CORDER = [];
 Object.keys(EL)
   .sort((a, b) => ETIER[a] - ETIER[b])
   .forEach((k) => {
-    CARDS[k] = { k, a: k, b: "", f: CB[k].f, n: CB[k].n, req: EREQ[k] || [] };
+    CARDS[k] = { k, a: k, b: "", f: EFORM[k], n: EL[k].n, req: EREQ[k] || [] };
     CORDER.push(k);
-    EORDER.push(k);
   });
 Object.keys(CB)
-  .filter((k) => k.includes("+"))
   .sort((p, q) => tsum(p) - tsum(q) || p.localeCompare(q))
   .forEach((k) => {
     const [a, b] = k.split("+"),
@@ -56,7 +65,7 @@ Object.keys(CB)
         ["depth", 2 + t],
       ];
     if (t >= 4) req.push(["boss", t - 2]);
-    CARDS[k] = { k, a, b, f: CB[k].f, n: CB[k].n, req };
+    CARDS[k] = { k, a, b, f: CB[k].f || "bolt", n: CB[k].n, req };
     CORDER.push(k);
   });
 const reqOK = (r) =>
@@ -83,8 +92,6 @@ function checkUnlocks() {
         ch = 1;
       }
   }
-  const nc = clsCheck(); // clases nuevas (data/classes.js)
-  if (nc.length) G.ncl = (G.ncl || []).concat(nc);
   return nu;
 }
 // Guardado: tolera datos inexistentes, incompletos, corruptos o antiguos (v1 sin cartas → v2; los jefes de profundidades superadas se dan por derrotados)
@@ -107,10 +114,9 @@ function normS() {
   S.bk = o(S.bk);
   S.ach = o(S.ach);
   S.bosses = o(S.bosses);
-  S.cu = o(S.cu);
   S.cards = o(S.cards);
   S.cards.unlocked = o(S.cards.unlocked);
-  let sl = Array.isArray(S.cards.slots) ? S.cards.slots.slice(0, 4) : [];
+  const sl = Array.isArray(S.cards.slots) ? S.cards.slots.slice(0, 4) : [];
   while (sl.length < 4) sl.push(null);
   if (S.v !== 2) {
     S.v = 2;
@@ -120,94 +126,33 @@ function normS() {
       sl[i] = k;
     });
   }
-  S.cards.seen = o(S.cards.seen);
-  if (S.cards.cv !== 3) {
-    // Sistema nuevo (v3): las ranuras solo guardan elementos comunes y las combinaciones nacen de las parejas (1+2, 3+4).
-    // Una combinación equipada en el sistema antiguo se descompone en sus dos elementos y se da por descubierta.
-    const el = [];
-    for (const k of sl)
-      if (k)
-        for (const z of k.split("+")) {
-          if (!el.includes(z)) el.push(z);
-          if (k.includes("+")) S.cards.seen[k] = 1;
-        }
-    sl = [0, 1, 2, 3].map((i) => el[i] || null);
-    S.cards.cv = 3;
-  }
   checkUnlocks();
   for (const k in S.cards.unlocked) if (!CARDS[k]) delete S.cards.unlocked[k];
-  for (const k in S.cards.seen) if (!CB[k] || !k.includes("+")) delete S.cards.seen[k];
-  S.cards.slots = sl.map((k) => (EL[k] && S.cards.unlocked[k] ? k : null));
-  S.cards.split = [0, 1].map((i) => (Array.isArray(S.cards.split) && S.cards.split[i] ? 1 : 0));
+  S.cards.slots = sl.map((k) => (CARDS[k] && S.cards.unlocked[k] ? k : null));
   save();
 }
 normS();
-// ---- Ranuras: 4 casillas en 2 parejas (1+2 y 3+4). Cada casilla guarda un elemento común; al completar una pareja con una
-// combinación desbloqueada, los dos elementos se funden en ese hechizo (que ocupa la pareja entera) salvo que se separen.
-const pairKey = (p) => {
-  const s = S.cards.slots,
-    a = s[2 * p],
-    b = s[2 * p + 1];
-  return a && b && a != b ? [a, b].sort().join("+") : null;
-};
-function pairState(p) {
-  const k = pairKey(p),
-    un = !!(k && S.cards.unlocked[k]);
-  return { p, k, a: S.cards.slots[2 * p], b: S.cards.slots[2 * p + 1], unlocked: un, seen: !!(k && S.cards.seen[k]), split: !!S.cards.split[p], fused: un && !S.cards.split[p] };
-}
-// Hechizos lanzables ahora: una pareja fundida cuenta como uno solo; si no, cada casilla con elemento es un hechizo común.
-function castUnits() {
-  const out = [];
-  for (let p = 0; p < 2; p++) {
-    const st = pairState(p);
-    if (st.fused) out.push({ slot: 2 * p, slots: [2 * p, 2 * p + 1], k: st.k, pair: p });
-    else
-      for (const i of [2 * p, 2 * p + 1]) if (S.cards.slots[i]) out.push({ slot: i, slots: [i], k: S.cards.slots[i] });
-  }
-  return out;
-}
-const unitAt = (i) => castUnits().find((u) => u.slots.includes(i));
-// Equipa el elemento k en la casilla sl (si ya estaba en otra casilla, las intercambia). Devuelve { ok, disc } (disc = combinación recién descubierta).
 function equipCard(k, sl) {
-  if (!mageOn() || !EL[k] || sl < 0 || sl > 3) return { ok: false };
+  if (!P || P.cls != "g" || !CARDS[k] || sl < 0 || sl > 3) return false;
   if (!S.cards.unlocked[k]) {
     flash("Carta bloqueada: " + CARDS[k].req.filter((r) => !reqOK(r)).map(reqTxt)[0]);
-    return { ok: false };
+    return false;
   }
   const s = S.cards.slots,
     o = s.indexOf(k);
-  if (o == sl) return { ok: true, disc: null };
   if (o >= 0) s[o] = s[sl];
   s[sl] = k;
-  return cardsChanged([sl >> 1, o >= 0 ? o >> 1 : -1]);
-}
-function unequipCard(sl) {
-  S.cards.slots[sl] = null;
-  return cardsChanged([sl >> 1]);
-}
-function cardsChanged(ps) {
-  let disc = null;
-  for (const p of new Set(ps))
-    if (p >= 0) {
-      S.cards.split[p] = 0;
-      const st = pairState(p);
-      if (st.unlocked && !st.seen) {
-        S.cards.seen[st.k] = 1;
-        disc = st.k;
-      }
-    }
-  save();
-  return { ok: true, disc };
-}
-function toggleSplit(p) {
-  const st = pairState(p);
-  if (!st.unlocked) return false;
-  S.cards.split[p] ^= 1;
   save();
   return true;
 }
-function castCard(i) {
-  if (!mageOn()) return;
-  const u = unitAt(i);
-  if (u) castSp({ k: u.k, u }, 4 + u.slot);
+function unequipCard(sl) {
+  S.cards.slots[sl] = null;
+  save();
 }
+function castCard(i) {
+  const k = S.cards.slots[i];
+  if (!k || !S.cards.unlocked[k] || !P || P.cls != "g") return;
+  const c = CARDS[k];
+  castSp({ a: c.a, b: c.b, f: c.f }, 4 + i);
+}
+

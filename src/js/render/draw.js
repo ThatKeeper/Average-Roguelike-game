@@ -24,14 +24,6 @@ function ammoBar() {
   x.restore();
 }
 function draw() {
-  if (G.st == "over" && G.dth) {
-    // escena de muerte; al terminar se muestran las estadísticas
-    if (drawDeath()) {
-      G.dth = null;
-      deathStats();
-    }
-    return;
-  }
   if (G.st != "play") {
     x.save();
     x.clearRect(0, 0, W, H);
@@ -40,22 +32,8 @@ function draw() {
     x.restore();
     return;
   }
-  if (G.fin) {
-    drawFinale(); // final del piso 10: negro, zoom, manos y Parca
-    return;
-  }
-  // zoom de cámara (escena del mercader)
-  const zs = G.zm ? sqZoom() : 1;
-  if (zs != 1 && G.zm) {
-    x.save();
-    x.translate(G.zm.tx, G.zm.ty);
-    x.scale(zs, zs);
-    x.translate(-G.zm.tx, -G.zm.ty);
-    drawWorld();
-    x.restore();
-  } else drawWorld();
+  drawWorld();
   hud();
-  if (G.cs) drawCS();
   dbgHud();
 }
 // Dibuja la sala y todo lo que hay en ella (sin HUD). noPlayer: omite al jugador (transición de cámara).
@@ -74,7 +52,6 @@ function drawWorld(noPlayer) {
     r = RM_;
   drawRoomBase(r);
   drawDoors(r);
-  if (r.tp == "puzzle") sqDraw(r);
   x.textAlign = "center";
   const cx = 480,
     cy = 300;
@@ -114,23 +91,26 @@ function drawWorld(noPlayer) {
     x.fillStyle = g;
     x.fillRect(0, 0, W, H);
   }
-  drawActors(noPlayer);
-  dbgWorld();
-  x.restore();
-}
-// Zonas, enemigos, proyectiles, efectos y jugador (compartido por la mazmorra y la sala de clases).
-function drawActors(noPlayer) {
   for (const z of ZN) {
-    // zonas, ondas (nova/cono) y vínculos de los hechizos, cada uno con su diseño (render/spell-fx-*.js)
-    if (z.zk == "wave") safe(drawSpellWave, z);
-    else if (z.zk == "link") safe(drawSpellLink, z);
-    else safe(drawSpellZone, z);
+    x.globalAlpha = 0.22;
+    x.fillStyle = EL[z.sp.a].c;
+    x.beginPath();
+    x.arc(z.x, z.y, z.r, 0, 7);
+    x.fill();
+    x.globalAlpha = 1;
   }
-  x.globalAlpha = 1;
-  if (SBH.length) drawSBH();
-  if (BHZ.length) bzDraw();
-  for (const z of FZ) drawFZ(z);
-  for (const t of TR) drawTR(t);
+  for (const t of TR) {
+    x.strokeStyle = "#9fe8ff";
+    x.beginPath();
+    x.arc(t.x, t.y, 30, 0, 7);
+    x.stroke();
+  }
+  for (const a of AL) {
+    x.fillStyle = "#8fe";
+    x.beginPath();
+    x.arc(a.x, a.y, 8, 0, 7);
+    x.fill();
+  }
   for (const z of Z) {
     x.strokeStyle = z.c;
     x.fillStyle = z.c;
@@ -143,10 +123,9 @@ function drawActors(noPlayer) {
   }
   for (const e of E) {
     const T = ET[e.t];
-    x.globalAlpha = e.sp > 0 && !e.sb ? 0.3 : 1;
+    x.globalAlpha = e.sp > 0 ? 0.3 : 1;
     if (e.t == "boss" || e.t == "decoy" || e.t == "orb") safe(drawBoss, e);
     else safe(drawEnemy, e);
-    if (e.frzU > Date.now() && e.st.stun > 0) safe(drawIceBlock, e);
     if (e.sh > 0) {
       x.strokeStyle = "#4fa";
       x.beginPath();
@@ -183,10 +162,6 @@ function drawActors(noPlayer) {
     x.globalAlpha = 1;
   }
   for (const p of PR) {
-    if (p.dr) {
-      p.dr(p); // dibujo propio (astros del jefe secreto)
-      continue;
-    }
     if (p.spr && drawProj(p)) continue;
     x.fillStyle = p.c;
     x.beginPath();
@@ -243,8 +218,6 @@ function drawActors(noPlayer) {
       x.fillStyle = g;
       const bw = 8 + 24 * a;
       x.fillRect(f.x - bw / 2, f.y - 190, bw, 190);
-    } else if (f.k == "sfx") {
-      safe(drawSpellFx, f);
     } else if (f.k == "line") {
       x.strokeStyle = "#fff27a";
       x.lineWidth = 3;
@@ -269,5 +242,7 @@ function drawActors(noPlayer) {
     x.font = "bold 14px Georgia";
     x.fillText(n.t, n.x, n.y);
   }
+  dbgWorld();
+  x.restore();
 }
 

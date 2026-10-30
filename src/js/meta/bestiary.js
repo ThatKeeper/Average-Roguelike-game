@@ -12,7 +12,7 @@ function bestMenu() {
       ...Object.keys(ET)
         .filter((k) => !["decoy", "orb", "boss", "dummy"].includes(k))
         .map((k) => ({ k, b: 0 })),
-      ...BD.slice(0, BDV()).map((b, i) => ({ k: "b" + i, i, b: 1 })),
+      ...BD.map((b, i) => ({ k: "b" + i, i, b: 1 })),
     ]
       .filter((e) => !F || (F == 1 ? !e.b : e.b))
       .filter(
@@ -60,10 +60,10 @@ function bestMenu() {
               ...z,
               i: `<span style="color:${b.c}">◆</span>`,
               n: b.n,
-              tp: e.i == SB ? "Jefe secreto" : FIN(e.i) ? "Jefe final" : "Jefe",
+              tp: FIN(e.i) ? "Jefe final" : "Jefe",
               r: FIN(e.i) ? 3 : 1,
               d: BDS[e.i],
-              stx: e.i == SB ? `Derrotado ${n}× · Jefe secreto` : `Derrotado ${n}× · Profundidad ${bossDepth(e.i)}`,
+              stx: `Derrotado ${n}× · Profundidad ${bossDepth(e.i)}`,
             };
           }
           const T = ET[e.k],

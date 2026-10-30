@@ -65,8 +65,7 @@ const TCDEF = {
   skill: { s: 54, n: "Habilidad" },
   q: { s: 54, n: "Q" },
   e: { s: 54, n: "E" },
-  r: { s: 54, n: "Habilidad R" },
-  util: { s: 54, n: "Habilidad de rama" },
+  r: { s: 54, n: "Acción" },
   dodge: { s: 54, n: "Esquivar" },
   use: { s: 54, n: "Interactuar" },
   hp: { s: 46, n: "Poción de vida" },
@@ -81,22 +80,11 @@ const TCDEF = {
   c3: { s: 44, n: "Carta 3" },
   c4: { s: 44, n: "Carta 4" },
 };
-const tcMage = () => mageOn();
-// el botón de clic derecho solo existe si la clase tiene habilidad ahí (o es guardia); la rama de Fuerza usa ese botón también para C
-// ¿La pareja p (casillas 1+2 o 3+4) del grimorio está fundida en una combinación? (entonces solo se muestra un botón, más grande)
-const tcFused = (p) => typeof pairState == "function" && !TC.edit && tcMage() && pairState(p).fused;
-const tcVisible = (id) => {
-  if (TC.edit) return true;
-  if (G.st == "hub" && !G.sbx && /^(q|e|r|skill|util|c\d|book)$/.test(id)) return false;
-  if (/^c\d$|^book$/.test(id)) return tcMage() && !(id == "c2" && tcFused(0)) && !(id == "c4" && tcFused(1));
-  if (!P || P.nov) return !/^(q|e|r|skill|util)$/.test(id) || G.st != "hub";
-  if (id == "skill") return P.br == "str" || !!skOf(P.ck, 2);
-  if (id == "util") return P.br != "str";
-  return true;
-};
+const tcMage = () => !!(P && P.cls == "g");
+const tcVisible = (id) => (TC.edit ? true : /^c\d$|^book$/.test(id) ? tcMage() : true);
 
 function tcReset() {
-  for (const k of ["up", "down", "left", "right", "q", "e", "r", "util", "c1", "c2", "c3", "c4"]) K[KY[k]] = 0;
+  for (const k of ["up", "down", "left", "right", "q", "e", "r", "c1", "c2", "c3", "c4"]) K[KY[k]] = 0;
   M.d = 0;
   M.r = 0;
   TC.ah = 0;
@@ -320,7 +308,6 @@ function buildTouch() {
   B("q", "", ...hold("q"));
   B("e", "", ...hold("e"));
   B("r", "", ...hold("r"));
-  B("util", "", ...hold("util"));
   B("dodge", "", () => {
     if (!G.ov && G.st == "play") dodge();
   });
@@ -394,7 +381,6 @@ function tcDefaults(vw, vh, sz) {
   p.q = pol(R2, 172);
   p.e = pol(R2, 200);
   p.r = pol(R2, 228);
-  p.util = pol(R2 + sz.q + 6, 205);
   p.hp = pol(R2, 256);
   p.mp = pol(R2, 284);
   ["pause", "inv", "map", "tal", "book"].forEach((id, i) => (p[id] = [vw - m - sz[id] / 2 - i * (sz[id] + 8), m + sz[id] / 2]));
@@ -454,14 +440,6 @@ function tcLayout(editing) {
     const pos = tcDefaults(vw, vh, sz),
       src = editing || TC.edit ? Object.assign({}, S.tl || {}, TC.ed) : S.tl || {};
     for (const id in src) if (pos[id] && src[id]) pos[id] = [src[id][0] * vw, src[id][1] * vh];
-    // pareja de hechizos fundida: un único botón más grande, entre los dos botones de la pareja
-    for (let p = 0; p < 2; p++)
-      if (tcFused(p)) {
-        const a = "c" + (2 * p + 1),
-          b = "c" + (2 * p + 2);
-        pos[a] = [(pos[a][0] + pos[b][0]) / 2, (pos[a][1] + pos[b][1]) / 2];
-        sz[a] = Math.round(sz[a] * 1.3);
-      }
     // en el editor se deja colocar libremente (los solapes se marcan en rojo); en juego se resuelven
     const ok = TC.edit ? true : tcResolve(pos, sz, ids, vw, vh);
     if (ok || tries == 7 || TC.edit) {
@@ -503,46 +481,59 @@ function tcLayout(editing) {
 // ---------- iconos dinámicos (según clase, arma, tomo y cartas) ----------
 function tcIcons(force) {
   if (!TC.box) return;
-  const sig = [P ? P.ck : "", P ? P.w.n : "", P && P.nov, S.cards && JSON.stringify(S.cards.slots), tcPairSig(), TC.size.atk].join("|");
+  const w = P ? P.w.s : "m",
+    sig = [w, P ? P.w.n : "", P && P.tm, P && P.w.bleed, S.cards && JSON.stringify(S.cards.slots), TC.size.atk].join("|");
   if (!force && sig == TC.isig) return;
   TC.isig = sig;
-  const col = P && !P.nov ? BRN[P.br].c : "#c9a24a",
-    // iconos de habilidad: los mismos sprites del HUD (src/assets/hud/icons); si faltan, el SVG genérico
-    im = (id) => (HUD_DATA.icons && HUD_DATA.icons[id] ? `<img src="${HUD_DATA.icons[id]}" alt="" style="width:100%;height:100%;image-rendering:auto">` : tcSvg(id)),
-    set = (id, ic, c, svg) => {
+  const IC = { m: ["whirl", "leap", "guard"], r: ["volley", "bomb", "drop"], g: ["orb", "nova", "bolt"] }[w],
+    col = { m: "#d8b36a", r: "#7fd08a", g: "#8aa8ff" }[w],
+    tm = P && P.tm,
+    rI = tm
+      ? { shield: "guard", trap: "zone", summon: "orb", beam: "bolt", cone: "cone" }[tm]
+      : w == "m"
+        ? P && P.w.bleed
+          ? "drop"
+          : "rage"
+        : w == "r"
+          ? "reload"
+          : "orb",
+    set = (id, ic, c) => {
       const el = TC.els[id];
       if (!el) return;
-      el.querySelector(".ic").innerHTML = svg ? tcSvg(ic) : im(ic);
+      el.querySelector(".ic").innerHTML = tcSvg(ic);
       el.style.setProperty("--c", c);
       el.title = TCDEF[id].n;
-    },
-    k = (i) => (P && !P.nov && skOf(P.ck, i)) || null,
-    U2 = P && !P.nov ? skUtil(P.br) : null;
-  set("q", k(0) ? k(0).ic : "whirl", col);
-  set("e", k(1) ? k(1).ic : "leap", col);
-  set("skill", k(2) ? k(2).ic : "guard", col);
-  set("r", k(3) ? k(3).ic : "star", "#c9a24a");
-  set("util", U2 ? U2.ic : "reset", "#c9a24a");
+    };
+  set("q", IC[0], col);
+  set("e", IC[1], col);
+  set("skill", IC[2], col);
+  set("r", rI, "#c9a24a");
   set("dodge", "dodge", "#9cf");
-  set("use", "use", "#fff", 1);
-  set("hp", "potion_hp", "#e55");
-  set("mp", "potion_mp", "#58f");
-  set("pause", "pause", "#ddd", 1);
-  set("inv", "bag", "#e8c97a", 1);
-  set("map", "map", "#9fd", 1);
-  set("tal", "tal", "#fd6", 1);
-  set("book", "book", "#a9f", 1);
+  set("use", "use", "#fff");
+  set("hp", "hp", "#e55");
+  set("mp", "mp", "#58f");
+  set("pause", "pause", "#ddd");
+  set("inv", "bag", "#e8c97a");
+  set("map", "map", "#9fd");
+  set("tal", "tal", "#fd6");
+  set("book", "book", "#a9f");
+  const SI = { bolt: "orb", nova: "nova", cone: "cone", zone: "zone" };
   for (let i = 0; i < 4; i++) {
-    const kk = S.cards && S.cards.slots[i],
-      pr = typeof pairState == "function" && S.cards ? pairState(i >> 1) : null,
-      fz = pr && pr.fused,
-      key = fz ? (i & 1 ? null : pr.k) : kk,
-      el = TC.els["c" + (i + 1)];
-    if (!el || (fz && i & 1)) continue;
-    const sp = (kk0, big) => `<img src="${spIconURL(kk0)}" alt="" style="width:100%;height:100%;image-rendering:pixelated">`;
-    el.querySelector(".ic").innerHTML = (key ? sp(key) : tcSvg("card")) + `<i class="num">${fz ? i + 1 + "+" + (i + 2) : i + 1}</i>`;
-    el.style.setProperty("--c", fz ? "#ffd54a" : kk ? EL[kk].c : "#777");
-    el.title = TCDEF["c" + (i + 1)].n;
+    const k = S.cards && S.cards.slots[i],
+      c = k && typeof CARDS != "undefined" && CARDS[k];
+    let ic = "card",
+      cc = "#777";
+    if (c)
+      try {
+        ic = SI[build(c.a, c.b, c.f).f] || "orb";
+        cc = EL[c.a].c;
+      } catch (e) {}
+    const el = TC.els["c" + (i + 1)];
+    if (el) {
+      el.querySelector(".ic").innerHTML = tcSvg(ic) + `<i class="num">${i + 1}</i>`;
+      el.style.setProperty("--c", cc);
+      el.title = TCDEF["c" + (i + 1)].n;
+    }
   }
   // arma equipada dentro del joystick de ataque
   if (TC.els.aknob) {
@@ -562,11 +553,10 @@ function tcApply() {
   TC.rev++;
   tcLayout();
 }
-const tcPairSig = () => (typeof pairState == "function" && S.cards ? [0, 1].map((p) => (pairState(p).fused ? pairState(p).k : "")).join(",") : "");
 function tcSync() {
   if (!TOUCH) return;
   if (!TC.box) buildTouch();
-  const sig = innerWidth + "x" + innerHeight + "|" + tcMage() + "|" + tcPairSig() + "|" + (P ? P.ck + P.nov : "") + "|" + (G.sbx ? 1 : 0) + "|" + G.st + "|" + TC.rev + "|" + (TC.edit ? 1 : 0) + "|" + (S.dpad ? 1 : 0);
+  const sig = innerWidth + "x" + innerHeight + "|" + tcMage() + "|" + TC.rev + "|" + (TC.edit ? 1 : 0) + "|" + (S.dpad ? 1 : 0);
   if (sig != TC.sig) {
     TC.sig = sig;
     tcLayout();
@@ -574,9 +564,7 @@ function tcSync() {
   tcIcons();
   if (G.ov && !TC.wasOv) tcReset();
   TC.wasOv = G.ov ? 1 : 0;
-  // Con un menú abierto (pausa, ajustes, inventario, pantalla de muerte...) los controles táctiles se ocultan: si no, quedaban
-  // encima del menú, tapaban sus botones y bloqueaban el desplazamiento táctil.
-  TC.box.style.display = ROT || TC.edit || ((G.st == "play" || G.st == "hub") && !G.ov) ? "block" : "none";
+  TC.box.style.display = G.st == "play" || G.st == "hub" || ROT || TC.edit ? "block" : "none";
   tcCooldowns();
 }
 /** Muestra los segundos de enfriamiento restantes sobre cada botón de habilidad. */
@@ -593,17 +581,16 @@ function tcCooldown(id, cd) {
   }
 }
 function tcCooldowns() {
-  const ok = P && (G.st == "play" || G.sbx) && !P.nov,
-    A = (i) => ok && skOf(P.ck, i);
-  tcCooldown("q", A(0) && A(0).f ? P.cd[0] : 0);
-  tcCooldown("e", A(1) && A(1).f ? P.cd[1] : 0);
-  tcCooldown("skill", A(2) && A(2).f ? P.cd[2] : 0); // la guardia no tiene enfriamiento
-  tcCooldown("r", A(3) && A(3).f ? P.cd[3] : 0);
-  tcCooldown("util", ok ? P.cd[8] : 0);
+  const ok = P && G.st == "play",
+    A = ok && AB[P.w.s];
+  tcCooldown("q", ok && A[0] && A[0].f ? P.cd[0] : 0);
+  tcCooldown("e", ok && A[1] && A[1].f ? P.cd[1] : 0);
+  tcCooldown("skill", ok && A[2] && A[2].f ? P.cd[2] : 0); // la guardia del guerrero no tiene enfriamiento
+  tcCooldown("r", ok ? P.cd[3] : 0);
   tcCooldown("dodge", ok ? P.dcd : 0);
   tcCooldown("hp", ok && P.potcd > 0 ? P.potcd : 0);
   tcCooldown("mp", ok && P.potcd > 0 ? P.potcd : 0);
-  for (let i = 0; i < 4; i++) tcCooldown("c" + (i + 1), ok && mageOn() ? P.cd[4 + i] : 0);
+  for (let i = 0; i < 4; i++) tcCooldown("c" + (i + 1), ok && P.cls == "g" ? P.cd[4 + i] : 0);
   // contador de pociones en el borde del botón
   for (const k of ["hp", "mp"]) {
     const b = TC.els[k];

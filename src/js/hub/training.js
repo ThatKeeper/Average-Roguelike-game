@@ -9,7 +9,7 @@
 function trainMenu() {
   show(
     "<h2>Campo de entrenamiento</h2><p>Maniquíes, un arquero de práctica (parry y proyectiles) y un combatiente. Sin XP, botín ni progreso.</p>",
-    CLS.map((c, ci) => ({
+    CLS.map((c) => ({
       i: c.i,
       n: c.n,
       tp: "Entrenar",
@@ -18,13 +18,12 @@ function trainMenu() {
       stx: "Sin recompensas",
       nc: 1,
       t: "Entrenar",
-      dis: !clsOK(ci),
-      f: () => startTrain(ci),
+      f: () => startTrain(c.w),
     })).concat([back()]),
   );
 }
-function startTrain(ci) {
-  run(ci);
+function startTrain(w) {
+  run(w);
   G.arena = 1;
   G.train = 1;
   P.lv = 8;

@@ -12,7 +12,7 @@ function interact() {
     return;
   }
   const r = RM_;
-  if (G.ov || G.fin || G.finWait > 0 || trnBusy() || dist(P, { x: 480, y: 300 }) > 70) return;
+  if (G.ov || trnBusy() || dist(P, { x: 480, y: 300 }) > 70) return;
   if (r.tp == "boss" && r.cl) {
     if (G.arena) {
       endPractice();
@@ -24,7 +24,7 @@ function interact() {
       return;
     }
     trnCubes("down");
-    G.d = G.dbgQ && G.d == 7 ? 10 : G.d + 1; // la vida se conserva tal cual al bajar de piso (ya no se cura); el atajo de debug salta de 7 a 10
+    G.d++; // la vida se conserva tal cual al bajar de piso (ya no se cura)
     genLevel();
     enter(0, 4);
     flash("Profundidad " + G.d + " — " + G.bi[0]);
@@ -32,10 +32,6 @@ function interact() {
     checkUnlocks();
     save();
     chk();
-    return;
-  }
-  if (r.tp == "puzzle") {
-    sqUse();
     return;
   }
   if (r.used) return;
@@ -54,10 +50,7 @@ function interact() {
     show("<h2>Santuario</h2><p>Un altar susurra...</p>", [
       // El trago solo se ofrece si te falta vida.
       ...(P.hp < P.mhp ? [{ t: "Beber un trago: recuperas el 40% de la vida", f: () => (P.hp = Math.min(P.mhp, P.hp + P.mhp * 0.4)) }] : []),
-      // La bendición de daño (+10 %) se puede acumular como máximo 3 veces por partida.
-      ...((P.bless || 0) < 3
-        ? [{ t: `Bendición: +10% daño (${P.bless || 0}/3)`, f: () => { P.dm *= 1.1; P.bless = (P.bless || 0) + 1; } }]
-        : [{ t: "Bendición: +10% daño (3/3, máximo alcanzado)", dis: 1, i: "⚔️", n: "Bendición", tp: "Opción", r: 0, d: "Ya has acumulado el máximo de 3 bendiciones de daño.", f: () => {} }]),
+      { t: "Bendición: +10% daño", f: () => (P.dm *= 1.1) },
       {
         t: "Pacto: −20 vida máx., +3 a un atributo al azar",
         f: () => {

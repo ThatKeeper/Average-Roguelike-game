@@ -54,10 +54,7 @@ canvas {
   overscroll-behavior: contain;
   text-align: center;
   padding: 12px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  overflow: auto;
 }
 #ov > :first-child {
   margin-top: auto;

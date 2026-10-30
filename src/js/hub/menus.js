@@ -1,11 +1,31 @@
 /* ======================================================================
  * src/js/hub/menus.js
- * Menús del hub: mejoras permanentes (forja), estadísticas, información y ajustes.
+ * Menús del hub: clases, mejoras permanentes (forja), estadísticas, información y ajustes.
  *
  * Define:
- * U, cyc, UPG, forgeMenu, statsMenu, infoMenu (los ajustes están en ui/controls-menu.js)
+ * clsMenu, U, cyc, UPG, forgeMenu, statsMenu, infoMenu, cfgMenu
  * ====================================================================== */
 
+function clsMenu() {
+  show(
+    `<h2>Pedestal de clases</h2><p>Clase elegida: <b>${CLS[S.cls || 0].n}</b>. Confírmala en la puerta.</p>`,
+    CLS.map((c, i) => ({
+      i: c.i,
+      n: c.n,
+      tp: "Clase",
+      r: (S.cls || 0) == i ? 3 : 0,
+      d: c.d,
+      stx: c.stx,
+      nc: 1,
+      t: "Elegir",
+      f: () => {
+        S.cls = i;
+        save();
+        clsMenu();
+      },
+    })).concat([back()]),
+  );
+}
 const U = (k) => (S.up && S.up[k]) || 0,
   cyc = (v) => [1, 0.6, 0.3, 0][([1, 0.6, 0.3, 0].indexOf(v ?? 1) + 1) % 4];
 const UPG = [
@@ -62,7 +82,7 @@ function statsMenu() {
         `Mejor profundidad: ${S.best}`,
         `Almas: ${S.souls}`,
         `Enemigos derrotados: ${st("k")}`,
-        `Jefes distintos derrotados: ${Object.keys(S.bosses).length}/${BDV()}`,
+        `Jefes distintos derrotados: ${Object.keys(S.bosses).length}/${BD.length}`,
         `Bestiario: ${nBk()}/${TOT()}`,
         `Logros: ${Object.keys(S.ach).length}/${ACH.length}`,
         `Parries perfectos: ${st("pf")} · proyectiles reflejados: ${st("pj")}`,
@@ -80,3 +100,43 @@ function infoMenu() {
     [back()],
   );
 }
+function cfgMenu() {
+  const o = show;
+  let a;
+  show = (h, b) => {
+    a = b;
+  };
+  try {
+    legacy();
+  } finally {
+    show = o;
+  }
+  G.st = "menu";
+  show(
+    "<h2>Ajustes</h2>",
+    a
+      .filter((b) => !/Guerrero|Cazador|Mago|Forja|Arena/.test(b.t))
+      .concat([
+        {
+          t: "Volumen música: " + Math.round((S.vm ?? 1) * 100) + "%",
+          nc: 1,
+          f: () => {
+            S.vm = cyc(S.vm);
+            save();
+            cfgMenu();
+          },
+        },
+        {
+          t: "Volumen efectos: " + Math.round((S.vfx ?? 1) * 100) + "%",
+          nc: 1,
+          f: () => {
+            S.vfx = cyc(S.vfx);
+            save();
+            cfgMenu();
+          },
+        },
+        back(),
+      ]),
+  );
+}
+

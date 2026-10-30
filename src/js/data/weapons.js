@@ -12,7 +12,7 @@ const WP = [
   { n: "Espada", s: "m", cd: 0.38, rng: 78, arc: 2.1, dmg: 1, crit: 0.08, sc: "str" },
   { n: "Dagas", s: "m", cd: 0.2, rng: 48, arc: 1.7, dmg: 0.5, crit: 0.28, sc: "str" },
   { n: "Gran espada", s: "m", cd: 0.75, rng: 100, arc: 3.2, dmg: 2.3, crit: 0.06, sc: "str" },
-  { n: "Martillo", s: "m", cd: 1.2, rng: 76, arc: 1.8, dmg: 2, crit: 0.05, sc: "str", stun: 1 },
+  { n: "Martillo", s: "m", cd: 0.95, rng: 76, arc: 1.8, dmg: 2.5, crit: 0.05, sc: "str", stun: 1 },
   { n: "Lanza", s: "m", cd: 0.5, rng: 135, arc: 0.55, dmg: 1.25, crit: 0.1, sc: "str" },
   {
     n: "Arco",

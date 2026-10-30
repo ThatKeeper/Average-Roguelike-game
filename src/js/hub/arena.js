@@ -9,14 +9,14 @@
 function arenaMenu() {
   show(
     `<h2>Arena de jefes</h2><p>Se desbloquean al alcanzar su profundidad (tu mejor: ${S.best}). Empiezas con un personaje de nivel acorde.</p>`,
-    BD.slice(0, BDV()).map((b, i) => ({
+    BD.map((b, i) => ({
       i: `<span style="color:${b.c}">\u25c6</span>`,
       n: b.n,
       tp: FIN(i) ? "Jefe final" : "Jefe",
       r: FIN(i) ? 3 : 1,
       d: BDS[i],
       stx: "Profundidad " + bossDepth(i),
-      dis: S.best < bossDepth(i) && !S.bosses[i], // también se puede practicar un jefe ya derrotado
+      dis: S.best < bossDepth(i),
       nc: 1,
       f: () => arena(i),
     })).concat([{ t: "Volver", nc: 1, f: menu }]),

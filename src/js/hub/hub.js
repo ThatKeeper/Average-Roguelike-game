@@ -3,14 +3,37 @@
  * Sala central (hub): clases, estaciones, menú de inicio y arranque de partida.
  *
  * Define:
- * HB, HS, hub, menu, hubUse, back, startRun
- * (las clases están en data/classes.js y la sala de clases en hub/class-room.js)
+ * HB, CLS, HS, hub, menu, hubUse, back, startRun
  * ====================================================================== */
 
 // ===== HUB: habitacion central (menu de inicio). Estaciones interactivas con F o clic; el menu antiguo sigue en Ajustes =====
 let HB = null;
+const CLS = [
+  {
+    n: "Guerrero",
+    w: 0,
+    i: "⚔️",
+    d: "Espada, guardia con parry perfecto, remolino y salto. Resistente y letal de cerca.",
+    stx: "FUE +4 · Espada · Cuerpo a cuerpo · Hab.: Remolino, Salto con impacto, Guardia/parry",
+  },
+  {
+    n: "Cazador",
+    w: 5,
+    i: "🏹",
+    d: "Arco con cargador de 12, andanada, flecha explosiva y venenosa. Movilidad y crítico.",
+    stx: "DES +4 · Arco · A distancia · Hab.: Andanada, Flecha explosiva, Flecha venenosa",
+  },
+  {
+    n: "Mago",
+    w: 9,
+    i: "🪄",
+    d: "Báculo arcano y cartas de hechizo elementales. Usa maná.",
+    stx: "INT +4 · Báculo · Magia · Hab.: Bola de fuego, Nova de hielo, Rayo en cadena",
+  },
+];
 const HS = [
   { x: 480, y: 110, i: "🚪", n: "Puerta de la mazmorra", f: () => startRun() },
+  { x: 250, y: 300, i: "🗿", n: "Pedestal de clases", f: () => clsMenu() },
   { x: 140, y: 150, i: "📜", n: "Tablón de logros", f: () => achMenu() },
   { x: 820, y: 150, i: "📚", n: "Bestiario", f: () => bestMenu() },
   { x: 150, y: 450, i: "📊", n: "Mesa de estadísticas", f: () => statsMenu() },
@@ -21,11 +44,10 @@ const HS = [
     n: "Ajustes",
     f: () => {
       G.cfg = 1;
-      cfgMenu(null);
+      cfgMenu();
     },
   },
-  { x: 250, y: 300, i: "🔨", n: "Forja de almas", f: () => forgeMenu() },
-  { x: 872, y: 300, i: "▶", n: "Sala de clases", f: () => goClassRoomSlide(), door: 1 },
+  { x: 810, y: 300, i: "🔨", n: "Forja de almas", f: () => forgeMenu() },
   { x: 480, y: 500, i: "🌀", n: "Arena de jefes", f: () => arenaMenu() },
   { x: 330, y: 500, i: "🎯", n: "Campo de entrenamiento", f: () => trainMenu() },
   { x: 630, y: 500, i: "🪧", n: "Progresión y créditos", f: () => infoMenu() },
@@ -38,12 +60,6 @@ function hub() {
   hide();
   G.st = "hub";
   G.cfg = 0;
-  G.hr = 0;
-  G.sbx = 0;
-  G.nocb = 0;
-  G.cs = null;
-  G.zm = null;
-  dlgClose();
   if (!HB) HB = { x: 480, y: 420 };
 }
 function menu() {
@@ -51,8 +67,6 @@ function menu() {
   else hub();
 }
 function hubUse(s) {
-  if (G.hr) return G.hr == 1 ? crUse() : undefined; // en la sala de pruebas no hay nada que usar
-  if (trnBusy()) return;
   s = s || HS.find((q) => Math.hypot(q.x - HB.x, q.y - HB.y) < 60);
   if (s) s.f();
 }
@@ -65,19 +79,11 @@ const back = () => ({
   },
 });
 function startRun() {
-  const ci = chosenCls();
-  if (ci < 0) {
-    // sin clase: el botón de elegir te lleva con una animación a la sala de clases
-    show("<h2>Aún no has elegido clase</h2><p>Antes de descender tienes que elegir una clase en la sala de clases (a la derecha del hub).</p>", [
-      { t: "Elegir clase", nc: 1, f: goClassRoom },
-      back(),
-    ]);
-    return;
-  }
-  const c = CLS[ci];
-  show(`<h2>¿Entrar como ${c.n}?</h2><p>${c.d}</p><p><small>Arma inicial: ${WP[c.w].n}</small></p>`, [
-    { t: "Confirmar y descender", nc: 1, f: () => run(ci) },
-    { t: "Cambiar de clase", nc: 1, f: goClassRoom },
+  const c = CLS[S.cls || 0];
+  show(`<h2>¿Entrar como ${c.n}?</h2><p>${c.d}</p>`, [
+    { t: "Confirmar y descender", nc: 1, f: () => run(c.w) },
+    { t: "Cambiar de clase", nc: 1, f: clsMenu },
     back(),
   ]);
 }
+

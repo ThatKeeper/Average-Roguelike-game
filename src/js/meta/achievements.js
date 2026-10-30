@@ -12,7 +12,7 @@ const st = (k) => S.st[k] || 0,
   nBk = () => Object.keys(S.bk).length,
   TOT = () =>
     Object.keys(ET).filter((k) => !["decoy", "orb", "boss", "dummy"].includes(k)).length +
-    BDV();
+    BD.length;
 const SN = {
   grunt: "Zombi",
   runner: "Lobo desollado",
